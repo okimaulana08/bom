@@ -10,9 +10,9 @@ export interface ArtPresentation {
 }
 
 /**
- * All 76/76 cards across Set 1 (Genesis Rift), Set 2A (Dragonic Overdrive),
- * Set 2B (Cyber Phantom Protocol), and Set 3 (Arcana & Ambush Vault)
- * now have dedicated bespoke AI-painted .jpg files!
+ * All 79/79 cards across Set 1 (Genesis Rift), Set 2A (Dragonic Overdrive),
+ * Set 2B (Cyber Phantom Protocol), Set 3 (Arcana & Ambush Vault),
+ * and Set 4 (Maximum Overlord) now have dedicated bespoke AI-painted .jpg files!
  */
 export const BESPOKE_CARD_ART: Record<string, string> = {
   fusion_aether_sovereign: '/assets/cards/fusion_aether_sovereign.jpg',
@@ -94,6 +94,10 @@ export const BESPOKE_CARD_ART: Record<string, string> = {
   chrono_aether_reflector: '/assets/cards/chrono_aether_reflector.jpg',
   pyro_mirror_force: '/assets/cards/pyro_mirror_force.jpg',
   cryo_dimensional_banish: '/assets/cards/cryo_dimensional_banish.jpg',
+  // Set 4: Maximum Overlord (#1-#3 COMPLETE — 79/79!)
+  max_aether_emperor_l: '/assets/cards/max_aether_emperor_l.jpg',
+  max_aether_emperor_c: '/assets/cards/max_aether_emperor_c.jpg',
+  max_aether_emperor_r: '/assets/cards/max_aether_emperor_r.jpg',
 };
 
 /**
