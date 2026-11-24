@@ -1,0 +1,40 @@
+﻿<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <linearGradient id="bg_umbra_shade_blade" x1="0" y1="0" x2="0.2" y2="1">
+      <stop offset="0%" stop-color="#150624"/>
+      <stop offset="52%" stop-color="#370d59"/>
+      <stop offset="100%" stop-color="#080312"/>
+    </linearGradient>
+    <radialGradient id="halo_umbra_shade_blade" cx="50%" cy="42%" r="55%">
+      <stop offset="0%" stop-color="#e879f9" stop-opacity="0.72"/>
+      <stop offset="50%" stop-color="#7e22ce" stop-opacity="0.22"/>
+      <stop offset="100%" stop-color="#000000" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="rim_umbra_shade_blade" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#ffffff" stop-opacity="0.95"/>
+      <stop offset="45%" stop-color="#e879f9" stop-opacity="0.9"/>
+      <stop offset="100%" stop-color="#7e22ce" stop-opacity="0.85"/>
+    </linearGradient>
+    <filter id="blur_umbra_shade_blade" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur stdDeviation="8" result="b"/>
+      <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <filter id="soft_umbra_shade_blade" x="-40%" y="-40%" width="180%" height="180%">
+      <feGaussianBlur stdDeviation="16"/>
+    </filter>
+  </defs>
+  <rect width="512" height="512" fill="url(#bg_umbra_shade_blade)"/>
+  <circle cx="256" cy="215" r="235" fill="url(#halo_umbra_shade_blade)"/>
+  <g opacity="0.22">
+    <path d="M0 390 L130 330 L256 365 L395 315 L512 370 L512 512 L0 512 Z" fill="#05070e"/>
+  </g>
+      <!-- Twin crossed neon violet assassin daggers -->
+    <path d='M80 120 L422 390' stroke='#e879f9' stroke-width='10' filter='url(#blur_umbra_shade_blade)'/>
+    <path d='M432 120 L90 390' stroke='#c084fc' stroke-width='10' filter='url(#blur_umbra_shade_blade)'/>
+    <path d='M175 458 L206 238 L256 142 L306 238 L337 458 Z' fill='#12051f' stroke='#a855f7' stroke-width='4'/>
+    <path d='M220 182 Q256 135 292 182 L276 232 L236 232 Z' fill='#08020f'/>
+    <line x1='236' y1='202' x2='250' y2='208' stroke='#f472b6' stroke-width='5' filter='url(#blur_umbra_shade_blade)'/>
+    <line x1='276' y1='202' x2='262' y2='208' stroke='#f472b6' stroke-width='5' filter='url(#blur_umbra_shade_blade)'/>
+  <g filter="url(#blur_umbra_shade_blade)"><circle cx='255' cy='222' r='4.4' fill='#e879f9' opacity='0.26' /><circle cx='281' cy='244' r='1.9' fill='#7e22ce' opacity='0.87' /><circle cx='180' cy='320' r='4.1' fill='#e879f9' opacity='0.41' /><circle cx='134' cy='296' r='2.5' fill='#7e22ce' opacity='0.66' /><circle cx='402' cy='130' r='4.3' fill='#e879f9' opacity='0.41' /><circle cx='465' cy='463' r='1.2' fill='#7e22ce' opacity='0.6' /><circle cx='160' cy='382' r='3.3' fill='#e879f9' opacity='0.78' /><circle cx='474' cy='161' r='3.7' fill='#7e22ce' opacity='0.25' /><circle cx='368' cy='284' r='1.5' fill='#e879f9' opacity='0.8' /><circle cx='110' cy='111' r='1.3' fill='#7e22ce' opacity='0.53' /><circle cx='184' cy='312' r='4.5' fill='#e879f9' opacity='0.54' /><circle cx='82' cy='373' r='1.4' fill='#7e22ce' opacity='0.37' /><circle cx='326' cy='84' r='3' fill='#e879f9' opacity='0.79' /><circle cx='67' cy='26' r='3.6' fill='#7e22ce' opacity='0.61' /><circle cx='208' cy='174' r='3.8' fill='#e879f9' opacity='0.76' /><circle cx='441' cy='213' r='4.9' fill='#7e22ce' opacity='0.28' /><circle cx='472' cy='389' r='3' fill='#e879f9' opacity='0.69' /><circle cx='252' cy='266' r='2.8' fill='#7e22ce' opacity='0.65' /><circle cx='102' cy='217' r='4.5' fill='#e879f9' opacity='0.46' /><circle cx='35' cy='294' r='2.6' fill='#7e22ce' opacity='0.61' /><circle cx='342' cy='206' r='1.7' fill='#e879f9' opacity='0.79' /><circle cx='399' cy='420' r='4.5' fill='#7e22ce' opacity='0.72' /><circle cx='442' cy='272' r='2.8' fill='#e879f9' opacity='0.81' /><circle cx='243' cy='149' r='3.2' fill='#7e22ce' opacity='0.86' /><circle cx='317' cy='429' r='3' fill='#e879f9' opacity='0.48' /><circle cx='134' cy='209' r='3.7' fill='#7e22ce' opacity='0.33' /></g>
+  <rect width="512" height="512" fill="url(#halo_umbra_shade_blade)" opacity="0.16"/>
+</svg>

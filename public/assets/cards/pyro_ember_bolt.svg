@@ -1,0 +1,37 @@
+﻿<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <linearGradient id="bg_pyro_ember_bolt" x1="0" y1="0" x2="0.2" y2="1">
+      <stop offset="0%" stop-color="#22050a"/>
+      <stop offset="52%" stop-color="#5e1114"/>
+      <stop offset="100%" stop-color="#0d0306"/>
+    </linearGradient>
+    <radialGradient id="halo_pyro_ember_bolt" cx="50%" cy="42%" r="55%">
+      <stop offset="0%" stop-color="#fde047" stop-opacity="0.72"/>
+      <stop offset="50%" stop-color="#ef4444" stop-opacity="0.22"/>
+      <stop offset="100%" stop-color="#000000" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="rim_pyro_ember_bolt" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#ffffff" stop-opacity="0.95"/>
+      <stop offset="45%" stop-color="#fde047" stop-opacity="0.9"/>
+      <stop offset="100%" stop-color="#ef4444" stop-opacity="0.85"/>
+    </linearGradient>
+    <filter id="blur_pyro_ember_bolt" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur stdDeviation="8" result="b"/>
+      <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <filter id="soft_pyro_ember_bolt" x="-40%" y="-40%" width="180%" height="180%">
+      <feGaussianBlur stdDeviation="16"/>
+    </filter>
+  </defs>
+  <rect width="512" height="512" fill="url(#bg_pyro_ember_bolt)"/>
+  <circle cx="256" cy="215" r="235" fill="url(#halo_pyro_ember_bolt)"/>
+  <g opacity="0.22">
+    <path d="M0 390 L130 330 L256 365 L395 315 L512 370 L512 512 L0 512 Z" fill="#05070e"/>
+  </g>
+      <ellipse cx='256' cy='256' rx='185' ry='55' transform='rotate(-38 256 256)' fill='#ef4444' opacity='0.35' filter='url(#soft_pyro_ember_bolt)'/>
+    <polygon points='445,68 295,165 322,190 85,425 215,305 188,280 340,145' fill='#f97316' filter='url(#blur_pyro_ember_bolt)'/>
+    <polygon points='435,78 270,195 290,212 118,395 240,260 222,244' fill='#fef08a'/>
+    <circle cx='425' cy='88' r='34' fill='#ffffff' opacity='0.9' filter='url(#blur_pyro_ember_bolt)'/>
+  <g filter="url(#blur_pyro_ember_bolt)"><circle cx='294' cy='315' r='1.7' fill='#fde047' opacity='0.88' /><circle cx='308' cy='170' r='4.7' fill='#ef4444' opacity='0.33' /><circle cx='476' cy='488' r='3.6' fill='#fde047' opacity='0.54' /><circle cx='404' cy='65' r='2.9' fill='#ef4444' opacity='0.64' /><circle cx='20' cy='64' r='3.1' fill='#fde047' opacity='0.88' /><circle cx='382' cy='307' r='3.9' fill='#ef4444' opacity='0.71' /><circle cx='487' cy='48' r='1.9' fill='#fde047' opacity='0.74' /><circle cx='279' cy='323' r='4.7' fill='#ef4444' opacity='0.32' /><circle cx='265' cy='313' r='2.3' fill='#fde047' opacity='0.45' /><circle cx='23' cy='462' r='2.3' fill='#ef4444' opacity='0.62' /><circle cx='73' cy='438' r='1.8' fill='#fde047' opacity='0.35' /><circle cx='145' cy='143' r='1.3' fill='#ef4444' opacity='0.32' /><circle cx='211' cy='66' r='3.4' fill='#fde047' opacity='0.28' /><circle cx='458' cy='435' r='1.9' fill='#ef4444' opacity='0.88' /><circle cx='439' cy='231' r='4.8' fill='#fde047' opacity='0.61' /><circle cx='71' cy='117' r='3.3' fill='#ef4444' opacity='0.46' /><circle cx='39' cy='273' r='4.6' fill='#fde047' opacity='0.38' /><circle cx='392' cy='98' r='3.4' fill='#ef4444' opacity='0.29' /><circle cx='383' cy='464' r='4.4' fill='#fde047' opacity='0.82' /><circle cx='215' cy='294' r='2.8' fill='#ef4444' opacity='0.72' /><circle cx='20' cy='70' r='2.4' fill='#fde047' opacity='0.54' /><circle cx='36' cy='448' r='1.8' fill='#ef4444' opacity='0.67' /><circle cx='209' cy='177' r='2.7' fill='#fde047' opacity='0.61' /><circle cx='472' cy='384' r='2.9' fill='#ef4444' opacity='0.84' /><circle cx='169' cy='430' r='1.5' fill='#fde047' opacity='0.72' /><circle cx='180' cy='428' r='2.3' fill='#ef4444' opacity='0.41' /></g>
+  <rect width="512" height="512" fill="url(#halo_pyro_ember_bolt)" opacity="0.16"/>
+</svg>

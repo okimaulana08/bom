@@ -1,0 +1,39 @@
+﻿<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <linearGradient id="bg_pyro_caldera_domain" x1="0" y1="0" x2="0.2" y2="1">
+      <stop offset="0%" stop-color="#2b0709"/>
+      <stop offset="52%" stop-color="#6e1810"/>
+      <stop offset="100%" stop-color="#140406"/>
+    </linearGradient>
+    <radialGradient id="halo_pyro_caldera_domain" cx="50%" cy="42%" r="55%">
+      <stop offset="0%" stop-color="#fb923c" stop-opacity="0.72"/>
+      <stop offset="50%" stop-color="#dc2626" stop-opacity="0.22"/>
+      <stop offset="100%" stop-color="#000000" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="rim_pyro_caldera_domain" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#ffffff" stop-opacity="0.95"/>
+      <stop offset="45%" stop-color="#fb923c" stop-opacity="0.9"/>
+      <stop offset="100%" stop-color="#dc2626" stop-opacity="0.85"/>
+    </linearGradient>
+    <filter id="blur_pyro_caldera_domain" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur stdDeviation="8" result="b"/>
+      <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <filter id="soft_pyro_caldera_domain" x="-40%" y="-40%" width="180%" height="180%">
+      <feGaussianBlur stdDeviation="16"/>
+    </filter>
+  </defs>
+  <rect width="512" height="512" fill="url(#bg_pyro_caldera_domain)"/>
+  <circle cx="256" cy="215" r="235" fill="url(#halo_pyro_caldera_domain)"/>
+  <g opacity="0.22">
+    <path d="M0 390 L130 330 L256 365 L395 315 L512 370 L512 512 L0 512 Z" fill="#05070e"/>
+  </g>
+      <!-- Volcanic crater mountains & glowing magma river -->
+    <polygon points='0,360 115,180 215,310 310,160 420,290 512,210 512,512 0,512' fill='#140609' stroke='#ea580c' stroke-width='3'/>
+    <path d='M175 512 Q245 390 256 305 Q275 390 345 512 Z' fill='#f97316' filter='url(#blur_pyro_caldera_domain)'/>
+    <path d='M218 512 Q256 410 294 512 Z' fill='#fef08a'/>
+    <circle cx='256' cy='155' r='68' fill='#ef4444' opacity='0.55' filter='url(#soft_pyro_caldera_domain)'/>
+    <circle cx='256' cy='155' r='44' fill='none' stroke='#fde047' stroke-width='3' stroke-dasharray='10 6'/>
+  <g filter="url(#blur_pyro_caldera_domain)"><circle cx='68' cy='454' r='4.4' fill='#fb923c' opacity='0.37' /><circle cx='49' cy='110' r='2.6' fill='#dc2626' opacity='0.65' /><circle cx='63' cy='190' r='2.6' fill='#fb923c' opacity='0.39' /><circle cx='257' cy='311' r='1.8' fill='#dc2626' opacity='0.4' /><circle cx='218' cy='357' r='3.2' fill='#fb923c' opacity='0.48' /><circle cx='445' cy='422' r='4.5' fill='#dc2626' opacity='0.29' /><circle cx='61' cy='352' r='1.4' fill='#fb923c' opacity='0.49' /><circle cx='409' cy='232' r='2.3' fill='#dc2626' opacity='0.49' /><circle cx='455' cy='324' r='3.6' fill='#fb923c' opacity='0.48' /><circle cx='414' cy='312' r='3' fill='#dc2626' opacity='0.34' /><circle cx='435' cy='98' r='4' fill='#fb923c' opacity='0.42' /><circle cx='394' cy='87' r='2.6' fill='#dc2626' opacity='0.33' /><circle cx='257' cy='129' r='3.9' fill='#fb923c' opacity='0.57' /><circle cx='329' cy='59' r='2.7' fill='#dc2626' opacity='0.41' /><circle cx='26' cy='396' r='1.5' fill='#fb923c' opacity='0.48' /><circle cx='78' cy='36' r='4.1' fill='#dc2626' opacity='0.67' /><circle cx='39' cy='25' r='2.2' fill='#fb923c' opacity='0.81' /><circle cx='473' cy='408' r='2.6' fill='#dc2626' opacity='0.77' /><circle cx='123' cy='209' r='2.9' fill='#fb923c' opacity='0.73' /><circle cx='61' cy='320' r='2.1' fill='#dc2626' opacity='0.86' /><circle cx='163' cy='469' r='4.4' fill='#fb923c' opacity='0.64' /><circle cx='361' cy='410' r='3.8' fill='#dc2626' opacity='0.8' /><circle cx='127' cy='211' r='2.4' fill='#fb923c' opacity='0.27' /><circle cx='267' cy='84' r='1.2' fill='#dc2626' opacity='0.8' /><circle cx='194' cy='78' r='2' fill='#fb923c' opacity='0.76' /><circle cx='417' cy='276' r='1.7' fill='#dc2626' opacity='0.69' /></g>
+  <rect width="512" height="512" fill="url(#halo_pyro_caldera_domain)" opacity="0.16"/>
+</svg>

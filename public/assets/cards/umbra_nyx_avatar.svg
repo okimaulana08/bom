@@ -1,0 +1,44 @@
+﻿<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <linearGradient id="bg_umbra_nyx_avatar" x1="0" y1="0" x2="0.2" y2="1">
+      <stop offset="0%" stop-color="#160526"/>
+      <stop offset="52%" stop-color="#450f6e"/>
+      <stop offset="100%" stop-color="#080212"/>
+    </linearGradient>
+    <radialGradient id="halo_umbra_nyx_avatar" cx="50%" cy="42%" r="55%">
+      <stop offset="0%" stop-color="#f0abfc" stop-opacity="0.72"/>
+      <stop offset="50%" stop-color="#9333ea" stop-opacity="0.22"/>
+      <stop offset="100%" stop-color="#000000" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="rim_umbra_nyx_avatar" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#ffffff" stop-opacity="0.95"/>
+      <stop offset="45%" stop-color="#f0abfc" stop-opacity="0.9"/>
+      <stop offset="100%" stop-color="#9333ea" stop-opacity="0.85"/>
+    </linearGradient>
+    <filter id="blur_umbra_nyx_avatar" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur stdDeviation="8" result="b"/>
+      <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <filter id="soft_umbra_nyx_avatar" x="-40%" y="-40%" width="180%" height="180%">
+      <feGaussianBlur stdDeviation="16"/>
+    </filter>
+  </defs>
+  <rect width="512" height="512" fill="url(#bg_umbra_nyx_avatar)"/>
+  <circle cx="256" cy="215" r="235" fill="url(#halo_umbra_nyx_avatar)"/>
+  <g opacity="0.22">
+    <path d="M0 390 L130 330 L256 365 L395 315 L512 370 L512 512 L0 512 Z" fill="#05070e"/>
+  </g>
+      <!-- Orbiting void blades & eclipse halo -->
+    <circle cx='256' cy='180' r='112' fill='#090212' stroke='#e879f9' stroke-width='6' filter='url(#blur_umbra_nyx_avatar)'/>
+    <g stroke='#f0abfc' stroke-width='4' fill='#3b0764'>
+      <polygon points='95,120 148,195 118,210'/>
+      <polygon points='417,120 364,195 394,210'/>
+      <polygon points='70,270 145,255 135,288'/>
+      <polygon points='442,270 367,255 377,288'/>
+    </g>
+    <path d='M168 465 L205 245 L256 155 L307 245 L344 465 Z' fill='#160626' stroke='#e879f9' stroke-width='4'/>
+    <circle cx='242' cy='204' r='6' fill='#f472b6' filter='url(#blur_umbra_nyx_avatar)'/>
+    <circle cx='270' cy='204' r='6' fill='#f472b6' filter='url(#blur_umbra_nyx_avatar)'/>
+  <g filter="url(#blur_umbra_nyx_avatar)"><circle cx='51' cy='166' r='4.7' fill='#f0abfc' opacity='0.68' /><circle cx='449' cy='66' r='3.2' fill='#9333ea' opacity='0.55' /><circle cx='355' cy='370' r='4.9' fill='#f0abfc' opacity='0.63' /><circle cx='164' cy='89' r='2.9' fill='#9333ea' opacity='0.58' /><circle cx='53' cy='64' r='4.6' fill='#f0abfc' opacity='0.52' /><circle cx='181' cy='338' r='3.1' fill='#9333ea' opacity='0.63' /><circle cx='299' cy='349' r='1.7' fill='#f0abfc' opacity='0.68' /><circle cx='393' cy='357' r='4.1' fill='#9333ea' opacity='0.77' /><circle cx='466' cy='319' r='1.6' fill='#f0abfc' opacity='0.89' /><circle cx='339' cy='132' r='3.3' fill='#9333ea' opacity='0.34' /><circle cx='327' cy='233' r='3.5' fill='#f0abfc' opacity='0.76' /><circle cx='357' cy='204' r='1.5' fill='#9333ea' opacity='0.4' /><circle cx='465' cy='271' r='4.3' fill='#f0abfc' opacity='0.37' /><circle cx='152' cy='314' r='2.1' fill='#9333ea' opacity='0.5' /><circle cx='384' cy='197' r='1.4' fill='#f0abfc' opacity='0.39' /><circle cx='461' cy='442' r='3.6' fill='#9333ea' opacity='0.9' /><circle cx='471' cy='115' r='3.5' fill='#f0abfc' opacity='0.69' /><circle cx='22' cy='252' r='4.3' fill='#9333ea' opacity='0.79' /><circle cx='265' cy='395' r='4' fill='#f0abfc' opacity='0.83' /><circle cx='44' cy='373' r='4.4' fill='#9333ea' opacity='0.38' /><circle cx='299' cy='457' r='3.9' fill='#f0abfc' opacity='0.42' /><circle cx='431' cy='305' r='3' fill='#9333ea' opacity='0.46' /><circle cx='194' cy='374' r='1.9' fill='#f0abfc' opacity='0.45' /><circle cx='100' cy='191' r='1.9' fill='#9333ea' opacity='0.74' /><circle cx='391' cy='316' r='4.3' fill='#f0abfc' opacity='0.58' /><circle cx='373' cy='225' r='2' fill='#9333ea' opacity='0.54' /></g>
+  <rect width="512" height="512" fill="url(#halo_umbra_nyx_avatar)" opacity="0.16"/>
+</svg>

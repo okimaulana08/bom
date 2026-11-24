@@ -1,0 +1,41 @@
+﻿<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <linearGradient id="bg_cryo_rail_sniper" x1="0" y1="0" x2="0.2" y2="1">
+      <stop offset="0%" stop-color="#061626"/>
+      <stop offset="52%" stop-color="#103554"/>
+      <stop offset="100%" stop-color="#050912"/>
+    </linearGradient>
+    <radialGradient id="halo_cryo_rail_sniper" cx="50%" cy="42%" r="55%">
+      <stop offset="0%" stop-color="#67e8f9" stop-opacity="0.72"/>
+      <stop offset="50%" stop-color="#0ea5e9" stop-opacity="0.22"/>
+      <stop offset="100%" stop-color="#000000" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="rim_cryo_rail_sniper" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#ffffff" stop-opacity="0.95"/>
+      <stop offset="45%" stop-color="#67e8f9" stop-opacity="0.9"/>
+      <stop offset="100%" stop-color="#0ea5e9" stop-opacity="0.85"/>
+    </linearGradient>
+    <filter id="blur_cryo_rail_sniper" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur stdDeviation="8" result="b"/>
+      <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <filter id="soft_cryo_rail_sniper" x="-40%" y="-40%" width="180%" height="180%">
+      <feGaussianBlur stdDeviation="16"/>
+    </filter>
+  </defs>
+  <rect width="512" height="512" fill="url(#bg_cryo_rail_sniper)"/>
+  <circle cx="256" cy="215" r="235" fill="url(#halo_cryo_rail_sniper)"/>
+  <g opacity="0.22">
+    <path d="M0 390 L130 330 L256 365 L395 315 L512 370 L512 512 L0 512 Z" fill="#05070e"/>
+  </g>
+      <!-- Piercing cyan railgun beam -->
+    <line x1='38' y1='170' x2='485' y2='290' stroke='#22d3ee' stroke-width='16' filter='url(#blur_cryo_rail_sniper)'/>
+    <line x1='38' y1='170' x2='485' y2='290' stroke='#ffffff' stroke-width='5'/>
+    <!-- Sleek sniper mech torso & visor -->
+    <path d='M130 455 L178 235 L235 162 L292 220 L315 455 Z' fill='#0c1e30' stroke='#38bdf8' stroke-width='4'/>
+    <polygon points='205,130 264,130 282,175 198,175' fill='#15324d' stroke='#a5f3fc' stroke-width='3'/>
+    <circle cx='248' cy='152' r='9' fill='#67e8f9' filter='url(#blur_cryo_rail_sniper)'/>
+    <circle cx='420' cy='272' r='34' fill='none' stroke='#a5f3fc' stroke-width='3' stroke-dasharray='8 6'/>
+  <g filter="url(#blur_cryo_rail_sniper)"><circle cx='387' cy='199' r='3.6' fill='#67e8f9' opacity='0.83' /><circle cx='424' cy='473' r='4.4' fill='#0ea5e9' opacity='0.43' /><circle cx='63' cy='81' r='4.3' fill='#67e8f9' opacity='0.87' /><circle cx='107' cy='58' r='1.4' fill='#0ea5e9' opacity='0.78' /><circle cx='112' cy='423' r='1.8' fill='#67e8f9' opacity='0.85' /><circle cx='392' cy='327' r='2.2' fill='#0ea5e9' opacity='0.87' /><circle cx='300' cy='63' r='2.9' fill='#67e8f9' opacity='0.55' /><circle cx='311' cy='288' r='1.6' fill='#0ea5e9' opacity='0.85' /><circle cx='458' cy='56' r='3.1' fill='#67e8f9' opacity='0.61' /><circle cx='107' cy='362' r='1.5' fill='#0ea5e9' opacity='0.39' /><circle cx='183' cy='73' r='2.1' fill='#67e8f9' opacity='0.41' /><circle cx='461' cy='286' r='2.6' fill='#0ea5e9' opacity='0.66' /><circle cx='481' cy='44' r='4.9' fill='#67e8f9' opacity='0.39' /><circle cx='91' cy='418' r='4.3' fill='#0ea5e9' opacity='0.33' /><circle cx='58' cy='356' r='2.2' fill='#67e8f9' opacity='0.75' /><circle cx='253' cy='205' r='3.6' fill='#0ea5e9' opacity='0.59' /><circle cx='491' cy='455' r='1.2' fill='#67e8f9' opacity='0.32' /><circle cx='282' cy='263' r='3.5' fill='#0ea5e9' opacity='0.56' /><circle cx='373' cy='468' r='3.3' fill='#67e8f9' opacity='0.69' /><circle cx='202' cy='45' r='1.2' fill='#0ea5e9' opacity='0.27' /><circle cx='345' cy='411' r='3' fill='#67e8f9' opacity='0.62' /><circle cx='291' cy='453' r='4' fill='#0ea5e9' opacity='0.3' /><circle cx='131' cy='208' r='2.9' fill='#67e8f9' opacity='0.56' /><circle cx='224' cy='181' r='3.9' fill='#0ea5e9' opacity='0.87' /><circle cx='231' cy='370' r='2' fill='#67e8f9' opacity='0.26' /><circle cx='275' cy='159' r='1.4' fill='#0ea5e9' opacity='0.55' /></g>
+  <rect width="512" height="512" fill="url(#halo_cryo_rail_sniper)" opacity="0.16"/>
+</svg>

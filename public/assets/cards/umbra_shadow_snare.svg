@@ -1,0 +1,39 @@
+﻿<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <linearGradient id="bg_umbra_shadow_snare" x1="0" y1="0" x2="0.2" y2="1">
+      <stop offset="0%" stop-color="#150424"/>
+      <stop offset="52%" stop-color="#3c0a5c"/>
+      <stop offset="100%" stop-color="#08020f"/>
+    </linearGradient>
+    <radialGradient id="halo_umbra_shadow_snare" cx="50%" cy="42%" r="55%">
+      <stop offset="0%" stop-color="#e879f9" stop-opacity="0.72"/>
+      <stop offset="50%" stop-color="#be185d" stop-opacity="0.22"/>
+      <stop offset="100%" stop-color="#000000" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="rim_umbra_shadow_snare" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#ffffff" stop-opacity="0.95"/>
+      <stop offset="45%" stop-color="#e879f9" stop-opacity="0.9"/>
+      <stop offset="100%" stop-color="#be185d" stop-opacity="0.85"/>
+    </linearGradient>
+    <filter id="blur_umbra_shadow_snare" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur stdDeviation="8" result="b"/>
+      <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <filter id="soft_umbra_shadow_snare" x="-40%" y="-40%" width="180%" height="180%">
+      <feGaussianBlur stdDeviation="16"/>
+    </filter>
+  </defs>
+  <rect width="512" height="512" fill="url(#bg_umbra_shadow_snare)"/>
+  <circle cx="256" cy="215" r="235" fill="url(#halo_umbra_shadow_snare)"/>
+  <g opacity="0.22">
+    <path d="M0 390 L130 330 L256 365 L395 315 L512 370 L512 512 L0 512 Z" fill="#05070e"/>
+  </g>
+      <!-- Abyssal jaw trap & jagged purple chains -->
+    <path d='M65 180 L135 240 L185 165 L256 245 L327 165 L377 240 L447 180' fill='none' stroke='#f472b6' stroke-width='8' filter='url(#blur_umbra_shadow_snare)'/>
+    <path d='M65 340 L135 280 L185 355 L256 275 L327 355 L377 280 L447 340' fill='none' stroke='#c084fc' stroke-width='8' filter='url(#blur_umbra_shadow_snare)'/>
+    <circle cx='256' cy='260' r='55' fill='#090212' stroke='#e879f9' stroke-width='4'/>
+    <ellipse cx='256' cy='260' rx='36' ry='14' fill='#ec4899' filter='url(#blur_umbra_shadow_snare)'/>
+    <circle cx='256' cy='260' r='8' fill='#090212'/>
+  <g filter="url(#blur_umbra_shadow_snare)"><circle cx='318' cy='109' r='1.3' fill='#e879f9' opacity='0.44' /><circle cx='144' cy='359' r='4.5' fill='#be185d' opacity='0.87' /><circle cx='58' cy='420' r='1.9' fill='#e879f9' opacity='0.85' /><circle cx='193' cy='354' r='3.3' fill='#be185d' opacity='0.5' /><circle cx='177' cy='470' r='1.2' fill='#e879f9' opacity='0.62' /><circle cx='369' cy='214' r='1.3' fill='#be185d' opacity='0.66' /><circle cx='438' cy='315' r='3.9' fill='#e879f9' opacity='0.59' /><circle cx='312' cy='82' r='4.5' fill='#be185d' opacity='0.63' /><circle cx='91' cy='355' r='1.8' fill='#e879f9' opacity='0.32' /><circle cx='96' cy='153' r='1.4' fill='#be185d' opacity='0.8' /><circle cx='470' cy='154' r='2.4' fill='#e879f9' opacity='0.33' /><circle cx='159' cy='35' r='1.6' fill='#be185d' opacity='0.43' /><circle cx='131' cy='458' r='1.8' fill='#e879f9' opacity='0.6' /><circle cx='237' cy='131' r='4.4' fill='#be185d' opacity='0.39' /><circle cx='88' cy='220' r='2.7' fill='#e879f9' opacity='0.66' /><circle cx='481' cy='199' r='2.4' fill='#be185d' opacity='0.87' /><circle cx='470' cy='313' r='4' fill='#e879f9' opacity='0.68' /><circle cx='264' cy='238' r='1.9' fill='#be185d' opacity='0.28' /><circle cx='428' cy='102' r='3.4' fill='#e879f9' opacity='0.55' /><circle cx='53' cy='453' r='2.4' fill='#be185d' opacity='0.8' /><circle cx='256' cy='236' r='2.2' fill='#e879f9' opacity='0.7' /><circle cx='462' cy='189' r='1.6' fill='#be185d' opacity='0.85' /><circle cx='418' cy='477' r='4.8' fill='#e879f9' opacity='0.73' /><circle cx='430' cy='233' r='4.4' fill='#be185d' opacity='0.62' /><circle cx='466' cy='203' r='1.8' fill='#e879f9' opacity='0.69' /><circle cx='140' cy='240' r='4' fill='#be185d' opacity='0.75' /></g>
+  <rect width="512" height="512" fill="url(#halo_umbra_shadow_snare)" opacity="0.16"/>
+</svg>

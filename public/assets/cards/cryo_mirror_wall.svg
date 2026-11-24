@@ -1,0 +1,37 @@
+﻿<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <linearGradient id="bg_cryo_mirror_wall" x1="0" y1="0" x2="0.2" y2="1">
+      <stop offset="0%" stop-color="#061726"/>
+      <stop offset="52%" stop-color="#104063"/>
+      <stop offset="100%" stop-color="#050914"/>
+    </linearGradient>
+    <radialGradient id="halo_cryo_mirror_wall" cx="50%" cy="42%" r="55%">
+      <stop offset="0%" stop-color="#67e8f9" stop-opacity="0.72"/>
+      <stop offset="50%" stop-color="#06b6d4" stop-opacity="0.22"/>
+      <stop offset="100%" stop-color="#000000" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="rim_cryo_mirror_wall" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#ffffff" stop-opacity="0.95"/>
+      <stop offset="45%" stop-color="#67e8f9" stop-opacity="0.9"/>
+      <stop offset="100%" stop-color="#06b6d4" stop-opacity="0.85"/>
+    </linearGradient>
+    <filter id="blur_cryo_mirror_wall" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur stdDeviation="8" result="b"/>
+      <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <filter id="soft_cryo_mirror_wall" x="-40%" y="-40%" width="180%" height="180%">
+      <feGaussianBlur stdDeviation="16"/>
+    </filter>
+  </defs>
+  <rect width="512" height="512" fill="url(#bg_cryo_mirror_wall)"/>
+  <circle cx="256" cy="215" r="235" fill="url(#halo_cryo_mirror_wall)"/>
+  <g opacity="0.22">
+    <path d="M0 390 L130 330 L256 365 L395 315 L512 370 L512 512 L0 512 Z" fill="#05070e"/>
+  </g>
+      <!-- Shattered cryo-firewall barrier reflecting strike -->
+    <rect x='95' y='80' width='322' height='352' rx='18' fill='#06b6d4' fill-opacity='0.2' stroke='#67e8f9' stroke-width='6' filter='url(#blur_cryo_mirror_wall)'/>
+    <path d='M256 80 L256 432 M95 190 L417 190 M95 322 L417 322' stroke='#a5f3fc' stroke-width='3' opacity='0.65'/>
+    <polygon points='256,158 342,256 256,354 170,256' fill='#ecfeff' fill-opacity='0.35' stroke='#ffffff' stroke-width='4' filter='url(#blur_cryo_mirror_wall)'/>
+  <g filter="url(#blur_cryo_mirror_wall)"><circle cx='204' cy='420' r='1.7' fill='#67e8f9' opacity='0.87' /><circle cx='74' cy='175' r='1.5' fill='#06b6d4' opacity='0.77' /><circle cx='355' cy='479' r='3.1' fill='#67e8f9' opacity='0.81' /><circle cx='313' cy='342' r='3.3' fill='#06b6d4' opacity='0.85' /><circle cx='160' cy='470' r='2.3' fill='#67e8f9' opacity='0.8' /><circle cx='234' cy='434' r='1.7' fill='#06b6d4' opacity='0.7' /><circle cx='60' cy='165' r='4' fill='#67e8f9' opacity='0.62' /><circle cx='491' cy='301' r='4.8' fill='#06b6d4' opacity='0.41' /><circle cx='463' cy='115' r='2.1' fill='#67e8f9' opacity='0.76' /><circle cx='174' cy='82' r='4.8' fill='#06b6d4' opacity='0.29' /><circle cx='107' cy='257' r='1.6' fill='#67e8f9' opacity='0.78' /><circle cx='290' cy='476' r='1.5' fill='#06b6d4' opacity='0.72' /><circle cx='240' cy='356' r='3.3' fill='#67e8f9' opacity='0.55' /><circle cx='390' cy='427' r='4.3' fill='#06b6d4' opacity='0.58' /><circle cx='352' cy='237' r='4.4' fill='#67e8f9' opacity='0.77' /><circle cx='286' cy='272' r='4.1' fill='#06b6d4' opacity='0.32' /><circle cx='490' cy='156' r='4.6' fill='#67e8f9' opacity='0.52' /><circle cx='213' cy='397' r='3.4' fill='#06b6d4' opacity='0.36' /><circle cx='488' cy='136' r='3.6' fill='#67e8f9' opacity='0.87' /><circle cx='375' cy='177' r='1.6' fill='#06b6d4' opacity='0.33' /><circle cx='116' cy='43' r='1.5' fill='#67e8f9' opacity='0.44' /><circle cx='29' cy='261' r='2.8' fill='#06b6d4' opacity='0.3' /><circle cx='190' cy='378' r='1.4' fill='#67e8f9' opacity='0.81' /><circle cx='144' cy='94' r='3' fill='#06b6d4' opacity='0.67' /><circle cx='355' cy='25' r='4.2' fill='#67e8f9' opacity='0.43' /><circle cx='44' cy='342' r='2.3' fill='#06b6d4' opacity='0.68' /></g>
+  <rect width="512" height="512" fill="url(#halo_cryo_mirror_wall)" opacity="0.16"/>
+</svg>

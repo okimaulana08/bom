@@ -1,0 +1,260 @@
+@import "tailwindcss";
+
+@layer base {
+  :root {
+    --font-display: 'Cinzel', Georgia, serif;
+    --font-ui: 'Exo 2', system-ui, -apple-system, sans-serif;
+    --font-mono: 'JetBrains Mono', monospace;
+  }
+
+  body {
+    font-family: var(--font-ui);
+    background: #04050c;
+    min-height: 100vh;
+    color: #f1f5f9;
+  }
+}
+
+.font-display {
+  font-family: var(--font-display);
+}
+
+.font-mono-num {
+  font-family: var(--font-mono);
+}
+
+/* ================= GAME SHAPE CLIP-PATHS ================= */
+.clip-chamfer {
+  clip-path: polygon(
+    14px 0%,
+    calc(100% - 14px) 0%,
+    100% 14px,
+    100% calc(100% - 14px),
+    calc(100% - 14px) 100%,
+    14px 100%,
+    0% calc(100% - 14px),
+    0% 14px
+  );
+}
+
+.clip-chamfer-sm {
+  clip-path: polygon(
+    9px 0%,
+    calc(100% - 9px) 0%,
+    100% 9px,
+    100% calc(100% - 9px),
+    calc(100% - 9px) 100%,
+    9px 100%,
+    0% calc(100% - 9px),
+    0% 9px
+  );
+}
+
+.clip-blade-r {
+  clip-path: polygon(0 0, calc(100% - 22px) 0, 100% 50%, calc(100% - 22px) 100%, 0 100%, 12px 50%);
+}
+
+.clip-skew-btn {
+  clip-path: polygon(16px 0%, 100% 0%, calc(100% - 16px) 100%, 0% 100%);
+}
+
+.clip-hex {
+  clip-path: polygon(50% 0%, 95% 25%, 95% 75%, 50% 100%, 5% 75%, 5% 25%);
+}
+
+.clip-diamond {
+  clip-path: polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%);
+}
+
+/* ================= GAME ANIMATIONS ================= */
+@keyframes holoShift {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+@keyframes auraPulse {
+  0%, 100% {
+    box-shadow: 0 0 16px rgba(251, 191, 36, 0.5), 0 0 34px rgba(245, 158, 11, 0.3);
+  }
+  50% {
+    box-shadow: 0 0 28px rgba(253, 224, 71, 0.9), 0 0 54px rgba(245, 158, 11, 0.55);
+  }
+}
+
+@keyframes prismShimmer {
+  0% { filter: hue-rotate(0deg) brightness(1.05); }
+  50% { filter: hue-rotate(28deg) brightness(1.16); }
+  100% { filter: hue-rotate(0deg) brightness(1.05); }
+}
+
+@keyframes spinSlow {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+@keyframes spinReverse {
+  from { transform: rotate(360deg); }
+  to { transform: rotate(0deg); }
+}
+
+@keyframes floatBreathe {
+  0%, 100% { transform: translateY(0px) scale(1); }
+  50% { transform: translateY(-9px) scale(1.018); }
+}
+
+@keyframes shineSweep {
+  0% { transform: translateX(-140%) skewX(-24deg); }
+  45%, 100% { transform: translateX(240%) skewX(-24deg); }
+}
+
+@keyframes moteRise {
+  0% { transform: translateY(0) scale(0.7); opacity: 0; }
+  20% { opacity: 0.85; }
+  80% { opacity: 0.45; }
+  100% { transform: translateY(-120px) scale(1.15); opacity: 0; }
+}
+
+.holo-foil {
+  background: linear-gradient(
+    125deg,
+    rgba(255, 255, 255, 0) 20%,
+    rgba(56, 189, 248, 0.32) 38%,
+    rgba(192, 132, 252, 0.38) 50%,
+    rgba(251, 191, 36, 0.35) 62%,
+    rgba(255, 255, 255, 0) 80%
+  );
+  background-size: 260% 260%;
+  animation: holoShift 4.2s ease infinite;
+}
+
+.awakened-glow {
+  animation: auraPulse 2.3s ease-in-out infinite;
+}
+
+.prism-glow {
+  animation: prismShimmer 5s linear infinite;
+}
+
+.animate-spin-slow {
+  animation: spinSlow 46s linear infinite;
+}
+
+.animate-spin-reverse {
+  animation: spinReverse 34s linear infinite;
+}
+
+.animate-breathe {
+  animation: floatBreathe 4.6s ease-in-out infinite;
+}
+
+.shine-sweep::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  width: 45%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.35),
+    transparent
+  );
+  animation: shineSweep 3.8s ease-in-out infinite;
+  pointer-events: none;
+}
+
+.mote {
+  animation: moteRise var(--mote-dur, 7s) ease-in-out infinite;
+  animation-delay: var(--mote-delay, 0s);
+}
+
+/* ================= METALLIC GAME PANELS ================= */
+.game-panel {
+  background: linear-gradient(165deg, rgba(16, 21, 42, 0.92) 0%, rgba(8, 10, 22, 0.96) 100%);
+  border: 1px solid rgba(129, 140, 248, 0.32);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.12),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.6),
+    0 12px 34px rgba(0, 0, 0, 0.65);
+}
+
+.game-panel-gold {
+  background: linear-gradient(165deg, rgba(40, 28, 14, 0.92) 0%, rgba(15, 11, 10, 0.96) 100%);
+  border: 1px solid rgba(251, 191, 36, 0.55);
+  box-shadow:
+    inset 0 1px 0 rgba(254, 240, 138, 0.28),
+    0 10px 30px rgba(0, 0, 0, 0.7);
+}
+
+/* Arena 3D Floor Plane */
+.arena-table-floor {
+  background:
+    radial-gradient(ellipse 68% 58% at 50% 50%, rgba(56, 189, 248, 0.14) 0%, rgba(124, 58, 237, 0.1) 35%, rgba(6, 8, 18, 0.92) 78%),
+    linear-gradient(180deg, rgba(153, 27, 27, 0.14) 0%, rgba(10, 13, 28, 0.88) 46%, rgba(10, 13, 28, 0.88) 54%, rgba(14, 116, 144, 0.16) 100%);
+  box-shadow:
+    inset 0 0 80px rgba(0, 0, 0, 0.85),
+    inset 0 1px 0 rgba(148, 163, 184, 0.16);
+}
+
+/* Sleek scrollbars */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgba(10, 14, 28, 0.7);
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(99, 102, 241, 0.5);
+  border-radius: 9999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(129, 140, 248, 0.85);
+}
+
+.scrollbar-none {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.scrollbar-none::-webkit-scrollbar {
+  display: none;
+}
+
+.preserve-3d {
+  transform-style: preserve-3d;
+}
+
+.perspective-1000 {
+  perspective: 1000px;
+}
+
+/* ================= LIVE ELEMENTAL BOARD AURAS ================= */
+@keyframes auraPyro {
+  0%, 100% { filter: drop-shadow(0 0 10px rgba(249, 115, 22, 0.55)); }
+  50% { filter: drop-shadow(0 0 22px rgba(251, 146, 60, 0.95)); }
+}
+@keyframes auraCryo {
+  0%, 100% { filter: drop-shadow(0 0 10px rgba(56, 189, 248, 0.55)); }
+  50% { filter: drop-shadow(0 0 22px rgba(125, 211, 252, 0.95)); }
+}
+@keyframes auraUmbra {
+  0%, 100% { filter: drop-shadow(0 0 10px rgba(192, 38, 211, 0.55)); }
+  50% { filter: drop-shadow(0 0 22px rgba(232, 121, 249, 0.95)); }
+}
+@keyframes auraChrono {
+  0%, 100% { filter: drop-shadow(0 0 10px rgba(129, 140, 248, 0.6)); }
+  50% { filter: drop-shadow(0 0 24px rgba(253, 224, 71, 0.9)); }
+}
+@keyframes auraSylvan {
+  0%, 100% { filter: drop-shadow(0 0 10px rgba(16, 185, 129, 0.55)); }
+  50% { filter: drop-shadow(0 0 22px rgba(52, 211, 153, 0.95)); }
+}
+
+.board-aura-pyroclast { animation: auraPyro 2.4s ease-in-out infinite; }
+.board-aura-cryo_mecha { animation: auraCryo 2.6s ease-in-out infinite; }
+.board-aura-umbra { animation: auraUmbra 2.5s ease-in-out infinite; }
+.board-aura-chrono { animation: auraChrono 2.3s ease-in-out infinite; }
+.board-aura-sylvan { animation: auraSylvan 2.7s ease-in-out infinite; }

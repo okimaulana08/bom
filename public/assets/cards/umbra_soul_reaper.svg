@@ -1,0 +1,40 @@
+﻿<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <linearGradient id="bg_umbra_soul_reaper" x1="0" y1="0" x2="0.2" y2="1">
+      <stop offset="0%" stop-color="#140624"/>
+      <stop offset="52%" stop-color="#3b0f5e"/>
+      <stop offset="100%" stop-color="#070210"/>
+    </linearGradient>
+    <radialGradient id="halo_umbra_soul_reaper" cx="50%" cy="42%" r="55%">
+      <stop offset="0%" stop-color="#c084fc" stop-opacity="0.72"/>
+      <stop offset="50%" stop-color="#9333ea" stop-opacity="0.22"/>
+      <stop offset="100%" stop-color="#000000" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="rim_umbra_soul_reaper" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#ffffff" stop-opacity="0.95"/>
+      <stop offset="45%" stop-color="#c084fc" stop-opacity="0.9"/>
+      <stop offset="100%" stop-color="#9333ea" stop-opacity="0.85"/>
+    </linearGradient>
+    <filter id="blur_umbra_soul_reaper" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur stdDeviation="8" result="b"/>
+      <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <filter id="soft_umbra_soul_reaper" x="-40%" y="-40%" width="180%" height="180%">
+      <feGaussianBlur stdDeviation="16"/>
+    </filter>
+  </defs>
+  <rect width="512" height="512" fill="url(#bg_umbra_soul_reaper)"/>
+  <circle cx="256" cy="215" r="235" fill="url(#halo_umbra_soul_reaper)"/>
+  <g opacity="0.22">
+    <path d="M0 390 L130 330 L256 365 L395 315 L512 370 L512 512 L0 512 Z" fill="#05070e"/>
+  </g>
+      <!-- Towering hooded reaper with huge glowing crescent scythe -->
+    <path d='M95 145 C195 65 365 75 435 190 C355 155 245 150 155 205 Z' fill='#e879f9' filter='url(#blur_umbra_soul_reaper)'/>
+    <line x1='352' y1='132' x2='165' y2='465' stroke='#d8b4fe' stroke-width='8'/>
+    <path d='M175 462 L212 225 L256 155 L300 225 L345 462 Z' fill='#12051f' stroke='#9333ea' stroke-width='4'/>
+    <circle cx='256' cy='282' r='30' fill='#ec4899' opacity='0.78' filter='url(#blur_umbra_soul_reaper)'/>
+    <circle cx='244' cy='205' r='5' fill='#f0abfc'/>
+    <circle cx='268' cy='205' r='5' fill='#f0abfc'/>
+  <g filter="url(#blur_umbra_soul_reaper)"><circle cx='29' cy='361' r='3.2' fill='#c084fc' opacity='0.4' /><circle cx='22' cy='185' r='3.6' fill='#9333ea' opacity='0.54' /><circle cx='238' cy='22' r='3.1' fill='#c084fc' opacity='0.27' /><circle cx='459' cy='70' r='1.4' fill='#9333ea' opacity='0.42' /><circle cx='129' cy='423' r='4.4' fill='#c084fc' opacity='0.66' /><circle cx='56' cy='107' r='1.9' fill='#9333ea' opacity='0.82' /><circle cx='206' cy='213' r='2.8' fill='#c084fc' opacity='0.53' /><circle cx='132' cy='69' r='1.3' fill='#9333ea' opacity='0.42' /><circle cx='86' cy='296' r='2.8' fill='#c084fc' opacity='0.83' /><circle cx='29' cy='433' r='2' fill='#9333ea' opacity='0.25' /><circle cx='75' cy='443' r='2.9' fill='#c084fc' opacity='0.62' /><circle cx='331' cy='316' r='2.7' fill='#9333ea' opacity='0.38' /><circle cx='373' cy='146' r='3.4' fill='#c084fc' opacity='0.43' /><circle cx='410' cy='122' r='4.4' fill='#9333ea' opacity='0.79' /><circle cx='266' cy='339' r='4.3' fill='#c084fc' opacity='0.64' /><circle cx='448' cy='132' r='1.9' fill='#9333ea' opacity='0.48' /><circle cx='471' cy='140' r='4.5' fill='#c084fc' opacity='0.47' /><circle cx='332' cy='104' r='2' fill='#9333ea' opacity='0.48' /><circle cx='313' cy='434' r='3.1' fill='#c084fc' opacity='0.37' /><circle cx='353' cy='321' r='2' fill='#9333ea' opacity='0.75' /><circle cx='485' cy='132' r='3.7' fill='#c084fc' opacity='0.88' /><circle cx='252' cy='382' r='2.8' fill='#9333ea' opacity='0.85' /><circle cx='360' cy='306' r='2.5' fill='#c084fc' opacity='0.47' /><circle cx='38' cy='320' r='1.5' fill='#9333ea' opacity='0.82' /><circle cx='342' cy='77' r='3.4' fill='#c084fc' opacity='0.51' /><circle cx='371' cy='57' r='3.2' fill='#9333ea' opacity='0.62' /></g>
+  <rect width="512" height="512" fill="url(#halo_umbra_soul_reaper)" opacity="0.16"/>
+</svg>

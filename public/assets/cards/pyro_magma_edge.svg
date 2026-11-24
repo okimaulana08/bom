@@ -1,0 +1,41 @@
+﻿<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <linearGradient id="bg_pyro_magma_edge" x1="0" y1="0" x2="0.2" y2="1">
+      <stop offset="0%" stop-color="#21060b"/>
+      <stop offset="52%" stop-color="#571214"/>
+      <stop offset="100%" stop-color="#0e0407"/>
+    </linearGradient>
+    <radialGradient id="halo_pyro_magma_edge" cx="50%" cy="42%" r="55%">
+      <stop offset="0%" stop-color="#fbbf24" stop-opacity="0.72"/>
+      <stop offset="50%" stop-color="#ef4444" stop-opacity="0.22"/>
+      <stop offset="100%" stop-color="#000000" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="rim_pyro_magma_edge" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#ffffff" stop-opacity="0.95"/>
+      <stop offset="45%" stop-color="#fbbf24" stop-opacity="0.9"/>
+      <stop offset="100%" stop-color="#ef4444" stop-opacity="0.85"/>
+    </linearGradient>
+    <filter id="blur_pyro_magma_edge" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur stdDeviation="8" result="b"/>
+      <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <filter id="soft_pyro_magma_edge" x="-40%" y="-40%" width="180%" height="180%">
+      <feGaussianBlur stdDeviation="16"/>
+    </filter>
+  </defs>
+  <rect width="512" height="512" fill="url(#bg_pyro_magma_edge)"/>
+  <circle cx="256" cy="215" r="235" fill="url(#halo_pyro_magma_edge)"/>
+  <g opacity="0.22">
+    <path d="M0 390 L130 330 L256 365 L395 315 L512 370 L512 512 L0 512 Z" fill="#05070e"/>
+  </g>
+      <!-- Sweeping volcanic greatsword -->
+    <g transform='rotate(34 256 256)'>
+      <path d='M242 52 L274 78 L272 345 L240 345 Z' fill='#1f0b0e' stroke='#fb923c' stroke-width='4'/>
+      <path d='M256 76 L256 335' stroke='#fef08a' stroke-width='8' filter='url(#blur_pyro_magma_edge)'/>
+      <polygon points='190,342 322,342 298,368 214,368' fill='#b91c1c' stroke='#fbbf24' stroke-width='3'/>
+      <rect x='246' y='368' width='20' height='74' rx='5' fill='#291014' stroke='#fb923c' stroke-width='2.5'/>
+      <circle cx='256' cy='452' r='16' fill='#fbbf24' filter='url(#blur_pyro_magma_edge)'/>
+    </g>
+  <g filter="url(#blur_pyro_magma_edge)"><circle cx='315' cy='120' r='3.2' fill='#fbbf24' opacity='0.51' /><circle cx='263' cy='51' r='4.3' fill='#ef4444' opacity='0.33' /><circle cx='121' cy='364' r='1.6' fill='#fbbf24' opacity='0.25' /><circle cx='109' cy='84' r='4.4' fill='#ef4444' opacity='0.81' /><circle cx='416' cy='178' r='3.3' fill='#fbbf24' opacity='0.73' /><circle cx='36' cy='66' r='1.4' fill='#ef4444' opacity='0.52' /><circle cx='108' cy='183' r='4.6' fill='#fbbf24' opacity='0.89' /><circle cx='67' cy='140' r='3.7' fill='#ef4444' opacity='0.66' /><circle cx='173' cy='336' r='1.1' fill='#fbbf24' opacity='0.51' /><circle cx='333' cy='162' r='3.6' fill='#ef4444' opacity='0.71' /><circle cx='326' cy='229' r='2.4' fill='#fbbf24' opacity='0.5' /><circle cx='171' cy='30' r='3.9' fill='#ef4444' opacity='0.34' /><circle cx='303' cy='191' r='4.3' fill='#fbbf24' opacity='0.86' /><circle cx='200' cy='155' r='3.5' fill='#ef4444' opacity='0.59' /><circle cx='84' cy='89' r='1.9' fill='#fbbf24' opacity='0.36' /><circle cx='84' cy='427' r='1.2' fill='#ef4444' opacity='0.87' /><circle cx='39' cy='248' r='3.7' fill='#fbbf24' opacity='0.59' /><circle cx='82' cy='246' r='1.8' fill='#ef4444' opacity='0.6' /><circle cx='335' cy='426' r='1.5' fill='#fbbf24' opacity='0.63' /><circle cx='378' cy='347' r='1.4' fill='#ef4444' opacity='0.36' /><circle cx='306' cy='395' r='2.6' fill='#fbbf24' opacity='0.73' /><circle cx='215' cy='371' r='2.1' fill='#ef4444' opacity='0.27' /><circle cx='44' cy='245' r='2.1' fill='#fbbf24' opacity='0.59' /><circle cx='63' cy='255' r='3.3' fill='#ef4444' opacity='0.76' /><circle cx='219' cy='198' r='2.4' fill='#fbbf24' opacity='0.79' /><circle cx='182' cy='124' r='1.1' fill='#ef4444' opacity='0.33' /></g>
+  <rect width="512" height="512" fill="url(#halo_pyro_magma_edge)" opacity="0.16"/>
+</svg>

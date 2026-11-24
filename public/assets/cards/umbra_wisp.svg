@@ -1,0 +1,39 @@
+﻿<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <linearGradient id="bg_umbra_wisp" x1="0" y1="0" x2="0.2" y2="1">
+      <stop offset="0%" stop-color="#160726"/>
+      <stop offset="52%" stop-color="#3b105c"/>
+      <stop offset="100%" stop-color="#080312"/>
+    </linearGradient>
+    <radialGradient id="halo_umbra_wisp" cx="50%" cy="42%" r="55%">
+      <stop offset="0%" stop-color="#c084fc" stop-opacity="0.72"/>
+      <stop offset="50%" stop-color="#9333ea" stop-opacity="0.22"/>
+      <stop offset="100%" stop-color="#000000" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="rim_umbra_wisp" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#ffffff" stop-opacity="0.95"/>
+      <stop offset="45%" stop-color="#c084fc" stop-opacity="0.9"/>
+      <stop offset="100%" stop-color="#9333ea" stop-opacity="0.85"/>
+    </linearGradient>
+    <filter id="blur_umbra_wisp" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur stdDeviation="8" result="b"/>
+      <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <filter id="soft_umbra_wisp" x="-40%" y="-40%" width="180%" height="180%">
+      <feGaussianBlur stdDeviation="16"/>
+    </filter>
+  </defs>
+  <rect width="512" height="512" fill="url(#bg_umbra_wisp)"/>
+  <circle cx="256" cy="215" r="235" fill="url(#halo_umbra_wisp)"/>
+  <g opacity="0.22">
+    <path d="M0 390 L130 330 L256 365 L395 315 L512 370 L512 512 L0 512 Z" fill="#05070e"/>
+  </g>
+      <!-- Shadowy floating viper-wisp with glowing magenta fangs/eyes -->
+    <path d='M120 390 C130 220 210 110 285 130 C360 150 385 265 325 325 C285 365 210 355 245 435' fill='none' stroke='#a855f7' stroke-width='26' stroke-linecap='round' opacity='0.55' filter='url(#blur_umbra_wisp)'/>
+    <path d='M180 265 Q256 125 335 245 Q285 315 210 305 Z' fill='#140621' stroke='#d8b4fe' stroke-width='3.5'/>
+    <polygon points='228,220 250,232 232,240' fill='#f472b6' filter='url(#blur_umbra_wisp)'/>
+    <polygon points='288,220 266,232 284,240' fill='#f472b6' filter='url(#blur_umbra_wisp)'/>
+    <path d='M110 140 L195 215 M405 140 L315 215' stroke='#e879f9' stroke-width='4' filter='url(#blur_umbra_wisp)'/>
+  <g filter="url(#blur_umbra_wisp)"><circle cx='480' cy='84' r='1.7' fill='#c084fc' opacity='0.77' /><circle cx='68' cy='304' r='4' fill='#9333ea' opacity='0.54' /><circle cx='122' cy='146' r='1.3' fill='#c084fc' opacity='0.55' /><circle cx='282' cy='51' r='3.7' fill='#9333ea' opacity='0.26' /><circle cx='204' cy='310' r='4.2' fill='#c084fc' opacity='0.81' /><circle cx='402' cy='347' r='4.4' fill='#9333ea' opacity='0.37' /><circle cx='114' cy='78' r='3.8' fill='#c084fc' opacity='0.37' /><circle cx='344' cy='253' r='2.3' fill='#9333ea' opacity='0.73' /><circle cx='178' cy='272' r='3.9' fill='#c084fc' opacity='0.78' /><circle cx='191' cy='261' r='4.5' fill='#9333ea' opacity='0.81' /><circle cx='294' cy='180' r='2.4' fill='#c084fc' opacity='0.47' /><circle cx='305' cy='429' r='3.9' fill='#9333ea' opacity='0.36' /><circle cx='280' cy='22' r='2.5' fill='#c084fc' opacity='0.5' /><circle cx='196' cy='402' r='2.9' fill='#9333ea' opacity='0.43' /><circle cx='149' cy='481' r='3.4' fill='#c084fc' opacity='0.89' /><circle cx='434' cy='294' r='4' fill='#9333ea' opacity='0.72' /><circle cx='472' cy='165' r='1.6' fill='#c084fc' opacity='0.26' /><circle cx='171' cy='428' r='3.6' fill='#9333ea' opacity='0.82' /><circle cx='362' cy='472' r='2.2' fill='#c084fc' opacity='0.56' /><circle cx='189' cy='268' r='3.3' fill='#9333ea' opacity='0.47' /><circle cx='199' cy='279' r='3.5' fill='#c084fc' opacity='0.69' /><circle cx='73' cy='458' r='2.5' fill='#9333ea' opacity='0.59' /><circle cx='53' cy='238' r='3.1' fill='#c084fc' opacity='0.5' /><circle cx='448' cy='450' r='4.9' fill='#9333ea' opacity='0.25' /><circle cx='293' cy='309' r='2.5' fill='#c084fc' opacity='0.44' /><circle cx='369' cy='361' r='4.3' fill='#9333ea' opacity='0.7' /></g>
+  <rect width="512" height="512" fill="url(#halo_umbra_wisp)" opacity="0.16"/>
+</svg>

@@ -1,0 +1,44 @@
+﻿<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <linearGradient id="bg_pyro_cinder_acolyte" x1="0" y1="0" x2="0.2" y2="1">
+      <stop offset="0%" stop-color="#1f070c"/>
+      <stop offset="52%" stop-color="#4d1118"/>
+      <stop offset="100%" stop-color="#0c0408"/>
+    </linearGradient>
+    <radialGradient id="halo_pyro_cinder_acolyte" cx="50%" cy="42%" r="55%">
+      <stop offset="0%" stop-color="#f97316" stop-opacity="0.72"/>
+      <stop offset="50%" stop-color="#dc2626" stop-opacity="0.22"/>
+      <stop offset="100%" stop-color="#000000" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="rim_pyro_cinder_acolyte" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#ffffff" stop-opacity="0.95"/>
+      <stop offset="45%" stop-color="#f97316" stop-opacity="0.9"/>
+      <stop offset="100%" stop-color="#dc2626" stop-opacity="0.85"/>
+    </linearGradient>
+    <filter id="blur_pyro_cinder_acolyte" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur stdDeviation="8" result="b"/>
+      <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <filter id="soft_pyro_cinder_acolyte" x="-40%" y="-40%" width="180%" height="180%">
+      <feGaussianBlur stdDeviation="16"/>
+    </filter>
+  </defs>
+  <rect width="512" height="512" fill="url(#bg_pyro_cinder_acolyte)"/>
+  <circle cx="256" cy="215" r="235" fill="url(#halo_pyro_cinder_acolyte)"/>
+  <g opacity="0.22">
+    <path d="M0 390 L130 330 L256 365 L395 315 L512 370 L512 512 L0 512 Z" fill="#05070e"/>
+  </g>
+      <circle cx='256' cy='180' r='115' fill='none' stroke='#f97316' stroke-width='3' stroke-dasharray='14 8' opacity='0.65' filter='url(#blur_pyro_cinder_acolyte)'/>
+    <!-- Hooded pyromancer cloak -->
+    <path d='M140 465 L192 230 L256 125 L320 230 L372 465 Z' fill='#17070c' stroke='#ea580c' stroke-width='3.5'/>
+    <path d='M212 185 Q256 135 300 185 L285 245 Q256 262 227 245 Z' fill='#0a0306'/>
+    <circle cx='242' cy='212' r='6' fill='#fde047' filter='url(#blur_pyro_cinder_acolyte)'/>
+    <circle cx='270' cy='212' r='6' fill='#fde047' filter='url(#blur_pyro_cinder_acolyte)'/>
+    <!-- Floating twin fire orbs & volcanic staff -->
+    <line x1='352' y1='108' x2='334' y2='450' stroke='#9a3412' stroke-width='7'/>
+    <circle cx='354' cy='102' r='26' fill='#fde047' filter='url(#blur_pyro_cinder_acolyte)'/>
+    <circle cx='148' cy='272' r='22' fill='#fb923c' filter='url(#blur_pyro_cinder_acolyte)'/>
+    <path d='M256 285 L288 345 L256 410 L224 345 Z' fill='none' stroke='#fbbf24' stroke-width='3'/>
+  <g filter="url(#blur_pyro_cinder_acolyte)"><circle cx='26' cy='372' r='1.3' fill='#f97316' opacity='0.46' /><circle cx='141' cy='348' r='3.4' fill='#dc2626' opacity='0.65' /><circle cx='301' cy='438' r='2.8' fill='#f97316' opacity='0.32' /><circle cx='375' cy='272' r='2.5' fill='#dc2626' opacity='0.73' /><circle cx='368' cy='131' r='2.8' fill='#f97316' opacity='0.78' /><circle cx='194' cy='431' r='2' fill='#dc2626' opacity='0.68' /><circle cx='348' cy='81' r='3.5' fill='#f97316' opacity='0.83' /><circle cx='360' cy='127' r='4.3' fill='#dc2626' opacity='0.46' /><circle cx='168' cy='277' r='2.1' fill='#f97316' opacity='0.37' /><circle cx='266' cy='441' r='4.2' fill='#dc2626' opacity='0.82' /><circle cx='402' cy='45' r='2.9' fill='#f97316' opacity='0.78' /><circle cx='343' cy='312' r='1.3' fill='#dc2626' opacity='0.29' /><circle cx='72' cy='351' r='2.1' fill='#f97316' opacity='0.7' /><circle cx='373' cy='146' r='3.4' fill='#dc2626' opacity='0.34' /><circle cx='263' cy='208' r='3.5' fill='#f97316' opacity='0.33' /><circle cx='51' cy='359' r='4.5' fill='#dc2626' opacity='0.49' /><circle cx='40' cy='75' r='4.1' fill='#f97316' opacity='0.38' /><circle cx='150' cy='112' r='1.9' fill='#dc2626' opacity='0.8' /><circle cx='220' cy='286' r='4.9' fill='#f97316' opacity='0.46' /><circle cx='206' cy='215' r='4.8' fill='#dc2626' opacity='0.3' /><circle cx='63' cy='291' r='4' fill='#f97316' opacity='0.26' /><circle cx='476' cy='92' r='3.3' fill='#dc2626' opacity='0.28' /><circle cx='457' cy='75' r='3.6' fill='#f97316' opacity='0.33' /><circle cx='143' cy='342' r='4.2' fill='#dc2626' opacity='0.31' /><circle cx='95' cy='71' r='4' fill='#f97316' opacity='0.62' /><circle cx='413' cy='413' r='4.1' fill='#dc2626' opacity='0.85' /></g>
+  <rect width="512" height="512" fill="url(#halo_pyro_cinder_acolyte)" opacity="0.16"/>
+</svg>

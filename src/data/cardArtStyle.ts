@@ -1,0 +1,640 @@
+import type { CardDef } from '../engine/types';
+
+export interface ArtPresentation {
+  src: string;
+  objectPosition: string;
+  scale: number;
+  filter: string;
+  tintOverlay: string;
+  isBespoke: boolean;
+}
+
+/**
+ * All 76/76 cards across Set 1 (Genesis Rift), Set 2A (Dragonic Overdrive),
+ * Set 2B (Cyber Phantom Protocol), and Set 3 (Arcana & Ambush Vault)
+ * now have dedicated bespoke AI-painted .jpg files!
+ */
+export const BESPOKE_CARD_ART: Record<string, string> = {
+  fusion_aether_sovereign: '/assets/cards/fusion_aether_sovereign.jpg',
+  fusion_frostfire_chimera: '/assets/cards/fusion_frostfire_chimera.jpg',
+  fusion_eclipse_sovereign: '/assets/cards/fusion_eclipse_sovereign.jpg',
+  fusion_astral_revenant: '/assets/cards/fusion_astral_revenant.jpg',
+  fusion_glacial_chronolith: '/assets/cards/fusion_glacial_chronolith.jpg',
+  fusion_verdant_tempest: '/assets/cards/fusion_verdant_tempest.jpg',
+  fusion_wildfire_behemoth: '/assets/cards/fusion_wildfire_behemoth.jpg',
+  pyro_inferno_sovereign: '/assets/cards/pyro_inferno_sovereign.jpg',
+  cryo_valkyrie_zero: '/assets/cards/cryo_valkyrie_zero.jpg',
+  umbra_nyx_avatar: '/assets/cards/umbra_nyx_avatar.jpg',
+  sylvan_gaia_stag: '/assets/cards/sylvan_gaia_stag.jpg',
+  pyro_hatchling: '/assets/cards/pyro_hatchling.jpg',
+  pyro_cinder_acolyte: '/assets/cards/pyro_cinder_acolyte.jpg',
+  pyro_magma_lancer: '/assets/cards/pyro_magma_lancer.jpg',
+  pyro_slag_golem: '/assets/cards/pyro_slag_golem.jpg',
+  pyro_ember_bolt: '/assets/cards/pyro_ember_bolt.jpg',
+  pyro_caldera_domain: '/assets/cards/pyro_caldera_domain.jpg',
+  pyro_magma_edge: '/assets/cards/pyro_magma_edge.jpg',
+  pyro_cinder_burst: '/assets/cards/pyro_cinder_burst.jpg',
+  cryo_frost_drone: '/assets/cards/cryo_frost_drone.jpg',
+  cryo_aegis_walker: '/assets/cards/cryo_aegis_walker.jpg',
+  cryo_rail_sniper: '/assets/cards/cryo_rail_sniper.jpg',
+  cryo_absolute_lock: '/assets/cards/cryo_absolute_lock.jpg',
+  cryo_mirror_wall: '/assets/cards/cryo_mirror_wall.jpg',
+  chrono_star_initiate: '/assets/cards/chrono_star_initiate.jpg',
+  chrono_polymerization: '/assets/cards/chrono_polymerization.jpg',
+  cryo_glacier_mech: '/assets/cards/cryo_glacier_mech.jpg',
+  cryo_aegis_plate: '/assets/cards/cryo_aegis_plate.jpg',
+  umbra_wisp: '/assets/cards/umbra_wisp.jpg',
+  umbra_shade_blade: '/assets/cards/umbra_shade_blade.jpg',
+  umbra_soul_reaper: '/assets/cards/umbra_soul_reaper.jpg',
+  umbra_dread_knight: '/assets/cards/umbra_dread_knight.jpg',
+  umbra_void_revival: '/assets/cards/umbra_void_revival.jpg',
+  umbra_cursed_scythe: '/assets/cards/umbra_cursed_scythe.jpg',
+  umbra_shadow_snare: '/assets/cards/umbra_shadow_snare.jpg',
+  umbra_void_counter: '/assets/cards/umbra_void_counter.jpg',
+  sylvan_spirit_fox: '/assets/cards/sylvan_spirit_fox.jpg',
+  sylvan_briar_warden: '/assets/cards/sylvan_briar_warden.jpg',
+  sylvan_tempest_griffin: '/assets/cards/sylvan_tempest_griffin.jpg',
+  sylvan_bloom_druid: '/assets/cards/sylvan_bloom_druid.jpg',
+  sylvan_aether_bloom: '/assets/cards/sylvan_aether_bloom.jpg',
+  sylvan_sanctuary: '/assets/cards/sylvan_sanctuary.jpg',
+  sylvan_thorn_trap: '/assets/cards/sylvan_thorn_trap.jpg',
+  chrono_clock_angel: '/assets/cards/chrono_clock_angel.jpg',
+  chrono_rift_weaver: '/assets/cards/chrono_rift_weaver.jpg',
+  chrono_convergence: '/assets/cards/chrono_convergence.jpg',
+  chrono_time_slip: '/assets/cards/chrono_time_slip.jpg',
+  chrono_starlight_nexus: '/assets/cards/chrono_starlight_nexus.jpg',
+  // Set 2A: Dragonic Overdrive (#1-#9 COMPLETE!)
+  pyro_solar_whelp: '/assets/cards/pyro_solar_whelp.jpg',
+  pyro_sky_dragoon: '/assets/cards/pyro_sky_dragoon.jpg',
+  chrono_star_drake: '/assets/cards/chrono_star_drake.jpg',
+  sylvan_emerald_wyvern: '/assets/cards/sylvan_emerald_wyvern.jpg',
+  pyro_dragon_roar: '/assets/cards/pyro_dragon_roar.jpg',
+  chrono_dragon_spire: '/assets/cards/chrono_dragon_spire.jpg',
+  pyro_wyrm_crest: '/assets/cards/pyro_wyrm_crest.jpg',
+  fusion_supernova_starwyrm: '/assets/cards/fusion_supernova_starwyrm.jpg',
+  fusion_celestial_canopy: '/assets/cards/fusion_celestial_canopy.jpg',
+  // Set 2B: Cyber Phantom Protocol (#10-#18 COMPLETE!)
+  cryo_neon_ronin: '/assets/cards/cryo_neon_ronin.jpg',
+  umbra_cyber_kunoichi: '/assets/cards/umbra_cyber_kunoichi.jpg',
+  cryo_holo_decoy: '/assets/cards/cryo_holo_decoy.jpg',
+  umbra_null_hacker: '/assets/cards/umbra_null_hacker.jpg',
+  cryo_system_override: '/assets/cards/cryo_system_override.jpg',
+  umbra_phantom_matrix: '/assets/cards/umbra_phantom_matrix.jpg',
+  fusion_zerokelvin_shinobi: '/assets/cards/fusion_zerokelvin_shinobi.jpg',
+  fusion_hellfire_abyss: '/assets/cards/fusion_hellfire_abyss.jpg',
+  fusion_nightshade_queen: '/assets/cards/fusion_nightshade_queen.jpg',
+  // Set 3: Arcana & Ambush Vault (#1-#10 COMPLETE!)
+  chrono_rift_breaker: '/assets/cards/chrono_rift_breaker.jpg',
+  chrono_aether_vessel: '/assets/cards/chrono_aether_vessel.jpg',
+  pyro_cataclysm_nova: '/assets/cards/pyro_cataclysm_nova.jpg',
+  sylvan_soul_awakening: '/assets/cards/sylvan_soul_awakening.jpg',
+  umbra_void_reclaim: '/assets/cards/umbra_void_reclaim.jpg',
+  cryo_permafrost_citadel: '/assets/cards/cryo_permafrost_citadel.jpg',
+  umbra_eclipse_sanctum: '/assets/cards/umbra_eclipse_sanctum.jpg',
+  chrono_aether_reflector: '/assets/cards/chrono_aether_reflector.jpg',
+  pyro_mirror_force: '/assets/cards/pyro_mirror_force.jpg',
+  cryo_dimensional_banish: '/assets/cards/cryo_dimensional_banish.jpg',
+};
+
+/**
+ * High-resolution painted fallback compositions mapped from our 12 genuine
+ * AI-painted artworks (5 Boss Portraits + 7 Hero Cards) with unique focal crops,
+ * zoom levels, and faction/card-type color grading so ZERO geometric SVG
+ * shapes appear anywhere while waiting for batch art generation.
+ */
+const PAINTED_FALLBACK_MAP: Record<string, Omit<ArtPresentation, 'isBespoke'>> = {
+  // PYROCLAST
+  pyro_hatchling: {
+    src: '/assets/cards/pyro_inferno_sovereign.jpg',
+    objectPosition: '50% 18%',
+    scale: 1.24,
+    filter: 'saturate(1.25) brightness(1.08) hue-rotate(-8deg)',
+    tintOverlay: 'radial-gradient(circle at 50% 25%, rgba(251,146,60,0.28), transparent 65%)',
+  },
+  pyro_cinder_acolyte: {
+    src: '/assets/portraits/boss_kael.jpg',
+    objectPosition: '50% 18%',
+    scale: 1.12,
+    filter: 'saturate(1.18) contrast(1.08)',
+    tintOverlay: 'linear-gradient(180deg, rgba(239,68,68,0.12), rgba(15,5,8,0.45))',
+  },
+  pyro_magma_lancer: {
+    src: '/assets/portraits/boss_kael.jpg',
+    objectPosition: '72% 42%',
+    scale: 1.38,
+    filter: 'saturate(1.35) contrast(1.12) hue-rotate(8deg)',
+    tintOverlay: 'linear-gradient(135deg, rgba(251,191,36,0.22), transparent 55%)',
+  },
+  pyro_slag_golem: {
+    src: '/assets/cards/fusion_frostfire_chimera.jpg',
+    objectPosition: '15% 42%',
+    scale: 1.48,
+    filter: 'saturate(1.32) contrast(1.14) hue-rotate(-14deg)',
+    tintOverlay: 'radial-gradient(circle at 30% 45%, rgba(234,88,12,0.32), transparent 70%)',
+  },
+  pyro_ember_bolt: {
+    src: '/assets/cards/pyro_inferno_sovereign.jpg',
+    objectPosition: '82% 28%',
+    scale: 1.65,
+    filter: 'saturate(1.55) brightness(1.15) contrast(1.15)',
+    tintOverlay: 'linear-gradient(135deg, rgba(253,224,71,0.3), rgba(220,38,38,0.28))',
+  },
+  pyro_caldera_domain: {
+    src: '/assets/cards/pyro_inferno_sovereign.jpg',
+    objectPosition: '50% 82%',
+    scale: 1.55,
+    filter: 'saturate(1.28) contrast(1.18) brightness(0.95)',
+    tintOverlay: 'linear-gradient(0deg, rgba(239,68,68,0.35), rgba(12,4,8,0.25))',
+  },
+  pyro_magma_edge: {
+    src: '/assets/portraits/boss_kael.jpg',
+    objectPosition: '24% 72%',
+    scale: 1.62,
+    filter: 'saturate(1.45) contrast(1.15) brightness(1.08)',
+    tintOverlay: 'radial-gradient(circle at 50% 50%, rgba(251,146,60,0.35), transparent 68%)',
+  },
+  pyro_cinder_burst: {
+    src: '/assets/cards/fusion_frostfire_chimera.jpg',
+    objectPosition: '36% 24%',
+    scale: 1.52,
+    filter: 'saturate(1.5) contrast(1.18) hue-rotate(-18deg)',
+    tintOverlay: 'radial-gradient(circle at 50% 45%, rgba(244,63,94,0.35), rgba(10,3,8,0.35))',
+  },
+
+  // CRYO-MECHA
+  cryo_frost_drone: {
+    src: '/assets/cards/fusion_glacial_chronolith.jpg',
+    objectPosition: '50% 24%',
+    scale: 1.32,
+    filter: 'saturate(1.22) brightness(1.1)',
+    tintOverlay: 'radial-gradient(circle at 50% 35%, rgba(34,211,238,0.28), transparent 65%)',
+  },
+  cryo_aegis_walker: {
+    src: '/assets/portraits/boss_vex09.jpg',
+    objectPosition: '50% 22%',
+    scale: 1.15,
+    filter: 'contrast(1.1) saturate(1.15)',
+    tintOverlay: 'linear-gradient(180deg, rgba(6,182,212,0.16), rgba(5,12,24,0.4))',
+  },
+  cryo_rail_sniper: {
+    src: '/assets/portraits/boss_vex09.jpg',
+    objectPosition: '75% 32%',
+    scale: 1.44,
+    filter: 'saturate(1.3) brightness(1.08) hue-rotate(-10deg)',
+    tintOverlay: 'linear-gradient(125deg, rgba(56,189,248,0.3), transparent 60%)',
+  },
+  cryo_glacier_mech: {
+    src: '/assets/cards/fusion_frostfire_chimera.jpg',
+    objectPosition: '86% 38%',
+    scale: 1.5,
+    filter: 'saturate(1.25) contrast(1.12) hue-rotate(8deg)',
+    tintOverlay: 'radial-gradient(circle at 60% 40%, rgba(14,165,233,0.32), transparent 70%)',
+  },
+  cryo_valkyrie_zero: {
+    src: '/assets/portraits/boss_vex09.jpg',
+    objectPosition: '36% 18%',
+    scale: 1.24,
+    filter: 'brightness(1.14) saturate(1.32) contrast(1.08)',
+    tintOverlay: 'radial-gradient(circle at 50% 20%, rgba(165,243,252,0.36), transparent 65%)',
+  },
+  cryo_absolute_lock: {
+    src: '/assets/cards/fusion_glacial_chronolith.jpg',
+    objectPosition: '50% 62%',
+    scale: 1.58,
+    filter: 'saturate(1.4) brightness(1.12) hue-rotate(-14deg)',
+    tintOverlay: 'radial-gradient(circle at 50% 50%, rgba(34,211,238,0.35), rgba(6,16,32,0.3))',
+  },
+  cryo_aegis_plate: {
+    src: '/assets/portraits/boss_vex09.jpg',
+    objectPosition: '50% 78%',
+    scale: 1.55,
+    filter: 'contrast(1.18) saturate(1.25)',
+    tintOverlay: 'linear-gradient(160deg, rgba(125,211,252,0.28), transparent 65%)',
+  },
+  cryo_mirror_wall: {
+    src: '/assets/cards/fusion_glacial_chronolith.jpg',
+    objectPosition: '18% 45%',
+    scale: 1.62,
+    filter: 'brightness(1.12) saturate(1.38)',
+    tintOverlay: 'linear-gradient(90deg, rgba(6,182,212,0.34), transparent 55%, rgba(56,189,248,0.28))',
+  },
+
+  // UMBRA
+  umbra_wisp: {
+    src: '/assets/cards/fusion_eclipse_sovereign.jpg',
+    objectPosition: '22% 28%',
+    scale: 1.48,
+    filter: 'saturate(1.3) hue-rotate(14deg)',
+    tintOverlay: 'radial-gradient(circle at 50% 35%, rgba(192,132,252,0.28), transparent 68%)',
+  },
+  umbra_shade_blade: {
+    src: '/assets/portraits/boss_nyx.jpg',
+    objectPosition: '68% 26%',
+    scale: 1.32,
+    filter: 'contrast(1.12) saturate(1.24) hue-rotate(-12deg)',
+    tintOverlay: 'linear-gradient(145deg, rgba(236,72,153,0.22), rgba(10,4,20,0.4))',
+  },
+  umbra_soul_reaper: {
+    src: '/assets/cards/fusion_astral_revenant.jpg',
+    objectPosition: '42% 24%',
+    scale: 1.32,
+    filter: 'saturate(1.26) hue-rotate(24deg) contrast(1.08)',
+    tintOverlay: 'radial-gradient(circle at 50% 35%, rgba(168,85,247,0.28), transparent 70%)',
+  },
+  umbra_dread_knight: {
+    src: '/assets/cards/fusion_eclipse_sovereign.jpg',
+    objectPosition: '50% 36%',
+    scale: 1.36,
+    filter: 'contrast(1.16) saturate(1.18) brightness(0.96)',
+    tintOverlay: 'linear-gradient(180deg, rgba(147,51,234,0.2), rgba(10,3,18,0.45))',
+  },
+  umbra_nyx_avatar: {
+    src: '/assets/portraits/boss_nyx.jpg',
+    objectPosition: '50% 18%',
+    scale: 1.12,
+    filter: 'saturate(1.28) contrast(1.1) brightness(1.06)',
+    tintOverlay: 'radial-gradient(circle at 50% 25%, rgba(232,121,249,0.28), transparent 65%)',
+  },
+  umbra_void_revival: {
+    src: '/assets/cards/fusion_astral_revenant.jpg',
+    objectPosition: '50% 72%',
+    scale: 1.62,
+    filter: 'saturate(1.42) hue-rotate(30deg) brightness(1.08)',
+    tintOverlay: 'linear-gradient(0deg, rgba(168,85,247,0.38), transparent 65%)',
+  },
+  umbra_cursed_scythe: {
+    src: '/assets/cards/fusion_eclipse_sovereign.jpg',
+    objectPosition: '84% 58%',
+    scale: 1.66,
+    filter: 'saturate(1.45) hue-rotate(24deg) contrast(1.14)',
+    tintOverlay: 'radial-gradient(circle at 50% 50%, rgba(244,114,182,0.32), transparent 65%)',
+  },
+  umbra_shadow_snare: {
+    src: '/assets/portraits/boss_nyx.jpg',
+    objectPosition: '20% 62%',
+    scale: 1.6,
+    filter: 'saturate(1.38) contrast(1.18) hue-rotate(15deg)',
+    tintOverlay: 'radial-gradient(circle at 50% 50%, rgba(192,38,211,0.35), rgba(8,2,16,0.4))',
+  },
+  umbra_void_counter: {
+    src: '/assets/cards/fusion_eclipse_sovereign.jpg',
+    objectPosition: '50% 10%',
+    scale: 1.56,
+    filter: 'saturate(1.35) brightness(1.1) hue-rotate(-14deg)',
+    tintOverlay: 'radial-gradient(circle at 50% 35%, rgba(129,140,248,0.34), rgba(10,3,20,0.3))',
+  },
+
+  // SYLVAN
+  sylvan_spirit_fox: {
+    src: '/assets/portraits/boss_lyra.jpg',
+    objectPosition: '22% 55%',
+    scale: 1.48,
+    filter: 'saturate(1.35) brightness(1.12)',
+    tintOverlay: 'radial-gradient(circle at 45% 45%, rgba(251,191,36,0.28), rgba(6,78,59,0.2))',
+  },
+  sylvan_briar_warden: {
+    src: '/assets/cards/fusion_verdant_tempest.jpg',
+    objectPosition: '76% 52%',
+    scale: 1.44,
+    filter: 'saturate(1.18) hue-rotate(-24deg) contrast(1.12)',
+    tintOverlay: 'linear-gradient(180deg, rgba(16,185,129,0.22), rgba(5,20,14,0.45))',
+  },
+  sylvan_tempest_griffin: {
+    src: '/assets/cards/fusion_verdant_tempest.jpg',
+    objectPosition: '24% 26%',
+    scale: 1.38,
+    filter: 'saturate(1.32) brightness(1.08) hue-rotate(-12deg)',
+    tintOverlay: 'radial-gradient(circle at 50% 30%, rgba(52,211,153,0.28), transparent 65%)',
+  },
+  sylvan_bloom_druid: {
+    src: '/assets/portraits/boss_lyra.jpg',
+    objectPosition: '50% 20%',
+    scale: 1.15,
+    filter: 'saturate(1.22) brightness(1.06)',
+    tintOverlay: 'linear-gradient(180deg, rgba(16,185,129,0.16), rgba(4,16,12,0.42))',
+  },
+  sylvan_gaia_stag: {
+    src: '/assets/portraits/boss_lyra.jpg',
+    objectPosition: '50% 8%',
+    scale: 1.32,
+    filter: 'saturate(1.38) brightness(1.14) contrast(1.08)',
+    tintOverlay: 'radial-gradient(circle at 50% 24%, rgba(253,224,71,0.34), rgba(16,185,129,0.18))',
+  },
+  sylvan_aether_bloom: {
+    src: '/assets/portraits/boss_lyra.jpg',
+    objectPosition: '80% 42%',
+    scale: 1.65,
+    filter: 'saturate(1.48) brightness(1.14)',
+    tintOverlay: 'radial-gradient(circle at 50% 50%, rgba(110,231,183,0.36), rgba(251,191,36,0.2))',
+  },
+  sylvan_sanctuary: {
+    src: '/assets/cards/fusion_verdant_tempest.jpg',
+    objectPosition: '50% 80%',
+    scale: 1.56,
+    filter: 'saturate(1.25) hue-rotate(-18deg) brightness(1.05)',
+    tintOverlay: 'linear-gradient(0deg, rgba(16,185,129,0.35), transparent 65%)',
+  },
+  sylvan_thorn_trap: {
+    src: '/assets/cards/fusion_verdant_tempest.jpg',
+    objectPosition: '85% 20%',
+    scale: 1.62,
+    filter: 'saturate(1.36) contrast(1.18) hue-rotate(-34deg)',
+    tintOverlay: 'radial-gradient(circle at 50% 50%, rgba(16,185,129,0.32), rgba(190,18,60,0.22))',
+  },
+
+  // CHRONO
+  chrono_star_initiate: {
+    src: '/assets/portraits/boss_archon_zero.jpg',
+    objectPosition: '50% 24%',
+    scale: 1.15,
+    filter: 'saturate(1.18) contrast(1.08)',
+    tintOverlay: 'linear-gradient(180deg, rgba(99,102,241,0.18), rgba(6,8,24,0.42))',
+  },
+  chrono_clock_angel: {
+    src: '/assets/portraits/boss_archon_zero.jpg',
+    objectPosition: '32% 16%',
+    scale: 1.38,
+    filter: 'saturate(1.32) brightness(1.12) hue-rotate(-14deg)',
+    tintOverlay: 'radial-gradient(circle at 50% 26%, rgba(251,191,36,0.26), rgba(99,102,241,0.2))',
+  },
+  chrono_rift_weaver: {
+    src: '/assets/cards/fusion_astral_revenant.jpg',
+    objectPosition: '64% 30%',
+    scale: 1.36,
+    filter: 'saturate(1.28) hue-rotate(-22deg) brightness(1.08)',
+    tintOverlay: 'radial-gradient(circle at 50% 35%, rgba(56,189,248,0.28), transparent 65%)',
+  },
+  chrono_polymerization: {
+    src: '/assets/cards/fusion_aether_sovereign.jpg',
+    objectPosition: '18% 58%',
+    scale: 1.64,
+    filter: 'saturate(1.48) brightness(1.14) contrast(1.12)',
+    tintOverlay: 'linear-gradient(135deg, rgba(34,211,238,0.32), rgba(217,70,239,0.32))',
+  },
+  chrono_convergence: {
+    src: '/assets/portraits/boss_archon_zero.jpg',
+    objectPosition: '50% 8%',
+    scale: 1.56,
+    filter: 'saturate(1.45) brightness(1.15)',
+    tintOverlay: 'radial-gradient(circle at 50% 45%, rgba(251,191,36,0.3), rgba(99,102,241,0.3))',
+  },
+  chrono_time_slip: {
+    src: '/assets/cards/fusion_glacial_chronolith.jpg',
+    objectPosition: '76% 24%',
+    scale: 1.54,
+    filter: 'saturate(1.35) hue-rotate(36deg) brightness(1.08)',
+    tintOverlay: 'radial-gradient(circle at 50% 50%, rgba(129,140,248,0.32), transparent 68%)',
+  },
+  chrono_starlight_nexus: {
+    src: '/assets/cards/fusion_aether_sovereign.jpg',
+    objectPosition: '82% 24%',
+    scale: 1.55,
+    filter: 'saturate(1.35) contrast(1.12) hue-rotate(18deg)',
+    tintOverlay: 'linear-gradient(180deg, rgba(99,102,241,0.32), rgba(8,10,28,0.35))',
+  },
+
+  // DUAL-FUSION WILDFIRE BEHEMOTH
+  fusion_wildfire_behemoth: {
+    src: '/assets/cards/pyro_inferno_sovereign.jpg',
+    objectPosition: '42% 38%',
+    scale: 1.28,
+    filter: 'saturate(1.38) contrast(1.12) hue-rotate(28deg)',
+    tintOverlay: 'linear-gradient(135deg, rgba(16,185,129,0.34), transparent 48%, rgba(239,68,68,0.34))',
+  },
+
+  // ========== SET 2A: DRAGONIC OVERDRIVE (PAINTED COMPOSITIONS) ==========
+  pyro_solar_whelp: {
+    src: '/assets/cards/pyro_hatchling.jpg',
+    objectPosition: '50% 25%',
+    scale: 1.18,
+    filter: 'saturate(1.32) brightness(1.14) hue-rotate(16deg)',
+    tintOverlay: 'radial-gradient(circle at 50% 30%, rgba(253,224,71,0.32), transparent 65%)',
+  },
+  pyro_sky_dragoon: {
+    src: '/assets/cards/pyro_magma_lancer.jpg',
+    objectPosition: '50% 20%',
+    scale: 1.16,
+    filter: 'saturate(1.28) contrast(1.08) hue-rotate(14deg)',
+    tintOverlay: 'linear-gradient(160deg, rgba(251,191,36,0.28), transparent 55%, rgba(234,88,12,0.3))',
+  },
+  chrono_star_drake: {
+    src: '/assets/cards/fusion_aether_sovereign.jpg',
+    objectPosition: '50% 22%',
+    scale: 1.24,
+    filter: 'saturate(1.25) brightness(1.08) hue-rotate(-18deg)',
+    tintOverlay: 'radial-gradient(circle at 50% 25%, rgba(56,189,248,0.3), transparent 68%)',
+  },
+  sylvan_emerald_wyvern: {
+    src: '/assets/cards/fusion_verdant_tempest.jpg',
+    objectPosition: '50% 22%',
+    scale: 1.22,
+    filter: 'saturate(1.36) brightness(1.08) hue-rotate(-16deg)',
+    tintOverlay: 'linear-gradient(180deg, rgba(16,185,129,0.25), transparent 60%, rgba(250,204,21,0.2))',
+  },
+  pyro_dragon_roar: {
+    src: '/assets/cards/pyro_ember_bolt.jpg',
+    objectPosition: '50% 45%',
+    scale: 1.24,
+    filter: 'saturate(1.45) contrast(1.12) hue-rotate(18deg)',
+    tintOverlay: 'radial-gradient(circle at 50% 45%, rgba(254,240,138,0.38), rgba(239,68,68,0.25) 68%)',
+  },
+  chrono_dragon_spire: {
+    src: '/assets/cards/chrono_starlight_nexus.jpg',
+    objectPosition: '50% 30%',
+    scale: 1.18,
+    filter: 'saturate(1.34) brightness(1.06) hue-rotate(-34deg)',
+    tintOverlay: 'linear-gradient(180deg, rgba(251,191,36,0.28), rgba(79,70,229,0.25))',
+  },
+  pyro_wyrm_crest: {
+    src: '/assets/cards/pyro_magma_edge.jpg',
+    objectPosition: '50% 38%',
+    scale: 1.26,
+    filter: 'saturate(1.38) brightness(1.1) hue-rotate(20deg)',
+    tintOverlay: 'radial-gradient(circle at 50% 42%, rgba(253,224,71,0.32), transparent 68%)',
+  },
+  fusion_supernova_starwyrm: {
+    src: '/assets/cards/pyro_inferno_sovereign.jpg',
+    objectPosition: '50% 22%',
+    scale: 1.18,
+    filter: 'saturate(1.42) contrast(1.14) hue-rotate(24deg)',
+    tintOverlay: 'linear-gradient(135deg, rgba(251,191,36,0.34), transparent 48%, rgba(56,189,248,0.36))',
+  },
+  fusion_celestial_canopy: {
+    src: '/assets/cards/sylvan_gaia_stag.jpg',
+    objectPosition: '50% 22%',
+    scale: 1.18,
+    filter: 'saturate(1.3) brightness(1.1) hue-rotate(24deg)',
+    tintOverlay: 'linear-gradient(135deg, rgba(52,211,153,0.32), transparent 48%, rgba(129,140,248,0.36))',
+  },
+
+  // ========== SET 2B: CYBER PHANTOM PROTOCOL (PAINTED COMPOSITIONS) ==========
+  cryo_neon_ronin: {
+    src: '/assets/cards/cryo_valkyrie_zero.jpg',
+    objectPosition: '50% 20%',
+    scale: 1.24,
+    filter: 'saturate(1.35) contrast(1.1) hue-rotate(26deg)',
+    tintOverlay: 'linear-gradient(160deg, rgba(34,211,238,0.28), transparent 55%, rgba(168,85,247,0.28))',
+  },
+  umbra_cyber_kunoichi: {
+    src: '/assets/cards/umbra_shade_blade.jpg',
+    objectPosition: '50% 20%',
+    scale: 1.18,
+    filter: 'saturate(1.38) brightness(1.08) hue-rotate(-24deg)',
+    tintOverlay: 'linear-gradient(160deg, rgba(232,121,249,0.28), transparent 55%, rgba(56,189,248,0.28))',
+  },
+  cryo_holo_decoy: {
+    src: '/assets/cards/cryo_frost_drone.jpg',
+    objectPosition: '50% 35%',
+    scale: 1.22,
+    filter: 'saturate(1.32) contrast(1.12) hue-rotate(32deg)',
+    tintOverlay: 'radial-gradient(circle at 50% 45%, rgba(34,211,238,0.34), rgba(88,28,135,0.25) 75%)',
+  },
+  umbra_null_hacker: {
+    src: '/assets/cards/umbra_dread_knight.jpg',
+    objectPosition: '50% 22%',
+    scale: 1.2,
+    filter: 'saturate(1.35) contrast(1.1) hue-rotate(-28deg)',
+    tintOverlay: 'linear-gradient(180deg, rgba(192,38,211,0.3), rgba(15,23,42,0.38))',
+  },
+  cryo_system_override: {
+    src: '/assets/cards/cryo_absolute_lock.jpg',
+    objectPosition: '50% 40%',
+    scale: 1.24,
+    filter: 'saturate(1.42) contrast(1.15) hue-rotate(28deg)',
+    tintOverlay: 'radial-gradient(circle at 50% 45%, rgba(56,189,248,0.34), rgba(168,85,247,0.3) 75%)',
+  },
+  umbra_phantom_matrix: {
+    src: '/assets/cards/cryo_mirror_wall.jpg',
+    objectPosition: '50% 42%',
+    scale: 1.22,
+    filter: 'saturate(1.45) contrast(1.12) hue-rotate(85deg)',
+    tintOverlay: 'linear-gradient(180deg, rgba(217,70,239,0.34), rgba(14,165,233,0.24))',
+  },
+  fusion_zerokelvin_shinobi: {
+    src: '/assets/cards/fusion_astral_revenant.jpg',
+    objectPosition: '50% 22%',
+    scale: 1.2,
+    filter: 'saturate(1.35) contrast(1.12) hue-rotate(-36deg)',
+    tintOverlay: 'linear-gradient(135deg, rgba(56,189,248,0.36), transparent 48%, rgba(192,38,211,0.36))',
+  },
+  fusion_hellfire_abyss: {
+    src: '/assets/cards/fusion_eclipse_sovereign.jpg',
+    objectPosition: '50% 20%',
+    scale: 1.2,
+    filter: 'saturate(1.45) contrast(1.14) hue-rotate(42deg)',
+    tintOverlay: 'linear-gradient(135deg, rgba(239,68,68,0.38), transparent 48%, rgba(168,85,247,0.36))',
+  },
+  fusion_nightshade_queen: {
+    src: '/assets/cards/umbra_nyx_avatar.jpg',
+    objectPosition: '50% 20%',
+    scale: 1.18,
+    filter: 'saturate(1.34) contrast(1.08) hue-rotate(-52deg)',
+    tintOverlay: 'linear-gradient(135deg, rgba(16,185,129,0.34), transparent 48%, rgba(192,38,211,0.36))',
+  },
+
+  // ========== SET 3: ARCANA & AMBUSH VAULT (PAINTED FALLBACKS) ==========
+  chrono_rift_breaker: {
+    src: '/assets/cards/chrono_convergence.jpg',
+    objectPosition: '50% 35%',
+    scale: 1.24,
+    filter: 'saturate(1.42) contrast(1.12) hue-rotate(-28deg)',
+    tintOverlay: 'radial-gradient(circle at 50% 42%, rgba(16,185,129,0.34), rgba(56,189,248,0.28) 70%)',
+  },
+  chrono_aether_vessel: {
+    src: '/assets/cards/chrono_polymerization.jpg',
+    objectPosition: '50% 48%',
+    scale: 1.22,
+    filter: 'saturate(1.38) brightness(1.12) hue-rotate(-45deg)',
+    tintOverlay: 'radial-gradient(circle at 50% 48%, rgba(52,211,153,0.38), rgba(251,191,36,0.24) 72%)',
+  },
+  pyro_cataclysm_nova: {
+    src: '/assets/cards/pyro_dragon_roar.jpg',
+    objectPosition: '50% 42%',
+    scale: 1.25,
+    filter: 'saturate(1.52) contrast(1.16) hue-rotate(-14deg)',
+    tintOverlay: 'radial-gradient(circle at 50% 45%, rgba(251,146,60,0.42), rgba(220,38,38,0.34) 75%)',
+  },
+  sylvan_soul_awakening: {
+    src: '/assets/cards/sylvan_aether_bloom.jpg',
+    objectPosition: '50% 38%',
+    scale: 1.2,
+    filter: 'saturate(1.42) brightness(1.12) hue-rotate(12deg)',
+    tintOverlay: 'radial-gradient(circle at 50% 40%, rgba(110,231,183,0.4), rgba(253,224,71,0.28) 70%)',
+  },
+  umbra_void_reclaim: {
+    src: '/assets/cards/umbra_void_revival.jpg',
+    objectPosition: '50% 45%',
+    scale: 1.24,
+    filter: 'saturate(1.38) contrast(1.12) hue-rotate(26deg)',
+    tintOverlay: 'linear-gradient(0deg, rgba(168,85,247,0.38), rgba(16,185,129,0.24) 68%)',
+  },
+  cryo_permafrost_citadel: {
+    src: '/assets/cards/cryo_system_override.jpg',
+    objectPosition: '50% 62%',
+    scale: 1.22,
+    filter: 'saturate(1.32) brightness(1.08) hue-rotate(-12deg)',
+    tintOverlay: 'linear-gradient(180deg, rgba(56,189,248,0.36), rgba(6,24,42,0.42))',
+  },
+  umbra_eclipse_sanctum: {
+    src: '/assets/cards/fusion_eclipse_sovereign.jpg',
+    objectPosition: '50% 18%',
+    scale: 1.28,
+    filter: 'saturate(1.4) contrast(1.15) hue-rotate(14deg)',
+    tintOverlay: 'radial-gradient(circle at 50% 32%, rgba(217,70,239,0.38), rgba(15,6,28,0.5) 75%)',
+  },
+  chrono_aether_reflector: {
+    src: '/assets/cards/umbra_phantom_matrix.jpg',
+    objectPosition: '50% 45%',
+    scale: 1.22,
+    filter: 'saturate(1.44) brightness(1.08) hue-rotate(110deg)',
+    tintOverlay: 'linear-gradient(135deg, rgba(244,63,94,0.34), rgba(56,189,248,0.34))',
+  },
+  pyro_mirror_force: {
+    src: '/assets/cards/pyro_cinder_burst.jpg',
+    objectPosition: '50% 40%',
+    scale: 1.26,
+    filter: 'saturate(1.55) contrast(1.18) hue-rotate(-18deg)',
+    tintOverlay: 'radial-gradient(circle at 50% 45%, rgba(251,113,133,0.42), rgba(225,29,72,0.36) 72%)',
+  },
+  cryo_dimensional_banish: {
+    src: '/assets/cards/cryo_mirror_wall.jpg',
+    objectPosition: '50% 42%',
+    scale: 1.24,
+    filter: 'saturate(1.42) contrast(1.14) hue-rotate(-26deg)',
+    tintOverlay: 'radial-gradient(circle at 50% 45%, rgba(34,211,238,0.36), rgba(225,29,72,0.28) 74%)',
+  },
+};
+
+export function getCardArtPresentation(card: CardDef, isEvolved = false): ArtPresentation {
+  if (BESPOKE_CARD_ART[card.id]) {
+    return {
+      src: BESPOKE_CARD_ART[card.id],
+      objectPosition: '50% 25%',
+      scale: isEvolved ? 1.07 : 1,
+      filter: isEvolved ? 'brightness(1.12) saturate(1.28) contrast(1.06)' : 'none',
+      tintOverlay: isEvolved
+        ? 'radial-gradient(circle at 50% 30%, rgba(253,224,71,0.24), transparent 65%)'
+        : 'none',
+      isBespoke: true,
+    };
+  }
+
+  const mapped = PAINTED_FALLBACK_MAP[card.id];
+  if (mapped) {
+    return {
+      ...mapped,
+      scale: isEvolved ? mapped.scale + 0.08 : mapped.scale,
+      filter: isEvolved ? `${mapped.filter} brightness(1.12) saturate(1.22)` : mapped.filter,
+      isBespoke: false,
+    };
+  }
+
+  return {
+    src: card.art,
+    objectPosition: '50% 25%',
+    scale: 1,
+    filter: 'none',
+    tintOverlay: 'none',
+    isBespoke: false,
+  };
+}

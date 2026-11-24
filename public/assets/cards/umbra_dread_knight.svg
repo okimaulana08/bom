@@ -1,0 +1,39 @@
+﻿<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <linearGradient id="bg_umbra_dread_knight" x1="0" y1="0" x2="0.2" y2="1">
+      <stop offset="0%" stop-color="#120521"/>
+      <stop offset="52%" stop-color="#340d57"/>
+      <stop offset="100%" stop-color="#070210"/>
+    </linearGradient>
+    <radialGradient id="halo_umbra_dread_knight" cx="50%" cy="42%" r="55%">
+      <stop offset="0%" stop-color="#a855f7" stop-opacity="0.72"/>
+      <stop offset="50%" stop-color="#ec4899" stop-opacity="0.22"/>
+      <stop offset="100%" stop-color="#000000" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="rim_umbra_dread_knight" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#ffffff" stop-opacity="0.95"/>
+      <stop offset="45%" stop-color="#a855f7" stop-opacity="0.9"/>
+      <stop offset="100%" stop-color="#ec4899" stop-opacity="0.85"/>
+    </linearGradient>
+    <filter id="blur_umbra_dread_knight" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur stdDeviation="8" result="b"/>
+      <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <filter id="soft_umbra_dread_knight" x="-40%" y="-40%" width="180%" height="180%">
+      <feGaussianBlur stdDeviation="16"/>
+    </filter>
+  </defs>
+  <rect width="512" height="512" fill="url(#bg_umbra_dread_knight)"/>
+  <circle cx="256" cy="215" r="235" fill="url(#halo_umbra_dread_knight)"/>
+  <g opacity="0.22">
+    <path d="M0 390 L130 330 L256 365 L395 315 L512 370 L512 512 L0 512 Z" fill="#05070e"/>
+  </g>
+      <!-- Spectral horned dark knight & violet ward barrier -->
+    <circle cx='256' cy='248' r='165' fill='none' stroke='#a855f7' stroke-width='4' stroke-dasharray='16 8' opacity='0.6' filter='url(#blur_umbra_dread_knight)'/>
+    <path d='M145 456 L175 235 L256 175 L337 235 L367 456 Z' fill='#11041d' stroke='#c084fc' stroke-width='4.5'/>
+    <path d='M210 188 L178 96 L236 148 L256 125 L276 148 L334 96 L302 188 Z' fill='#1d0833' stroke='#e879f9' stroke-width='3.5'/>
+    <polygon points='256,238 282,292 256,356 230,292' fill='#ec4899' filter='url(#blur_umbra_dread_knight)'/>
+    <rect x='232' y='168' width='48' height='9' rx='3' fill='#f0abfc' filter='url(#blur_umbra_dread_knight)'/>
+  <g filter="url(#blur_umbra_dread_knight)"><circle cx='276' cy='27' r='2.1' fill='#a855f7' opacity='0.54' /><circle cx='236' cy='125' r='1.5' fill='#ec4899' opacity='0.87' /><circle cx='297' cy='196' r='2.1' fill='#a855f7' opacity='0.77' /><circle cx='311' cy='315' r='4' fill='#ec4899' opacity='0.83' /><circle cx='327' cy='244' r='4.5' fill='#a855f7' opacity='0.27' /><circle cx='118' cy='223' r='2.5' fill='#ec4899' opacity='0.4' /><circle cx='253' cy='45' r='2.2' fill='#a855f7' opacity='0.28' /><circle cx='263' cy='449' r='2.7' fill='#ec4899' opacity='0.59' /><circle cx='276' cy='307' r='4.1' fill='#a855f7' opacity='0.86' /><circle cx='420' cy='282' r='2.6' fill='#ec4899' opacity='0.62' /><circle cx='437' cy='102' r='1.3' fill='#a855f7' opacity='0.69' /><circle cx='108' cy='260' r='4' fill='#ec4899' opacity='0.39' /><circle cx='419' cy='209' r='3.9' fill='#a855f7' opacity='0.73' /><circle cx='281' cy='218' r='1.3' fill='#ec4899' opacity='0.32' /><circle cx='325' cy='32' r='4.7' fill='#a855f7' opacity='0.51' /><circle cx='454' cy='51' r='2.8' fill='#ec4899' opacity='0.69' /><circle cx='471' cy='364' r='2.1' fill='#a855f7' opacity='0.26' /><circle cx='413' cy='414' r='1.2' fill='#ec4899' opacity='0.31' /><circle cx='53' cy='179' r='1.6' fill='#a855f7' opacity='0.27' /><circle cx='198' cy='347' r='1.3' fill='#ec4899' opacity='0.89' /><circle cx='156' cy='59' r='1.9' fill='#a855f7' opacity='0.32' /><circle cx='105' cy='343' r='4.8' fill='#ec4899' opacity='0.33' /><circle cx='277' cy='340' r='2.2' fill='#a855f7' opacity='0.78' /><circle cx='305' cy='491' r='3.6' fill='#ec4899' opacity='0.78' /><circle cx='367' cy='196' r='3.8' fill='#a855f7' opacity='0.55' /><circle cx='136' cy='377' r='2.6' fill='#ec4899' opacity='0.26' /></g>
+  <rect width="512" height="512" fill="url(#halo_umbra_dread_knight)" opacity="0.16"/>
+</svg>

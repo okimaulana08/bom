@@ -1,0 +1,38 @@
+﻿<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <linearGradient id="bg_umbra_void_counter" x1="0" y1="0" x2="0.2" y2="1">
+      <stop offset="0%" stop-color="#130524"/>
+      <stop offset="52%" stop-color="#330e63"/>
+      <stop offset="100%" stop-color="#070210"/>
+    </linearGradient>
+    <radialGradient id="halo_umbra_void_counter" cx="50%" cy="42%" r="55%">
+      <stop offset="0%" stop-color="#c084fc" stop-opacity="0.72"/>
+      <stop offset="50%" stop-color="#6366f1" stop-opacity="0.22"/>
+      <stop offset="100%" stop-color="#000000" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="rim_umbra_void_counter" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#ffffff" stop-opacity="0.95"/>
+      <stop offset="45%" stop-color="#c084fc" stop-opacity="0.9"/>
+      <stop offset="100%" stop-color="#6366f1" stop-opacity="0.85"/>
+    </linearGradient>
+    <filter id="blur_umbra_void_counter" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur stdDeviation="8" result="b"/>
+      <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <filter id="soft_umbra_void_counter" x="-40%" y="-40%" width="180%" height="180%">
+      <feGaussianBlur stdDeviation="16"/>
+    </filter>
+  </defs>
+  <rect width="512" height="512" fill="url(#bg_umbra_void_counter)"/>
+  <circle cx="256" cy="215" r="235" fill="url(#halo_umbra_void_counter)"/>
+  <g opacity="0.22">
+    <path d="M0 390 L130 330 L256 365 L395 315 L512 370 L512 512 L0 512 Z" fill="#05070e"/>
+  </g>
+      <!-- Shattering spell circle inside nullifying void rift -->
+    <circle cx='256' cy='256' r='145' fill='none' stroke='#818cf8' stroke-width='5' stroke-dasharray='22 14' opacity='0.7'/>
+    <path d='M120 90 L392 422 M392 90 L120 422' stroke='#e879f9' stroke-width='12' filter='url(#blur_umbra_void_counter)'/>
+    <polygon points='256,145 348,256 256,367 164,256' fill='#0d031c' stroke='#f0abfc' stroke-width='5'/>
+    <circle cx='256' cy='256' r='26' fill='#c084fc' filter='url(#blur_umbra_void_counter)'/>
+  <g filter="url(#blur_umbra_void_counter)"><circle cx='93' cy='248' r='4' fill='#c084fc' opacity='0.58' /><circle cx='357' cy='300' r='2.5' fill='#6366f1' opacity='0.55' /><circle cx='117' cy='122' r='4.7' fill='#c084fc' opacity='0.71' /><circle cx='45' cy='127' r='2.1' fill='#6366f1' opacity='0.25' /><circle cx='375' cy='291' r='1.3' fill='#c084fc' opacity='0.87' /><circle cx='432' cy='330' r='1.9' fill='#6366f1' opacity='0.89' /><circle cx='484' cy='147' r='3.4' fill='#c084fc' opacity='0.35' /><circle cx='443' cy='462' r='2.1' fill='#6366f1' opacity='0.8' /><circle cx='281' cy='367' r='3.1' fill='#c084fc' opacity='0.35' /><circle cx='487' cy='475' r='2.1' fill='#6366f1' opacity='0.52' /><circle cx='361' cy='285' r='4.6' fill='#c084fc' opacity='0.41' /><circle cx='408' cy='450' r='2.9' fill='#6366f1' opacity='0.44' /><circle cx='177' cy='49' r='2.3' fill='#c084fc' opacity='0.89' /><circle cx='108' cy='227' r='1.4' fill='#6366f1' opacity='0.57' /><circle cx='147' cy='385' r='3.1' fill='#c084fc' opacity='0.54' /><circle cx='488' cy='118' r='3.3' fill='#6366f1' opacity='0.42' /><circle cx='470' cy='65' r='1.7' fill='#c084fc' opacity='0.46' /><circle cx='345' cy='76' r='1.2' fill='#6366f1' opacity='0.76' /><circle cx='168' cy='318' r='2' fill='#c084fc' opacity='0.45' /><circle cx='371' cy='479' r='1.7' fill='#6366f1' opacity='0.3' /><circle cx='399' cy='163' r='4.2' fill='#c084fc' opacity='0.79' /><circle cx='316' cy='151' r='3.6' fill='#6366f1' opacity='0.32' /><circle cx='335' cy='39' r='4.5' fill='#c084fc' opacity='0.39' /><circle cx='225' cy='404' r='2.7' fill='#6366f1' opacity='0.58' /><circle cx='490' cy='323' r='2.2' fill='#c084fc' opacity='0.72' /><circle cx='377' cy='88' r='3.4' fill='#6366f1' opacity='0.39' /></g>
+  <rect width="512" height="512" fill="url(#halo_umbra_void_counter)" opacity="0.16"/>
+</svg>
