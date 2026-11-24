@@ -10,6 +10,7 @@ import {
   FastForward,
   Flame,
   Heart,
+  Info,
   Layers,
   LogOut,
   Music,
@@ -124,6 +125,7 @@ export const DuelBoard: React.FC<DuelBoardProps> = ({ onExit, onRematch }) => {
   const [sideTab, setSideTab] = useState<'inspect' | 'log'>('inspect');
   const [desktopDrawerOpen, setDesktopDrawerOpen] = useState(true);
   const [mobileSheetOpen, setMobileSheetOpen] = useState(false);
+  const [mobileBarDismissedKey, setMobileBarDismissedKey] = useState<string | null>(null);
   const [voidModalOwner, setVoidModalOwner] = useState<'player' | 'opponent' | null>(null);
 
   const chapter = duel?.chapterId ? getChapter(duel.chapterId) : undefined;
@@ -203,7 +205,7 @@ export const DuelBoard: React.FC<DuelBoardProps> = ({ onExit, onRematch }) => {
     if (!def || def.type !== 'vanguard') return;
 
     if (player.normalSummonsLeft <= 0) {
-      notifyToast('Normal Summon already used! Use Soul Burn (+1 Summon) or a Fusion Spell.');
+      notifyToast('Monster Zones full — Tribute or Fusion Summon!');
       return;
     }
 
@@ -295,7 +297,7 @@ export const DuelBoard: React.FC<DuelBoardProps> = ({ onExit, onRematch }) => {
       } else {
         selectAttacker(null);
         if (isTurnOneNoBattle) {
-          notifyToast('Speed Duel Rule: Going First skips Turn 1 Battle Phase — press END TURN!');
+          notifyToast('Rush Duel Rule: Going First skips Turn 1 Battle Phase — press END TURN!');
         } else if (unit.faceDown) {
           notifyToast(`${def.name} is Set Face-Down — Flip Summon it next turn to attack!`);
         } else if (unit.stance === 'defense') {
@@ -808,17 +810,27 @@ export const DuelBoard: React.FC<DuelBoardProps> = ({ onExit, onRematch }) => {
             <button
               type="button"
               onClick={() => {
-                if (window.innerWidth < 1024) setMobileSheetOpen(true);
-                else setDesktopDrawerOpen((v) => !v);
+                if (window.innerWidth < 1024) {
+                  setSideTab('inspect');
+                  setMobileSheetOpen(true);
+                } else {
+                  setDesktopDrawerOpen((v) => !v);
+                }
               }}
-              className="game-panel clip-chamfer-sm p-2 text-slate-200 hover:text-cyan-300 cursor-pointer"
+              className="game-panel clip-chamfer-sm px-2 py-2 text-cyan-200 hover:text-cyan-100 border-cyan-500/45 flex items-center gap-1 cursor-pointer"
               title="Inspect Card / Battle Log"
             >
-              {desktopDrawerOpen ? (
-                <PanelRightClose className="w-4 h-4" />
-              ) : (
-                <PanelRightOpen className="w-4 h-4" />
-              )}
+              <Info className="w-4 h-4 lg:hidden" />
+              <span className="text-[9.5px] font-display font-extrabold tracking-wider uppercase lg:hidden">
+                INFO
+              </span>
+              <span className="hidden lg:inline-flex">
+                {desktopDrawerOpen ? (
+                  <PanelRightClose className="w-4 h-4" />
+                ) : (
+                  <PanelRightOpen className="w-4 h-4" />
+                )}
+              </span>
             </button>
             <button
               type="button"
@@ -1017,6 +1029,23 @@ export const DuelBoard: React.FC<DuelBoardProps> = ({ onExit, onRematch }) => {
                             onHover={(c, ev) => setInspectCard(c.id, ev)}
                           />
                         </FlipRevealWrapper>
+
+                        {!unit.faceDown && (
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              soundEngine.uiClick();
+                              setInspectCard(unit.cardId, unit.isEvolved);
+                              setSideTab('inspect');
+                              setMobileSheetOpen(true);
+                            }}
+                            className="lg:hidden absolute -bottom-2 -right-2 z-40 w-6 h-6 rounded-full bg-slate-950/95 border border-cyan-400/90 text-cyan-200 flex items-center justify-center shadow-[0_0_10px_rgba(34,211,238,0.65)] cursor-pointer"
+                            title={`Inspect ${def?.name ?? 'Monster'}`}
+                          >
+                            <Info className="w-3.5 h-3.5" />
+                          </button>
+                        )}
 
                         {needsEnemyTarget && (
                           <button
@@ -1287,6 +1316,21 @@ export const DuelBoard: React.FC<DuelBoardProps> = ({ onExit, onRematch }) => {
                             )}
                           </button>
                         )}
+
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            soundEngine.uiClick();
+                            setInspectCard(unit.cardId, unit.isEvolved);
+                            setSideTab('inspect');
+                            setMobileSheetOpen(true);
+                          }}
+                          className="lg:hidden clip-chamfer-sm px-1.5 py-0.5 bg-slate-900/95 border border-cyan-400/75 text-cyan-200 font-bold text-[8.5px] flex items-center gap-0.5 cursor-pointer"
+                          title={`Inspect ${def?.name ?? 'Monster'}`}
+                        >
+                          <Info className="w-2.5 h-2.5" />
+                        </button>
                       </div>
                     )}
                   </div>
@@ -1430,7 +1474,111 @@ export const DuelBoard: React.FC<DuelBoardProps> = ({ onExit, onRematch }) => {
           </div>
         </div>
 
-        {/* PLAYER RESOURCE BAR (4000 LP • NORMAL SUMMONS • EVO ORBS • SOUL BURN) */}
+        {/* MOBILE LIVE CARD DESCRIPTION BAR (ALWAYS READABLE DURING MAIN, BATTLE & RIVAL TURN) */}
+        <AnimatePresence>
+          {inspectedDef &&
+            mobileBarDismissedKey !== `${inspectedDef.id}_${inspectCard?.isEvolved ? 'ev' : 'base'}` && (
+            <motion.div
+              key={`${inspectedDef.id}_${inspectCard?.isEvolved ? 'ev' : 'base'}`}
+              initial={{ opacity: 0, y: 6 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 6 }}
+              transition={{ duration: 0.16 }}
+              className="lg:hidden mx-1 my-1 rounded-xl bg-[#070b18]/95 border border-cyan-400/65 shadow-[0_0_24px_rgba(34,211,238,0.22)] px-2.5 py-2 flex items-start gap-2.5"
+            >
+              <img
+                src={getCardArtPresentation(inspectedDef, inspectCard?.isEvolved).src}
+                alt={inspectedDef.name}
+                onClick={() => {
+                  setSideTab('inspect');
+                  setMobileSheetOpen(true);
+                }}
+                className="w-11 h-14 rounded-lg object-cover border border-cyan-300/50 shrink-0 cursor-pointer"
+              />
+              <div className="flex-1 min-w-0">
+                <div className="flex flex-wrap items-center gap-1.5">
+                  <span className="font-display font-extrabold text-xs text-white leading-tight truncate max-w-[165px]">
+                    {inspectCard?.isEvolved && inspectedDef.evolvedData
+                      ? inspectedDef.evolvedData.name
+                      : inspectedDef.name}
+                  </span>
+                  <span className="px-1.5 py-0.5 rounded bg-slate-800/90 border border-slate-600/80 text-[8.5px] font-bold uppercase tracking-wider text-cyan-200">
+                    {inspectedDef.type === 'arcana'
+                      ? inspectedDef.arcanaSubtype === 'domain'
+                        ? 'FIELD SPELL'
+                        : 'SPELL'
+                      : inspectedDef.type === 'ambush'
+                      ? 'TRAP'
+                      : inspectedDef.type === 'relic'
+                      ? 'EQUIP'
+                      : inspectedDef.type === 'fusion_apex'
+                      ? `FUSION ★${inspectedDef.level}`
+                      : `★${inspectedDef.level}`}
+                  </span>
+                  {(inspectedDef.atk !== undefined || inspectedDef.def !== undefined) && (
+                    <span className="font-mono-num text-[10px] font-extrabold text-amber-300">
+                      ATK{' '}
+                      {inspectCard?.isEvolved && inspectedDef.evolvedData
+                        ? inspectedDef.evolvedData.atk
+                        : inspectedDef.atk ?? 0}{' '}
+                      / DEF{' '}
+                      {inspectCard?.isEvolved && inspectedDef.evolvedData
+                        ? inspectedDef.evolvedData.def
+                        : inspectedDef.def ?? 0}
+                    </span>
+                  )}
+                </div>
+
+                <p className="mt-1 text-[11px] leading-snug text-slate-100">
+                  {inspectCard?.isEvolved && inspectedDef.evolvedData
+                    ? inspectedDef.evolvedData.effectText
+                    : inspectedDef.effectText}
+                </p>
+
+                {inspectedKeywords.length > 0 && (
+                  <div className="mt-1 flex flex-wrap gap-1">
+                    {inspectedKeywords.map((kw) => (
+                      <span
+                        key={kw}
+                        className="px-1.5 py-0.5 rounded bg-indigo-950/80 border border-indigo-400/45 text-[8.5px] font-bold text-cyan-200"
+                      >
+                        {kw}
+                      </span>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              <div className="flex flex-col gap-1 shrink-0">
+                <button
+                  type="button"
+                  onClick={() => {
+                    soundEngine.uiClick();
+                    setSideTab('inspect');
+                    setMobileSheetOpen(true);
+                  }}
+                  className="px-2 py-1 rounded-lg bg-cyan-950/90 border border-cyan-400/70 text-[9px] font-extrabold uppercase tracking-wider text-cyan-200 cursor-pointer"
+                >
+                  Detail
+                </button>
+                <button
+                  type="button"
+                  onClick={() =>
+                    setMobileBarDismissedKey(
+                      `${inspectedDef.id}_${inspectCard?.isEvolved ? 'ev' : 'base'}`
+                    )
+                  }
+                  className="px-2 py-1 rounded-lg bg-slate-900 border border-slate-700 text-slate-400 hover:text-white flex items-center justify-center cursor-pointer"
+                  title="Close preview"
+                >
+                  <X className="w-3 h-3" />
+                </button>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* PLAYER RESOURCE BAR (8000 LP • RUSH SUMMONS • EVO ORBS • SOUL BURN) */}
         <div className="flex flex-wrap items-center justify-between gap-1.5 px-1 sm:px-2">
           <div className="relative flex items-center gap-1.5 sm:gap-2">
             {/* Player LP */}
@@ -1529,6 +1677,12 @@ export const DuelBoard: React.FC<DuelBoardProps> = ({ onExit, onRematch }) => {
             setVoidModalOwner('player');
           }}
           onHoverCard={(c, ev) => setInspectCard(c.id, ev)}
+          onInspectCard={(cardId) => {
+            soundEngine.uiClick();
+            setInspectCard(cardId, false);
+            setSideTab('inspect');
+            setMobileSheetOpen(true);
+          }}
         />
       </ScreenShakeWrapper>
 

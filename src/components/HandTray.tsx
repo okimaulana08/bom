@@ -1,5 +1,5 @@
 import React from 'react';
-import { Eye, Flame, Layers, Shield, Sparkles, Swords } from 'lucide-react';
+import { Eye, Flame, Info, Layers, Shield, Sparkles, Swords } from 'lucide-react';
 import type { CardDef, DuelState } from '../engine/types';
 import { CARD_MAP } from '../data/cards';
 import { canContactFuse } from '../engine/rules';
@@ -15,6 +15,7 @@ interface HandTrayProps {
   onOpenRiftDeck: () => void;
   onOpenVoid: () => void;
   onHoverCard: (card: CardDef, isEvolved: boolean) => void;
+  onInspectCard?: (cardId: string) => void;
 }
 
 export const HandTray: React.FC<HandTrayProps> = ({
@@ -26,6 +27,7 @@ export const HandTray: React.FC<HandTrayProps> = ({
   onOpenRiftDeck,
   onOpenVoid,
   onHoverCard,
+  onInspectCard,
 }) => {
   const player = duel.players.player;
   const isPlayerMain = duel.activePlayer === 'player' && duel.phase === 'main' && !duel.winner;
@@ -210,6 +212,21 @@ export const HandTray: React.FC<HandTrayProps> = ({
                         <Flame className="w-3 h-3" />
                         CYCLE +1
                         {hasResonate && <Sparkles className="w-2.5 h-2.5" />}
+                      </button>
+                    )}
+
+                    {onInspectCard && (
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onInspectCard(def.id);
+                        }}
+                        className="lg:hidden clip-skew-btn px-2 py-1 bg-slate-950/95 border border-cyan-400/85 text-cyan-200 font-extrabold text-[9.5px] shadow-lg flex items-center gap-0.5 cursor-pointer"
+                        title={`Read full card details for ${def.name}`}
+                      >
+                        <Info className="w-3 h-3" />
+                        INFO
                       </button>
                     )}
                   </div>
