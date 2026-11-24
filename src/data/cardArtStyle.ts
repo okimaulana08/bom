@@ -603,6 +603,29 @@ const PAINTED_FALLBACK_MAP: Record<string, Omit<ArtPresentation, 'isBespoke'>> =
     filter: 'saturate(1.42) contrast(1.14) hue-rotate(-26deg)',
     tintOverlay: 'radial-gradient(circle at 50% 45%, rgba(34,211,238,0.36), rgba(225,29,72,0.28) 74%)',
   },
+
+  // ========== SET 4: MAXIMUM OVERLORD (3-PIECE TITAN PAINTED COMPOSITIONS) ==========
+  max_aether_emperor_l: {
+    src: '/assets/cards/fusion_supernova_starwyrm.jpg',
+    objectPosition: '15% 40%',
+    scale: 1.38,
+    filter: 'saturate(1.45) contrast(1.15) brightness(1.06)',
+    tintOverlay: 'linear-gradient(125deg, rgba(251,146,60,0.42), rgba(250,204,21,0.22) 60%, transparent)',
+  },
+  max_aether_emperor_c: {
+    src: '/assets/cards/fusion_aether_sovereign.jpg',
+    objectPosition: '50% 22%',
+    scale: 1.2,
+    filter: 'saturate(1.48) contrast(1.14) brightness(1.1)',
+    tintOverlay: 'radial-gradient(circle at 50% 35%, rgba(253,224,71,0.42), rgba(217,70,239,0.25) 68%)',
+  },
+  max_aether_emperor_r: {
+    src: '/assets/cards/fusion_glacial_chronolith.jpg',
+    objectPosition: '85% 40%',
+    scale: 1.38,
+    filter: 'saturate(1.42) contrast(1.15) brightness(1.08)',
+    tintOverlay: 'linear-gradient(235deg, rgba(56,189,248,0.44), rgba(129,140,248,0.24) 60%, transparent)',
+  },
 };
 
 export function getCardArtPresentation(card: CardDef, isEvolved = false): ArtPresentation {

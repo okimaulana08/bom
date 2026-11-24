@@ -1,6 +1,23 @@
 export type Faction = 'pyroclast' | 'cryo_mecha' | 'umbra' | 'sylvan' | 'chrono';
 
-export type CardSetId = 'genesis' | 'overdrive' | 'phantom' | 'arcana_vault';
+export type CardSetId = 'genesis' | 'overdrive' | 'phantom' | 'arcana_vault' | 'maximum';
+
+export type DuelistSkillId =
+  | 'volcanic_ignition'
+  | 'absolute_aegis'
+  | 'void_resurrection'
+  | 'canopy_awakening'
+  | 'destiny_draw';
+
+export type SpireBlessingId =
+  | 'blessing_vanguard_might'
+  | 'blessing_iron_aegis'
+  | 'blessing_evo_mastery'
+  | 'blessing_rush_draw'
+  | 'blessing_fusion_spark'
+  | 'blessing_trap_ambush';
+
+export type MaximumPieceRole = 'left' | 'center' | 'right';
 
 export type CardType = 'vanguard' | 'fusion_apex' | 'arcana' | 'ambush' | 'relic';
 
@@ -150,6 +167,12 @@ export interface CardDef {
   domainBonus?: DomainBonus;
   evolvedData?: EvolvedForm;
   fusionRecipe?: FusionRecipe;
+  maximumSetId?: string;
+  maximumPiece?: MaximumPieceRole;
+  maximumAtk?: number;
+  maximumKeywords?: Keyword[];
+  maximumEffectText?: string;
+  maximumOnAttack?: CardEffect[];
 }
 
 export interface HandCard {
@@ -180,6 +203,9 @@ export interface BoardUnit {
   wonDefenseThisMatch: boolean;
   attachedRelics: string[];
   innateEvolveReady: boolean;
+  maximumSetId?: string;
+  maximumPiece?: MaximumPieceRole;
+  isMaximumMode?: boolean;
 }
 
 export interface BacklineCard {
@@ -219,6 +245,9 @@ export interface PlayerDuelState {
   voidPile: string[];
   mulliganDone: boolean;
   bossModifier: BossModifierId;
+  skillId: DuelistSkillId | null;
+  skillUsed: boolean;
+  blessings: SpireBlessingId[];
 }
 
 export type DuelEventType =
@@ -228,6 +257,8 @@ export type DuelEventType =
   | 'flip'
   | 'evolve'
   | 'fusion'
+  | 'maximum'
+  | 'skill'
   | 'ambush'
   | 'spell'
   | 'relic'
@@ -271,6 +302,9 @@ export interface DuelConfig {
   opponentStartLp?: number;
   opponentStartEvoOrbs?: number;
   bossModifier?: BossModifierId;
+  playerSkillId?: DuelistSkillId | null;
+  playerBlessings?: SpireBlessingId[];
+  spireFloor?: number;
   chapterId?: number;
   aiDifficulty?: 'initiate' | 'grandmaster';
   seed?: number;
@@ -288,9 +322,11 @@ export interface DuelState {
   nextUid: number;
   rngState: number;
   chapterId: number | null;
+  spireFloor: number | null;
   aiDifficulty: 'initiate' | 'grandmaster';
   fusionsPerformed: number;
   evolutionsPerformed: number;
+  maximumsPerformed: number;
 }
 
 export interface MaterialChoice {
@@ -391,6 +427,23 @@ export interface PackOpenResult {
   totalDustGained: number;
 }
 
+export interface SpireRunState {
+  active: boolean;
+  floor: number; // 1..5
+  currentLp: number;
+  maxLp: number;
+  deck: string[];
+  riftDeck: string[];
+  blessings: SpireBlessingId[];
+  pendingDraft?: {
+    cardChoices: string[];
+    blessingChoices: SpireBlessingId[];
+    pickedCard: boolean;
+    pickedBlessing: boolean;
+  } | null;
+  completed?: boolean;
+}
+
 export interface PlayerStats {
   duelsWon: number;
   duelsLost: number;
@@ -399,6 +452,8 @@ export interface PlayerStats {
   evolutionsTriggered: number;
   trapsTriggered?: number;
   maxSingleHitDamage?: number;
+  spireClears?: number;
+  maximumsSummoned?: number;
 }
 
 export interface PlayerProfile {
@@ -415,5 +470,10 @@ export interface PlayerProfile {
   bgmEnabled?: boolean;
   trapPromptMode?: 'manual' | 'auto';
   duelSpeed?: 1 | 2;
+  selectedSkillId?: DuelistSkillId;
+  lastFreePackDate?: string | null;
+  royalFoils?: Record<string, boolean>;
+  tutorialCompleted?: boolean;
+  spireRun?: SpireRunState | null;
   stats: PlayerStats;
 }

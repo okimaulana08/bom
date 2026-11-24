@@ -14,6 +14,8 @@ import { DeckBuilder } from './components/DeckBuilder';
 import { CardCodex } from './components/CardCodex';
 import { RulesGuide } from './components/RulesGuide';
 import { DuelBoard } from './components/DuelBoard';
+import { RiftSpire } from './components/RiftSpire';
+import { getSpireFloorEnemy } from './data/spire';
 
 interface ActiveMatchMeta {
   config: DuelConfig;
@@ -26,6 +28,8 @@ export const App: React.FC = () => {
   const [lastMatch, setLastMatch] = useState<ActiveMatchMeta | null>(null);
 
   const decks = useProfileStore((s) => s.decks);
+  const selectedSkillId = useProfileStore((s) => s.selectedSkillId ?? 'volcanic_ignition');
+  const spireRun = useProfileStore((s) => s.spireRun);
   const soundEnabled = useProfileStore((s) => s.soundEnabled);
   const startDuel = useDuelStore((s) => s.startDuel);
   const exitDuel = useDuelStore((s) => s.exitDuel);
@@ -87,6 +91,7 @@ export const App: React.FC = () => {
         opponentStartLp: chapter.bossLp,
         opponentStartEvoOrbs: chapter.bossEvoOrbs,
         bossModifier: chapter.bossModifier,
+        playerSkillId: selectedSkillId,
         chapterId: chapter.id,
         aiDifficulty: chapter.aiDifficulty,
       },
@@ -109,10 +114,36 @@ export const App: React.FC = () => {
         playerRiftDeck: deck.riftDeck,
         opponentDeck: params.archetype.mainDeck,
         opponentRiftDeck: params.archetype.riftDeck,
+        playerSkillId: selectedSkillId,
         aiDifficulty: params.difficulty,
       },
       portrait: params.archetype.portrait,
       returnTo: 'quick_duel',
+    });
+  };
+
+  const handleLaunchSpireFloor = (floor: number) => {
+    const run = spireRun;
+    if (!run || !run.active) return;
+    const enemy = getSpireFloorEnemy(floor);
+    launchMatch({
+      config: {
+        playerName: 'Spire Challenger',
+        opponentName: enemy.enemyName,
+        playerDeck: run.deck,
+        playerRiftDeck: run.riftDeck,
+        playerStartLp: run.currentLp,
+        playerSkillId: selectedSkillId,
+        playerBlessings: run.blessings,
+        spireFloor: floor,
+        opponentDeck: enemy.deck,
+        opponentRiftDeck: enemy.riftDeck,
+        opponentStartLp: enemy.enemyLp,
+        bossModifier: enemy.bossModifier,
+        aiDifficulty: enemy.difficulty,
+      },
+      portrait: enemy.portrait,
+      returnTo: 'spire',
     });
   };
 
@@ -137,6 +168,14 @@ export const App: React.FC = () => {
       <CampaignMap
         onBack={() => setScreen('menu')}
         onStartChapter={handleStartCampaignChapter}
+      />
+    );
+  }
+  if (screen === 'spire') {
+    return (
+      <RiftSpire
+        onBack={() => setScreen('menu')}
+        onLaunchFloor={handleLaunchSpireFloor}
       />
     );
   }

@@ -3,6 +3,20 @@ import { CARDS, RARITY_DISMANTLE_DUST } from './cards';
 
 export const BOOSTER_PACKS: PackDef[] = [
   {
+    id: 'maximum_overlord_pack',
+    name: 'Maximum Overlord Pack',
+    subtitle: 'Set 4 • 3-Piece Maximum Titan • Rush Legends',
+    price: 100,
+    badge: 'NEW SET 4',
+    featuredSetId: 'maximum',
+    description:
+      'Guaranteed 2+ Maximum Overlord Titan pieces per pack! Complete 3× Aetherion Dread Emperor [L] + [CORE] + [R] for unstoppable 4200 ATK Maximum Summons!',
+    accentFrom: '#f59e0b',
+    accentTo: '#a855f7',
+    boostedFactions: ['chrono', 'pyroclast', 'cryo_mecha'],
+    boostFusion: true,
+  },
+  {
     id: 'arcana_vault_pack',
     name: 'Arcana & Ambush Vault',
     subtitle: 'Set 3 • 7 Spells • 3 Iconic Traps • Domains',

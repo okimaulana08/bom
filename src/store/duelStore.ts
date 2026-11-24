@@ -9,12 +9,14 @@ import type {
   PlayerId,
 } from '../engine/types';
 import {
+  activateDuelistSkill,
   createDuel,
   declareAttack,
   endTurn,
   enterBattlePhase,
   evolveUnit,
   executeContactFusion,
+  executeMaximumSummon,
   playCard,
   soulBurn,
   submitMulligan,
@@ -22,6 +24,7 @@ import {
 } from '../engine/rules';
 import { CARD_MAP } from '../data/cards';
 import { getChapter } from '../data/campaign';
+import { getSkillDef } from '../data/skills';
 import { findUnitById } from '../engine/utils';
 import {
   type AiAction,
@@ -35,10 +38,11 @@ import { type MatchRewardSummary, useProfileStore } from './profileStore';
 
 export interface CutInBanner {
   id: string;
-  kind: 'evolve' | 'fusion' | 'ambush' | 'ace_summon';
+  kind: 'evolve' | 'fusion' | 'ambush' | 'ace_summon' | 'skill' | 'maximum';
   title: string;
   subtitle: string;
   cardId: string;
+  portrait?: string;
   faction?: Faction;
   materialCardIds?: string[];
   materialFactions?: Faction[];
@@ -174,6 +178,8 @@ interface DuelStore {
 
   playSelectedCard: (handInstanceId: string, options?: PlayCardOptions) => boolean;
   triggerSoulBurn: (handInstanceId: string) => boolean;
+  triggerSkill: () => boolean;
+  triggerMaximumSummon: (maximumSetId: string) => boolean;
   triggerStanceToggle: (unitInstanceId: string) => boolean;
   triggerEvolution: (unitInstanceId: string) => boolean;
   triggerContactFusion: (fusionCardId: string, materials: MaterialChoice[]) => boolean;
@@ -518,6 +524,67 @@ export const useDuelStore = create<DuelStore>((set, get) => {
           }
           break;
         }
+        case 'skill': {
+          soundEngine.evolve();
+          raiseShake(2);
+          const skillOwner = ev.actor ?? 'player';
+          const skillDef = getSkillDef(nextState.players[skillOwner].skillId);
+          newCanvasFx.push({
+            id: `${ev.id}_skill_burst`,
+            kind: 'spell_burst',
+            faction: skillDef.faction,
+            to: { kind: 'center' },
+            intensity: 3,
+          });
+          newCutIn = {
+            id: ev.id,
+            kind: 'skill',
+            title: `SKILL • ${skillDef.skillName.toUpperCase()}!`,
+            subtitle: skillDef.duelistName,
+            cardId: ev.cardId ?? 'chrono_starlight_nexus',
+            portrait: skillDef.portrait,
+            faction: skillDef.faction,
+            actor: skillOwner,
+          };
+          break;
+        }
+        case 'maximum': {
+          soundEngine.fusion();
+          raiseShake(3);
+          const def = ev.cardId ? CARD_MAP[ev.cardId] : undefined;
+          const maxOwner = ev.actor ?? 'player';
+          for (const slotIdx of [0, 1, 2] as const) {
+            newSummonBursts.push({
+              id: `${ev.id}_mburst_${slotIdx}`,
+              owner: maxOwner,
+              slot: slotIdx,
+              faction: def?.faction ?? 'chrono',
+              isAce: true,
+            });
+          }
+          newCanvasFx.push({
+            id: `${ev.id}_mrune`,
+            kind: 'summon_rune',
+            faction: def?.faction ?? 'chrono',
+            to: { kind: 'slot', owner: maxOwner, slot: 1 },
+            intensity: 3,
+          });
+          if (def) {
+            newCutIn = {
+              id: ev.id,
+              kind: 'maximum',
+              title: 'MAXIMUM SUMMON!!',
+              subtitle: `${def.name.replace(' [CORE]', '')} • ${def.maximumAtk ?? 4200} MAXIMUM ATK`,
+              cardId: def.id,
+              faction: def.faction,
+              materialCardIds: ev.secondaryCardIds,
+              atk: def.maximumAtk ?? 4200,
+              def: 0,
+              actor: maxOwner,
+            };
+          }
+          break;
+        }
         case 'ambush': {
           soundEngine.ambush();
           raiseShake(2);
@@ -732,8 +799,11 @@ export const useDuelStore = create<DuelStore>((set, get) => {
       const summary = useProfileStore.getState().recordDuelResult({
         won,
         chapterId: nextState.chapterId,
+        spireFloor: nextState.spireFloor,
+        remainingPlayerLp: nextState.players.player.lp,
         fusionsPerformed: nextState.fusionsPerformed,
         evolutionsPerformed: nextState.evolutionsPerformed,
+        maximumsPerformed: nextState.maximumsPerformed,
         trapsTriggered,
         maxSingleHitDamage,
       });
@@ -1101,6 +1171,37 @@ export const useDuelStore = create<DuelStore>((set, get) => {
         return false;
       }
       set({ duel: res.state, selectedHandId: null, pendingTribute: null });
+      processEvents(res.state, s);
+      return true;
+    },
+
+    triggerSkill: () => {
+      const s = get().duel;
+      if (!s) return false;
+      const res = activateDuelistSkill(s, 'player', CARD_MAP);
+      if (!res.ok) {
+        showToast(res.error ?? 'Duelist Skill is not ready yet.');
+        return false;
+      }
+      set({ duel: res.state, selectedHandId: null, selectedAttackerId: null, pendingTribute: null });
+      processEvents(res.state, s);
+      return true;
+    },
+
+    triggerMaximumSummon: (maximumSetId) => {
+      const s = get().duel;
+      if (!s) return false;
+      const res = executeMaximumSummon(s, 'player', maximumSetId, CARD_MAP);
+      if (!res.ok) {
+        showToast(res.error ?? 'Cannot Maximum Summon right now.');
+        return false;
+      }
+      set({
+        duel: res.state,
+        selectedHandId: null,
+        selectedAttackerId: null,
+        pendingTribute: null,
+      });
       processEvents(res.state, s);
       return true;
     },

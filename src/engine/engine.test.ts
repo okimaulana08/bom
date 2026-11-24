@@ -1,16 +1,21 @@
 import { describe, expect, it } from 'vitest';
 import {
+  activateDuelistSkill,
+  canActivateSkill,
   canEvolveUnit,
   createDuel,
   declareAttack,
   endTurn,
   evolveUnit,
   executeContactFusion,
+  executeMaximumSummon,
+  findAvailableMaximumSets,
   playCard,
   soulBurn,
   submitMulligan,
   toggleStance,
 } from './rules';
+import { getEffectiveAtk, getEffectiveDef } from './utils';
 import type { CardDef } from './types';
 
 const TEST_REGISTRY: Record<string, CardDef> = {
@@ -297,6 +302,57 @@ const TEST_REGISTRY: Record<string, CardDef> = {
       ],
       summary: '1 Pyroclast + 1 Cryo-Mecha',
     },
+  },
+  test_max_l: {
+    id: 'test_max_l',
+    name: 'Test Titan [L]',
+    faction: 'pyroclast',
+    type: 'vanguard',
+    rarity: 'rare',
+    level: 4,
+    atk: 1500,
+    def: 1000,
+    keywords: ['Pierce'],
+    maximumSetId: 'test_titan',
+    maximumPiece: 'left',
+    effectText: 'Max Left',
+    lore: 'L',
+    art: '/assets/cards/max_aether_emperor_l.jpg',
+  },
+  test_max_c: {
+    id: 'test_max_c',
+    name: 'Test Titan [CORE]',
+    faction: 'chrono',
+    type: 'vanguard',
+    rarity: 'mythic',
+    level: 8,
+    atk: 2500,
+    def: 2000,
+    keywords: ['Ward'],
+    maximumSetId: 'test_titan',
+    maximumPiece: 'center',
+    maximumAtk: 4200,
+    maximumKeywords: ['Pierce', 'Ward', 'Swift'],
+    maximumOnAttack: [{ kind: 'damage_enemy_lp', amount: 600 }],
+    effectText: 'Max Core',
+    lore: 'C',
+    art: '/assets/cards/max_aether_emperor_c.jpg',
+  },
+  test_max_r: {
+    id: 'test_max_r',
+    name: 'Test Titan [R]',
+    faction: 'cryo_mecha',
+    type: 'vanguard',
+    rarity: 'rare',
+    level: 4,
+    atk: 1500,
+    def: 1200,
+    keywords: ['Ward'],
+    maximumSetId: 'test_titan',
+    maximumPiece: 'right',
+    effectText: 'Max Right',
+    lore: 'R',
+    art: '/assets/cards/max_aether_emperor_r.jpg',
   },
 };
 
@@ -778,5 +834,88 @@ describe('Aetherbound: Yu-Gi-Oh! Rush Duel Engine', () => {
     expect(s.players.player.vanguard.every((v) => v === null)).toBe(true);
     expect(s.players.player.riftDeck).toContain('fusion_no_ward');
     expect(s.players.opponent.hand.length).toBe(oppHandBeforeBanish + 1);
+  });
+
+  it('activates Duelist Character Skills (1/Duel), Spire Blessings & 3-Piece MAXIMUM SUMMON (4200 ATK)', () => {
+    const d0 = createDuel(
+      {
+        playerName: 'Tester',
+        opponentName: 'Rival',
+        playerDeck: makeDeck(['pyro_bruiser', 'test_max_l', 'test_max_c', 'test_max_r']),
+        playerRiftDeck: [],
+        opponentDeck: makeDeck(['cryo_sentry']),
+        opponentRiftDeck: [],
+        playerSkillId: 'volcanic_ignition',
+        playerBlessings: ['blessing_vanguard_might', 'blessing_iron_aegis', 'blessing_rush_draw'],
+        spireFloor: 2,
+        seed: 99,
+      },
+      TEST_REGISTRY
+    );
+
+    // Blessings: iron_aegis (+1000 LP -> 9000) & rush_draw (6-card opener!)
+    expect(d0.players.player.lp).toBe(9000);
+    expect(d0.players.player.hand.length).toBe(6);
+
+    let s = submitMulligan(d0, [], TEST_REGISTRY).state;
+
+    // Give player all 3 Maximum pieces + 1 Bruiser
+    s.players.player.hand = [
+      { instanceId: 'm_l', cardId: 'test_max_l' },
+      { instanceId: 'm_c', cardId: 'test_max_c' },
+      { instanceId: 'm_r', cardId: 'test_max_r' },
+      { instanceId: 'b_1', cardId: 'pyro_bruiser' },
+    ];
+    // Summon Bruiser first (vanguard_might +300 ATK, iron_aegis +400 DEF -> 2200/1500)
+    s = playCard(s, 'player', 'b_1', { slot: 0 }, TEST_REGISTRY).state;
+    expect(getEffectiveAtk(s, s.players.player.vanguard[0]!, TEST_REGISTRY)).toBe(2200);
+    expect(getEffectiveDef(s, s.players.player.vanguard[0]!, TEST_REGISTRY)).toBe(1500);
+
+    // Execute 3-Piece MAXIMUM SUMMON! Clears existing Bruiser to Void & deploys all 3 linked zones at 4200+300=4500 ATK!
+    const readySets = findAvailableMaximumSets(s, 'player', TEST_REGISTRY);
+    expect(readySets.length).toBe(1);
+    const maxRes = executeMaximumSummon(s, 'player', 'test_titan', TEST_REGISTRY);
+    expect(maxRes.ok).toBe(true);
+    s = maxRes.state;
+    expect(s.maximumsPerformed).toBe(1);
+    expect(s.players.player.voidPile).toContain('pyro_bruiser');
+    expect(s.players.player.vanguard[0]?.isMaximumMode).toBe(true);
+    expect(s.players.player.vanguard[1]?.maximumPiece).toBe('center');
+    expect(s.players.player.vanguard[2]?.isMaximumMode).toBe(true);
+    expect(getEffectiveAtk(s, s.players.player.vanguard[1]!, TEST_REGISTRY)).toBe(4500);
+
+    // Maximum Mode cannot switch to Defense Position!
+    const stanceBlocked = toggleStance(
+      s,
+      'player',
+      s.players.player.vanguard[1]!.instanceId,
+      TEST_REGISTRY
+    );
+    expect(stanceBlocked.ok).toBe(false);
+
+    // Advance to Player Turn 2 -> Volcanic Ignition Skill unlocks (Turn 2+)!
+    s = endTurn(s, 'player', TEST_REGISTRY).state;
+    s = endTurn(s, 'opponent', TEST_REGISTRY).state;
+    expect(canActivateSkill(s, 'player', TEST_REGISTRY).eligible).toBe(true);
+
+    const skillRes = activateDuelistSkill(s, 'player', TEST_REGISTRY);
+    expect(skillRes.ok).toBe(true);
+    s = skillRes.state;
+    // Skill burned 500 LP (8000 -> 7500) and buffed Maximum Core +500 ATK (4500 -> 5000 ATK)!
+    expect(s.players.opponent.lp).toBe(7500);
+    expect(getEffectiveAtk(s, s.players.player.vanguard[1]!, TEST_REGISTRY)).toBe(5000);
+    // 1/Duel enforced!
+    expect(activateDuelistSkill(s, 'player', TEST_REGISTRY).ok).toBe(false);
+
+    // Maximum Core attacks directly: 600 On-Attack burn + 5000 Direct Attack = 5600 LP! (7500 -> 1900!)
+    const maxAtk = declareAttack(
+      s,
+      'player',
+      s.players.player.vanguard[1]!.instanceId,
+      { kind: 'lp' },
+      TEST_REGISTRY
+    );
+    expect(maxAtk.ok).toBe(true);
+    expect(maxAtk.state.players.opponent.lp).toBe(1900);
   });
 });

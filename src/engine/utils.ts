@@ -98,7 +98,10 @@ export function getEffectiveAtk(
   registry: Record<string, CardDef>
 ): number {
   const domain = getDomainBonuses(state, unit.owner, registry);
-  return Math.max(0, unit.currentAtk + domain.friendlyAtk);
+  const blessingBonus = state.players[unit.owner].blessings.includes('blessing_vanguard_might')
+    ? 300
+    : 0;
+  return Math.max(0, unit.currentAtk + domain.friendlyAtk + blessingBonus);
 }
 
 export function getEffectiveDef(
@@ -111,7 +114,10 @@ export function getEffectiveDef(
     unit.stance === 'defense' && state.players[unit.owner].bossModifier === 'cryo_guard_armor'
       ? 300
       : 0;
-  return Math.max(0, unit.currentDef + domain.friendlyDef + bossDefBonus);
+  const blessingBonus = state.players[unit.owner].blessings.includes('blessing_iron_aegis')
+    ? 400
+    : 0;
+  return Math.max(0, unit.currentDef + domain.friendlyDef + bossDefBonus + blessingBonus);
 }
 
 export function findUnitById(

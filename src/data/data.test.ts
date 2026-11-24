@@ -3,11 +3,20 @@ import { CARDS, CARD_MAP } from './cards';
 import { AI_ARCHETYPES, STARTER_DECK } from './decks';
 import { CAMPAIGN_CHAPTERS } from './campaign';
 import { BOOSTER_PACKS, rollBoosterPack } from './packs';
+import { DUELIST_SKILLS } from './skills';
+import { SPIRE_BLESSINGS, SPIRE_FLOORS } from './spire';
 import { createDuel, submitMulligan } from '../engine/rules';
 
 describe('Card Database, Decks, Campaign & Booster Packs Integrity', () => {
-  it('contains 76 unique cards across all 5 factions, 5 types, and all 4 sets (incl. Set 3 Arcana Vault)', () => {
-    expect(CARDS.length).toBeGreaterThanOrEqual(76);
+  it('contains 79 unique cards across all 5 factions, 5 types, and all 5 sets (incl. Set 4 Maximum Overlord)', () => {
+    expect(CARDS.length).toBeGreaterThanOrEqual(79);
+    expect(DUELIST_SKILLS.length).toBe(5);
+    expect(SPIRE_FLOORS.length).toBe(5);
+    expect(SPIRE_BLESSINGS.length).toBe(6);
+
+    const maximumCards = CARDS.filter((c) => c.setId === 'maximum');
+    expect(maximumCards.length).toBe(3);
+    expect(maximumCards.map((c) => c.maximumPiece).sort()).toEqual(['center', 'left', 'right']);
 
     const ids = new Set(CARDS.map((c) => c.id));
     expect(ids.size).toBe(CARDS.length);

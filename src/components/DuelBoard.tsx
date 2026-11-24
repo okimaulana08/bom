@@ -33,7 +33,14 @@ import { CARD_MAP } from '../data/cards';
 import { getCardArtPresentation } from '../data/cardArtStyle';
 import { KEYWORDS } from '../data/keywords';
 import { getChapter } from '../data/campaign';
-import { canEvolveUnit, canUnitAttack } from '../engine/rules';
+import { getSkillDef } from '../data/skills';
+import { SPIRE_BLESSING_MAP } from '../data/spire';
+import {
+  canActivateSkill,
+  canEvolveUnit,
+  canUnitAttack,
+  findAvailableMaximumSets,
+} from '../engine/rules';
 import {
   getActiveUnits,
   getEffectiveAtk,
@@ -103,6 +110,8 @@ export const DuelBoard: React.FC<DuelBoardProps> = ({ onExit, onRematch }) => {
     notifyToast,
     playSelectedCard,
     triggerSoulBurn,
+    triggerSkill,
+    triggerMaximumSummon,
     triggerStanceToggle,
     triggerEvolution,
     triggerContactFusion,
@@ -120,8 +129,11 @@ export const DuelBoard: React.FC<DuelBoardProps> = ({ onExit, onRematch }) => {
   const toggleTrapPromptMode = useProfileStore((s) => s.toggleTrapPromptMode);
   const duelSpeed = useProfileStore((s) => s.duelSpeed ?? 1);
   const toggleDuelSpeed = useProfileStore((s) => s.toggleDuelSpeed);
+  const tutorialCompleted = useProfileStore((s) => s.tutorialCompleted ?? false);
+  const completeTutorial = useProfileStore((s) => s.completeTutorial);
 
   const [mulliganSwaps, setMulliganSwaps] = useState<string[]>([]);
+  const [tutorialStep, setTutorialStep] = useState(0);
   const [sideTab, setSideTab] = useState<'inspect' | 'log'>('inspect');
   const [desktopDrawerOpen, setDesktopDrawerOpen] = useState(true);
   const [mobileSheetOpen, setMobileSheetOpen] = useState(false);
@@ -152,6 +164,9 @@ export const DuelBoard: React.FC<DuelBoardProps> = ({ onExit, onRematch }) => {
 
   const myActiveUnits = getActiveUnits(duel, 'player');
   const enemyActiveUnits = getActiveUnits(duel, 'opponent');
+  const skillDef = player.skillId ? getSkillDef(player.skillId) : null;
+  const skillCheck = canActivateSkill(duel, 'player', CARD_MAP);
+  const readyMaximumSets = findAvailableMaximumSets(duel, 'player', CARD_MAP);
 
   const readyAttackers = player.vanguard.filter((u): u is NonNullable<typeof u> => {
     if (!u || !isPlayerTurn) return false;
@@ -860,11 +875,71 @@ export const DuelBoard: React.FC<DuelBoardProps> = ({ onExit, onRematch }) => {
           </div>
 
           <div className="relative z-10 w-full flex flex-col items-center justify-center gap-2 sm:pr-24">
-            {/* LIVE ACTIVE FIELD DOMAIN WEATHER PILL */}
-            {activeDomain && (
-              <div className="inline-flex items-center gap-1.5 clip-chamfer-sm px-3 py-0.5 bg-slate-950/85 border border-cyan-400/50 text-[9.5px] font-display font-bold tracking-widest uppercase text-cyan-200 shadow-lg">
-                <Sparkles className="w-3 h-3 text-amber-300 animate-pulse" />
-                FIELD DOMAIN: <span className="text-white">{activeDomain.name}</span>
+            {/* LIVE ACTIVE FIELD DOMAIN / RIFT SPIRE STATUS PILLS */}
+            {(activeDomain || duel.spireFloor !== null) && (
+              <div className="flex flex-wrap items-center justify-center gap-1.5">
+                {duel.spireFloor !== null && (
+                  <div className="inline-flex items-center gap-1.5 clip-chamfer-sm px-3 py-0.5 bg-fuchsia-950/90 border border-fuchsia-400/65 text-[9.5px] font-display font-bold tracking-widest uppercase text-fuchsia-200 shadow-lg">
+                    <Crown className="w-3 h-3 text-amber-300" />
+                    SPIRE FLOOR {duel.spireFloor}/5
+                    {player.blessings.length > 0 && (
+                      <span className="text-amber-300">
+                        • {player.blessings.map((b) => SPIRE_BLESSING_MAP[b]?.name.split(' ')[0]).join(', ')}
+                      </span>
+                    )}
+                  </div>
+                )}
+                {activeDomain && (
+                  <div className="inline-flex items-center gap-1.5 clip-chamfer-sm px-3 py-0.5 bg-slate-950/85 border border-cyan-400/50 text-[9.5px] font-display font-bold tracking-widest uppercase text-cyan-200 shadow-lg">
+                    <Sparkles className="w-3 h-3 text-amber-300 animate-pulse" />
+                    FIELD DOMAIN: <span className="text-white">{activeDomain.name}</span>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* FIRST-DUEL GUIDED INTERACTIVE COACH */}
+            {!tutorialCompleted && duel.phase !== 'mulligan' && !duel.winner && (
+              <div className="max-w-lg w-full mx-auto px-3 py-2 rounded-xl bg-gradient-to-r from-indigo-950/95 via-slate-950/95 to-cyan-950/95 border border-amber-400/75 shadow-[0_0_24px_rgba(251,191,36,0.3)] flex items-center justify-between gap-2 text-left">
+                <div className="min-w-0">
+                  <div className="text-[9px] font-display font-extrabold uppercase tracking-widest text-amber-300">
+                    ★ Quick Duel Guide ({tutorialStep + 1}/3)
+                  </div>
+                  <p className="text-[11px] text-slate-100 leading-snug">
+                    {tutorialStep === 0
+                      ? 'Rush Duel: Summon/Set UNLIMITED monsters on Turn 1! Tap any monster in your hand, then tap SUMMON or SET.'
+                      : tutorialStep === 1
+                      ? 'Every turn draws back to 5 cards! Use your Character SKILL button, Rift Fusion, or press BATTLE on Turn 2+.'
+                      : 'Tap any card (yours or rival) to read its effect right above your LP bar. Hold [L]+[CORE]+[R] for MAXIMUM SUMMON!'}
+                  </p>
+                </div>
+                <div className="flex items-center gap-1 shrink-0">
+                  {tutorialStep < 2 ? (
+                    <button
+                      type="button"
+                      onClick={() => setTutorialStep((s) => s + 1)}
+                      className="px-2.5 py-1 rounded-lg bg-amber-400 text-slate-950 font-extrabold text-[10px] cursor-pointer"
+                    >
+                      Next →
+                    </button>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={() => completeTutorial()}
+                      className="px-2.5 py-1 rounded-lg bg-emerald-400 text-slate-950 font-extrabold text-[10px] cursor-pointer"
+                    >
+                      Got it!
+                    </button>
+                  )}
+                  <button
+                    type="button"
+                    onClick={() => completeTutorial()}
+                    className="p-1 rounded-lg bg-slate-800 text-slate-400 hover:text-white cursor-pointer"
+                    title="Skip Tutorial"
+                  >
+                    <X className="w-3 h-3" />
+                  </button>
+                </div>
               </div>
             )}
 
@@ -1106,6 +1181,20 @@ export const DuelBoard: React.FC<DuelBoardProps> = ({ onExit, onRematch }) => {
                   <X className="w-3 h-3" /> Cancel
                 </button>
               )}
+
+              {isMain &&
+                !pendingTribute &&
+                readyMaximumSets.map((mset) => (
+                  <button
+                    key={mset.maximumSetId}
+                    type="button"
+                    onClick={() => triggerMaximumSummon(mset.maximumSetId)}
+                    className="shine-sweep clip-skew-btn px-4 py-1.5 bg-gradient-to-r from-amber-400 via-fuchsia-500 to-cyan-400 border-2 border-white text-slate-950 font-display font-black text-xs tracking-wider shadow-[0_0_28px_rgba(251,191,36,0.9)] flex items-center gap-1.5 animate-pulse cursor-pointer"
+                  >
+                    <Crown className="w-4 h-4" />
+                    MAXIMUM SUMMON! ({mset.maximumAtk} ATK)
+                  </button>
+                ))}
 
               {isMain &&
                 !pendingTribute &&
@@ -1622,6 +1711,32 @@ export const DuelBoard: React.FC<DuelBoardProps> = ({ onExit, onRematch }) => {
           </div>
 
           <div className="flex items-center gap-1.5">
+            {/* DUELIST CHARACTER SKILL TRIGGER BUTTON (1/DUEL) */}
+            {skillDef && (
+              <button
+                type="button"
+                disabled={!skillCheck.eligible}
+                onClick={() => triggerSkill()}
+                title={
+                  player.skillUsed
+                    ? `${skillDef.skillName}: Already used this Duel.`
+                    : skillCheck.eligible
+                    ? `ACTIVATE ${skillDef.skillName}: ${skillDef.description}`
+                    : `${skillDef.skillName} (${skillCheck.reason ?? skillDef.triggerHint}): ${skillDef.description}`
+                }
+                className={`relative overflow-hidden clip-chamfer-sm px-2.5 py-1 text-[9.5px] sm:text-[10px] font-display font-extrabold uppercase tracking-wider flex items-center gap-1 transition-all ${
+                  skillCheck.eligible
+                    ? `shine-sweep bg-gradient-to-r ${skillDef.accentGradient} border border-amber-200 text-white shadow-[0_0_20px_rgba(251,191,36,0.7)] hover:scale-105 cursor-pointer animate-pulse`
+                    : 'game-panel border-slate-700 text-slate-400 opacity-75 cursor-not-allowed'
+                }`}
+              >
+                <Sparkles className="w-3 h-3 shrink-0" />
+                <span className="truncate max-w-[100px] sm:max-w-[140px]">
+                  {player.skillUsed ? 'SKILL USED' : skillDef.skillName}
+                </span>
+              </button>
+            )}
+
             <div
               className={`game-panel clip-chamfer-sm px-2.5 py-1 flex items-center gap-1.5 text-xs font-bold ${
                 player.turnsTaken >= 3 && player.evoOrbs > 0
@@ -1890,6 +2005,12 @@ export const DuelBoard: React.FC<DuelBoardProps> = ({ onExit, onRematch }) => {
                     </span>
                     <span className="text-xs text-amber-300/80">Coins</span>
                   </div>
+                  {rewardSummary.dustEarned && (
+                    <div className="clip-chamfer-sm px-4 py-2 bg-fuchsia-950/75 border border-fuchsia-400/75 flex items-center gap-2 text-fuchsia-200 font-bold text-xs">
+                      <Sparkles className="w-4 h-4 text-fuchsia-300" />
+                      +{rewardSummary.dustEarned} Aether Dust
+                    </div>
+                  )}
                   {rewardSummary.championBadgeEarned && (
                     <div className="clip-chamfer-sm px-4 py-2 bg-fuchsia-950/70 border border-fuchsia-400/70 flex items-center gap-2 text-fuchsia-200 font-bold text-xs">
                       <Crown className="w-5 h-5 text-amber-300" />

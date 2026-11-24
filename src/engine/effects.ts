@@ -208,6 +208,20 @@ export function destroyUnitInPlace(
     ownerState.voidPile.push(relicId);
   }
 
+  // Maximum Mode rule: all 3 linked segments share one unified Titan body — destroying any piece sends all 3 to Void!
+  if (unit.isMaximumMode && unit.maximumSetId) {
+    for (let s = 0; s < 3; s++) {
+      const sibling = ownerState.vanguard[s];
+      if (sibling && sibling.isMaximumMode && sibling.maximumSetId === unit.maximumSetId) {
+        ownerState.vanguard[s] = null;
+        ownerState.voidPile.push(sibling.cardId);
+        for (const rId of sibling.attachedRelics) {
+          ownerState.voidPile.push(rId);
+        }
+      }
+    }
+  }
+
   const displayName =
     unit.isEvolved && def?.evolvedData ? def.evolvedData.name : def?.name ?? unit.cardId;
   pushEvent(

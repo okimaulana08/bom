@@ -250,5 +250,9 @@ export function buildStarterCollection(): Record<string, number> {
   for (const id of STARTER_DECK.riftDeck) {
     collection[id] = (collection[id] ?? 0) + 1;
   }
+  // Include 1 playable complete 3-Piece Maximum Titan set so players can test Maximum Summon right away!
+  collection['max_aether_emperor_l'] = Math.max(collection['max_aether_emperor_l'] ?? 0, 1);
+  collection['max_aether_emperor_c'] = Math.max(collection['max_aether_emperor_c'] ?? 0, 1);
+  collection['max_aether_emperor_r'] = Math.max(collection['max_aether_emperor_r'] ?? 0, 1);
   return collection;
 }

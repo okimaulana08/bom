@@ -1612,6 +1612,71 @@ export const CARDS: CardDef[] = [
       { kind: 'draw', amount: 1 },
     ],
   },
+
+  /* ============================================================================
+   * SET 4: MAXIMUM OVERLORD — 3-PIECE MAXIMUM TITAN (RUSH DUEL SIGNATURE!)
+   * ============================================================================ */
+  {
+    id: 'max_aether_emperor_l',
+    name: 'Aetherion Dread Emperor [L]',
+    setId: 'maximum',
+    faction: 'pyroclast',
+    type: 'vanguard',
+    rarity: 'rare',
+    level: 4,
+    atk: 1500,
+    def: 1000,
+    keywords: ['Pierce'],
+    maximumSetId: 'aetherion_emperor',
+    maximumPiece: 'left',
+    effectText:
+      'MAXIMUM PIECE [L] (Aetherion Emperor). Hold [L] + [CORE] + [R] in Hand to MAXIMUM SUMMON a 4200 ATK 3-Zone Titan! Solo: Pierce.',
+    lore: 'The blazing left solar gauntlet—forged to cleave fortress shields in half.',
+    art: '/assets/cards/max_aether_emperor_l.jpg',
+  },
+  {
+    id: 'max_aether_emperor_c',
+    name: 'Aetherion Dread Emperor [CORE]',
+    setId: 'maximum',
+    faction: 'chrono',
+    secondaryFaction: 'pyroclast',
+    type: 'vanguard',
+    rarity: 'mythic',
+    level: 8,
+    atk: 2500,
+    def: 2000,
+    keywords: ['Ward'],
+    maximumSetId: 'aetherion_emperor',
+    maximumPiece: 'center',
+    maximumAtk: 4200,
+    maximumKeywords: ['Pierce', 'Ward', 'Swift'],
+    maximumEffectText:
+      'MAXIMUM MODE (4200 ATK • 3 Zones): Pierce, Ward, Swift! On Attack: Inflict 600 Burn Damage to enemy LP!',
+    maximumOnAttack: [{ kind: 'damage_enemy_lp', amount: 600 }],
+    onSummon: [{ kind: 'damage_enemy_lp', amount: 600 }],
+    effectText:
+      'MAXIMUM CORE [4200 MAX ATK]. Hold [L] + [CORE] + [R] in Hand to MAXIMUM SUMMON across all 3 Zones (Pierce, Ward, Swift & 600 Burn On-Attack)! Solo: ★8 (2 Tributes), Ward, On Summon: 600 Burn.',
+    lore: 'When all three celestial seals converge, the Rift itself kneels before the 4200 ATK Overlord.',
+    art: '/assets/cards/max_aether_emperor_c.jpg',
+  },
+  {
+    id: 'max_aether_emperor_r',
+    name: 'Aetherion Dread Emperor [R]',
+    setId: 'maximum',
+    faction: 'cryo_mecha',
+    type: 'vanguard',
+    rarity: 'rare',
+    level: 4,
+    atk: 1500,
+    def: 1200,
+    keywords: ['Ward'],
+    maximumSetId: 'aetherion_emperor',
+    maximumPiece: 'right',
+    effectText:
+      'MAXIMUM PIECE [R] (Aetherion Emperor). Hold [L] + [CORE] + [R] in Hand to MAXIMUM SUMMON a 4200 ATK 3-Zone Titan! Solo: Ward.',
+    lore: 'The absolute-zero right wing—nullifying incoming snares before impact.',
+    art: '/assets/cards/max_aether_emperor_r.jpg',
+  },
 ];
 
 export const CARD_MAP: Record<string, CardDef> = Object.fromEntries(

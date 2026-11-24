@@ -4,11 +4,13 @@ import type {
   CardDef,
   DuelConfig,
   DuelState,
+  DuelistSkillId,
   EngineResult,
   MaterialChoice,
   PlayCardOptions,
   PlayerDuelState,
   PlayerId,
+  SpireBlessingId,
 } from './types';
 import {
   checkWinnerInPlace,
@@ -52,7 +54,9 @@ function createPlayerState(
   riftDeck: string[],
   startLp: number,
   startEvoOrbs: number,
-  bossModifier: PlayerDuelState['bossModifier']
+  bossModifier: PlayerDuelState['bossModifier'],
+  skillId: DuelistSkillId | null = null,
+  blessings: SpireBlessingId[] = []
 ): PlayerDuelState {
   return {
     id,
@@ -73,6 +77,9 @@ function createPlayerState(
     voidPile: [],
     mulliganDone: false,
     bossModifier,
+    skillId,
+    skillUsed: false,
+    blessings: [...blessings],
   };
 }
 
@@ -82,6 +89,14 @@ export function createDuel(
 ): DuelState {
   const seed = config.seed ?? Math.floor(Math.random() * 1_000_000_000);
   const bossMod = config.bossModifier ?? 'none';
+  const playerBlessings = config.playerBlessings ?? [];
+
+  const basePlayerLp = config.playerStartLp ?? DEFAULT_LP;
+  const bonusPlayerLp =
+    config.playerStartLp === undefined && playerBlessings.includes('blessing_iron_aegis')
+      ? 1000
+      : 0;
+  const startPlayerOrbs = 2 + (playerBlessings.includes('blessing_evo_mastery') ? 1 : 0);
 
   const oppLp =
     config.opponentStartLp ?? (bossMod === 'chrono_archon_boss' ? 10000 : DEFAULT_LP);
@@ -100,9 +115,11 @@ export function createDuel(
         config.playerName,
         config.playerDeck,
         config.playerRiftDeck,
-        config.playerStartLp ?? DEFAULT_LP,
-        2,
-        'none'
+        basePlayerLp + bonusPlayerLp,
+        startPlayerOrbs,
+        'none',
+        config.playerSkillId ?? null,
+        playerBlessings
       ),
       opponent: createPlayerState(
         'opponent',
@@ -111,7 +128,9 @@ export function createDuel(
         config.opponentRiftDeck,
         oppLp,
         oppOrbs,
-        bossMod
+        bossMod,
+        null,
+        []
       ),
     },
     log: [],
@@ -119,16 +138,46 @@ export function createDuel(
     nextUid: 1,
     rngState: seed || 1337,
     chapterId: config.chapterId ?? null,
+    spireFloor: config.spireFloor ?? null,
     aiDifficulty: config.aiDifficulty ?? 'initiate',
     fusionsPerformed: 0,
     evolutionsPerformed: 0,
+    maximumsPerformed: 0,
   };
 
   state.players.player.deck = shuffleArray(state, state.players.player.deck);
   state.players.opponent.deck = shuffleArray(state, state.players.opponent.deck);
 
-  drawCardsInPlace(state, 'player', 5, registry);
+  const playerOpeningDraw = playerBlessings.includes('blessing_rush_draw') ? 6 : 5;
+  drawCardsInPlace(state, 'player', playerOpeningDraw, registry);
   drawCardsInPlace(state, 'opponent', 5, registry);
+
+  // Apply Rift Spire Player Blessings (Opening Board / Hand Relics)
+  if (playerBlessings.includes('blessing_fusion_spark') && registry['chrono_polymerization']) {
+    if (state.players.player.hand.length < 9) {
+      state.players.player.hand.push({
+        instanceId: nextId(state, 'hc'),
+        cardId: 'chrono_polymerization',
+      });
+    }
+  }
+  if (playerBlessings.includes('blessing_trap_ambush')) {
+    const trapPool = ['cryo_mirror_wall', 'chrono_aether_reflector', 'umbra_shadow_snare'].filter(
+      (id) => Boolean(registry[id])
+    );
+    if (trapPool.length > 0) {
+      const picked = trapPool[Math.floor(nextRandom(state) * trapPool.length)];
+      state.players.player.arcane[0] = {
+        instanceId: nextId(state, 'arc'),
+        cardId: picked,
+        owner: 'player',
+        slot: 0,
+        kind: 'ambush',
+        faceDown: true,
+        setTurn: 0,
+      };
+    }
+  }
 
   // Boss Modifiers
   if (bossMod === 'pyro_hatchling_start') {
@@ -259,6 +308,9 @@ function startTurnInPlace(
   if (state.turnNumber > 1) {
     const rushDrawCount = Math.max(1, RUSH_DRAW_HAND_TARGET - p.hand.length);
     drawCardsInPlace(state, owner, rushDrawCount, registry, true);
+    if (p.blessings.includes('blessing_rush_draw')) {
+      healLpInPlace(state, owner, 400);
+    }
   }
 
   if (!state.winner) {
@@ -953,6 +1005,13 @@ export function toggleStance(
   if (!found || found.owner !== owner) {
     return { state: prevState, ok: false, error: 'Friendly monster not found.' };
   }
+  if (found.unit.isMaximumMode) {
+    return {
+      state: prevState,
+      ok: false,
+      error: 'Maximum Mode Titans cannot be switched to Defense Position!',
+    };
+  }
   if (found.unit.summonedTurn === prevState.players[owner].turnsTaken) {
     return {
       state: prevState,
@@ -1026,8 +1085,9 @@ export function canEvolveUnit(
   if (unit.innateEvolveReady) {
     return { eligible: true, freeInnate: true };
   }
-  if (player.turnsTaken < 3) {
-    return { eligible: false, freeInnate: false, reason: 'Evo Orbs unlock on Turn 3.' };
+  const evoUnlockTurn = player.blessings.includes('blessing_evo_mastery') ? 2 : 3;
+  if (player.turnsTaken < evoUnlockTurn) {
+    return { eligible: false, freeInnate: false, reason: `Evo Orbs unlock on Turn ${evoUnlockTurn}.` };
   }
   if (player.evoOrbs <= 0) {
     return { eligible: false, freeInnate: false, reason: 'No Evo Orbs left.' };
@@ -1131,6 +1191,13 @@ export function canUnitAttack(
   }
   if (state.phase !== 'main' && state.phase !== 'battle') {
     return { canAttackUnits: false, canAttackLp: false, reason: 'Cannot attack right now.' };
+  }
+  if (unit.isMaximumMode && unit.maximumPiece !== 'center') {
+    return {
+      canAttackUnits: false,
+      canAttackLp: false,
+      reason: 'Attack using the Maximum Mode Center Core!',
+    };
   }
   if (unit.faceDown || unit.stance !== 'attack') {
     return {
@@ -1269,10 +1336,11 @@ export function declareAttack(
     return { state, ok: true };
   }
 
-  // 2. Attacker onAttack triggers
+  // 2. Attacker onAttack triggers (including Maximum Mode On-Attack!)
   const onAttackEffects = [
     ...(atkDef?.onAttack ?? []),
     ...(attacker.isEvolved ? atkDef?.evolvedData?.onAttack ?? [] : []),
+    ...(attacker.isMaximumMode && atkDef?.maximumOnAttack ? atkDef.maximumOnAttack : []),
   ];
   if (onAttackEffects.length > 0) {
     resolveEffectsInPlace(
@@ -1518,5 +1586,376 @@ export function endTurn(
     startTurnInPlace(state, enemy, registry);
   }
 
+  return { state, ok: true };
+}
+
+/* ============================================================================
+ * DUELIST CHARACTER SKILLS (1/DUEL — YU-GI-OH! DUEL LINKS STYLE)
+ * ============================================================================ */
+
+export function canActivateSkill(
+  state: DuelState,
+  owner: PlayerId,
+  registry: Record<string, CardDef>
+): { eligible: boolean; reason?: string } {
+  if (state.winner || state.activePlayer !== owner || state.phase !== 'main') {
+    return { eligible: false, reason: 'Skills activate during your Main Phase.' };
+  }
+  const p = state.players[owner];
+  if (!p.skillId) return { eligible: false, reason: 'No Duelist Skill equipped.' };
+  if (p.skillUsed) return { eligible: false, reason: 'Skill already used this Duel.' };
+
+  switch (p.skillId) {
+    case 'volcanic_ignition':
+      if (p.lp > 6000 && p.turnsTaken < 2) {
+        return { eligible: false, reason: 'Unlocks on Turn 2+ or LP ≤ 6000.' };
+      }
+      return { eligible: true };
+    case 'absolute_aegis':
+      if (p.turnsTaken < 2) {
+        return { eligible: false, reason: 'Unlocks starting your Turn 2.' };
+      }
+      return { eligible: true };
+    case 'void_resurrection': {
+      const hasVoidMonster = p.voidPile.some((cid) => registry[cid]?.type === 'vanguard');
+      if (!hasVoidMonster) {
+        return { eligible: false, reason: 'Requires at least 1 Monster in your Void.' };
+      }
+      return { eligible: true };
+    }
+    case 'canopy_awakening':
+      if (p.turnsTaken < 2) {
+        return { eligible: false, reason: 'Unlocks starting your Turn 2.' };
+      }
+      return { eligible: true };
+    case 'destiny_draw':
+      if (p.lp > 5500 && p.turnsTaken < 3) {
+        return { eligible: false, reason: 'Unlocks on Turn 3+ or LP ≤ 5500.' };
+      }
+      if (p.deck.length === 0) {
+        return { eligible: false, reason: 'Deck is empty.' };
+      }
+      return { eligible: true };
+  }
+}
+
+export function activateDuelistSkill(
+  prevState: DuelState,
+  owner: PlayerId,
+  registry: Record<string, CardDef>
+): EngineResult {
+  const chk = canActivateSkill(prevState, owner, registry);
+  if (!chk.eligible) {
+    return { state: prevState, ok: false, error: chk.reason ?? 'Skill not ready.' };
+  }
+
+  const state = cloneDuelState(prevState);
+  state.recentEvents = [];
+  const p = state.players[owner];
+  const skillId = p.skillId!;
+  p.skillUsed = true;
+
+  switch (skillId) {
+    case 'volcanic_ignition': {
+      pushEvent(
+        state,
+        'skill',
+        `SKILL ACTIVATED — VOLCANIC IGNITION! All friendly monsters surge +500 ATK & scorch 500 enemy LP!`,
+        { actor: owner, cardId: 'pyro_inferno_sovereign' }
+      );
+      resolveEffectsInPlace(
+        state,
+        [
+          { kind: 'buff_all_friendly', atkDelta: 500, defDelta: 200 },
+          { kind: 'damage_enemy_lp', amount: 500 },
+        ],
+        { sourceOwner: owner },
+        registry
+      );
+      break;
+    }
+
+    case 'absolute_aegis': {
+      pushEvent(
+        state,
+        'skill',
+        `SKILL ACTIVATED — ABSOLUTE AEGIS! Strongest foe is Frozen & all allies gain +400 DEF + Ward!`,
+        { actor: owner, cardId: 'cryo_valkyrie_zero' }
+      );
+      resolveEffectsInPlace(
+        state,
+        [
+          { kind: 'freeze_unit', amount: 1 },
+          { kind: 'buff_all_friendly', atkDelta: 0, defDelta: 400, keyword: 'Ward' },
+        ],
+        { sourceOwner: owner },
+        registry
+      );
+      break;
+    }
+
+    case 'void_resurrection': {
+      pushEvent(
+        state,
+        'skill',
+        `SKILL ACTIVATED — VOID RESURRECTION! Rising from the Abyss + +600 LP!`,
+        { actor: owner, cardId: 'umbra_nyx_avatar' }
+      );
+      const openSlot = getFirstOpenVanguardSlot(state, owner);
+      if (openSlot !== null) {
+        resolveEffectsInPlace(
+          state,
+          [
+            { kind: 'revive_vanguard', maxLevel: 8 },
+            { kind: 'heal_lp', amount: 600 },
+          ],
+          { sourceOwner: owner },
+          registry
+        );
+      } else {
+        resolveEffectsInPlace(
+          state,
+          [
+            { kind: 'recover_void_to_hand' },
+            { kind: 'heal_lp', amount: 800 },
+          ],
+          { sourceOwner: owner },
+          registry
+        );
+      }
+      break;
+    }
+
+    case 'canopy_awakening': {
+      pushEvent(
+        state,
+        'skill',
+        `SKILL ACTIVATED — CANOPY AWAKENING! +1 Evo Orb, +1000 LP & early Awakening unlocked!`,
+        { actor: owner, cardId: 'sylvan_gaia_stag' }
+      );
+      if (!p.blessings.includes('blessing_evo_mastery')) {
+        p.blessings.push('blessing_evo_mastery');
+      }
+      resolveEffectsInPlace(
+        state,
+        [
+          { kind: 'gain_evo_orb', amount: 1 },
+          { kind: 'heal_lp', amount: 1000 },
+        ],
+        { sourceOwner: owner },
+        registry
+      );
+      break;
+    }
+
+    case 'destiny_draw': {
+      // Pull strongest ace / Polymerization / Maximum piece straight from Deck + draw 1!
+      let bestIdx = 0;
+      let bestScore = -1;
+      p.deck.forEach((cid, idx) => {
+        const d = registry[cid];
+        if (!d) return;
+        let score = (d.atk ?? 0) + (d.rarity === 'mythic' ? 1200 : d.rarity === 'epic' ? 500 : 0);
+        if (d.arcanaSubtype === 'fusion_catalyst') score += 2600;
+        if (d.maximumPiece) score += 2400;
+        if (score > bestScore) {
+          bestScore = score;
+          bestIdx = idx;
+        }
+      });
+      const [pulledId] = p.deck.splice(bestIdx, 1);
+      if (pulledId && p.hand.length < 9) {
+        p.hand.push({ instanceId: nextId(state, 'hc'), cardId: pulledId });
+      }
+      const pulledName = registry[pulledId]?.name ?? 'Ace Card';
+      pushEvent(
+        state,
+        'skill',
+        `SKILL ACTIVATED — DESTINY DRAW! ${p.name} draws ${pulledName} straight from fate + 1 bonus card!`,
+        { actor: owner, cardId: pulledId }
+      );
+      drawCardsInPlace(state, owner, 1, registry, true);
+      break;
+    }
+  }
+
+  checkWinnerInPlace(state);
+  return { state, ok: true };
+}
+
+/* ============================================================================
+ * MAXIMUM SUMMON (3-PIECE TITAN — YU-GI-OH! RUSH DUEL SIGNATURE MECHANIC)
+ * ============================================================================ */
+
+export interface MaximumSetReady {
+  maximumSetId: string;
+  leftHandId: string;
+  centerHandId: string;
+  rightHandId: string;
+  centerCardId: string;
+  maximumAtk: number;
+}
+
+export function findAvailableMaximumSets(
+  state: DuelState,
+  owner: PlayerId,
+  registry: Record<string, CardDef>
+): MaximumSetReady[] {
+  if (state.winner || state.activePlayer !== owner || state.phase !== 'main') return [];
+  const hand = state.players[owner].hand;
+  const bySet = new Map<
+    string,
+    { left?: string; center?: string; right?: string; centerCardId?: string; maxAtk?: number }
+  >();
+
+  for (const hc of hand) {
+    const def = registry[hc.cardId];
+    if (!def?.maximumSetId || !def.maximumPiece) continue;
+    const entry = bySet.get(def.maximumSetId) ?? {};
+    if (def.maximumPiece === 'left' && !entry.left) entry.left = hc.instanceId;
+    if (def.maximumPiece === 'center' && !entry.center) {
+      entry.center = hc.instanceId;
+      entry.centerCardId = def.id;
+      entry.maxAtk = def.maximumAtk ?? 4200;
+    }
+    if (def.maximumPiece === 'right' && !entry.right) entry.right = hc.instanceId;
+    bySet.set(def.maximumSetId, entry);
+  }
+
+  const ready: MaximumSetReady[] = [];
+  for (const [maximumSetId, entry] of bySet.entries()) {
+    if (entry.left && entry.center && entry.right && entry.centerCardId) {
+      ready.push({
+        maximumSetId,
+        leftHandId: entry.left,
+        centerHandId: entry.center,
+        rightHandId: entry.right,
+        centerCardId: entry.centerCardId,
+        maximumAtk: entry.maxAtk ?? 4200,
+      });
+    }
+  }
+  return ready;
+}
+
+export function executeMaximumSummon(
+  prevState: DuelState,
+  owner: PlayerId,
+  maximumSetId: string,
+  registry: Record<string, CardDef>,
+  skipAmbushFor?: PlayerId
+): EngineResult {
+  const ready = findAvailableMaximumSets(prevState, owner, registry).find(
+    (m) => m.maximumSetId === maximumSetId
+  );
+  if (!ready) {
+    return {
+      state: prevState,
+      ok: false,
+      error: 'Hold all 3 Maximum pieces ([L] + [CORE] + [R]) in Hand to Maximum Summon!',
+    };
+  }
+
+  const state = cloneDuelState(prevState);
+  state.recentEvents = [];
+  const p = state.players[owner];
+  const enemy = getEnemy(owner);
+
+  // Official Rush Duel Maximum Summon rule: clear existing friendly field monsters to Void first!
+  const clearedCardIds: string[] = [];
+  for (let s = 0; s < 3; s++) {
+    const existing = p.vanguard[s];
+    if (existing) {
+      p.vanguard[s] = null;
+      clearedCardIds.push(existing.cardId);
+      if (!registry[existing.cardId]?.isToken) {
+        p.voidPile.push(existing.cardId);
+      }
+      for (const rId of existing.attachedRelics) {
+        p.voidPile.push(rId);
+      }
+    }
+  }
+
+  // Pull [L], [CORE], [R] from hand
+  const idsToPull = new Set([ready.leftHandId, ready.centerHandId, ready.rightHandId]);
+  const pulled = p.hand.filter((h) => idsToPull.has(h.instanceId));
+  p.hand = p.hand.filter((h) => !idsToPull.has(h.instanceId));
+
+  const leftHc = pulled.find((h) => h.instanceId === ready.leftHandId)!;
+  const centerHc = pulled.find((h) => h.instanceId === ready.centerHandId)!;
+  const rightHc = pulled.find((h) => h.instanceId === ready.rightHandId)!;
+
+  const leftDef = registry[leftHc.cardId]!;
+  const centerDef = registry[centerHc.cardId]!;
+  const rightDef = registry[rightHc.cardId]!;
+
+  const maxAtk = centerDef.maximumAtk ?? 4200;
+  const maxKeywords = centerDef.maximumKeywords ?? ['Pierce', 'Ward'];
+
+  const leftUnit = createBoardUnit(state, owner, leftDef, 0, 'attack', false);
+  const centerUnit = createBoardUnit(state, owner, centerDef, 1, 'attack', false);
+  const rightUnit = createBoardUnit(state, owner, rightDef, 2, 'attack', false);
+
+  for (const [u, role] of [
+    [leftUnit, 'left'],
+    [centerUnit, 'center'],
+    [rightUnit, 'right'],
+  ] as const) {
+    u.isMaximumMode = true;
+    u.maximumSetId = maximumSetId;
+    u.maximumPiece = role;
+    u.currentAtk = maxAtk;
+    u.currentDef = 0; // Authentic Rush Duel: Maximum Monsters have no DEF in Maximum Mode!
+    u.keywords = [...maxKeywords];
+    u.wardActive = maxKeywords.includes('Ward');
+    u.maxAttacksThisTurn = maxKeywords.includes('Swift') ? 2 : 1;
+  }
+
+  p.vanguard[0] = leftUnit;
+  p.vanguard[1] = centerUnit;
+  p.vanguard[2] = rightUnit;
+
+  if (owner === 'player') {
+    state.maximumsPerformed += 1;
+  }
+
+  pushEvent(
+    state,
+    'maximum',
+    `MAXIMUM SUMMON!! ${p.name} unites [L] + [CORE] + [R] into ${centerDef.name} (${maxAtk} MAXIMUM ATK)!`,
+    {
+      actor: owner,
+      cardId: centerDef.id,
+      secondaryCardIds: [leftDef.id, rightDef.id],
+      targetInstanceId: centerUnit.instanceId,
+    }
+  );
+
+  for (const cId of clearedCardIds) {
+    triggerResonateInPlace(state, owner, cId, registry);
+  }
+
+  // Enemy on_summon Ambush may attempt to react against Center Core (Ward blocks the first one!)
+  triggerAmbushInPlace(
+    state,
+    enemy,
+    'on_summon',
+    { targetUnitId: centerUnit.instanceId },
+    registry,
+    skipAmbushFor
+  );
+
+  const stillAlive = findUnitById(state, centerUnit.instanceId);
+  if (stillAlive && centerDef.onSummon?.length) {
+    resolveEffectsInPlace(
+      state,
+      centerDef.onSummon,
+      { sourceOwner: owner, sourceUnitId: centerUnit.instanceId },
+      registry
+    );
+  }
+
+  checkWinnerInPlace(state);
   return { state, ok: true };
 }

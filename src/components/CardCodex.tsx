@@ -14,7 +14,7 @@ import type { CardDef, CardSetId, CardType, Faction, Rarity } from '../engine/ty
 import { CARDS, RARITY_CRAFT_COST, RARITY_DISMANTLE_DUST } from '../data/cards';
 import { FACTIONS, FACTION_LIST } from '../data/factions';
 import { KEYWORDS } from '../data/keywords';
-import { useProfileStore } from '../store/profileStore';
+import { ROYAL_FOIL_CRAFT_COST, useProfileStore } from '../store/profileStore';
 import { soundEngine } from '../audio/soundEngine';
 import { Card } from './Card';
 
@@ -23,7 +23,8 @@ interface CardCodexProps {
 }
 
 export const CardCodex: React.FC<CardCodexProps> = ({ onBack }) => {
-  const { collection, dust, hasChampionBadge, craftCard, dismantleCard } = useProfileStore();
+  const { collection, dust, hasChampionBadge, royalFoils, craftCard, craftRoyalFoil, dismantleCard } =
+    useProfileStore();
 
   const [search, setSearch] = useState('');
   const [setFilter, setSetFilter] = useState<CardSetId | 'all'>('all');
@@ -174,6 +175,7 @@ export const CardCodex: React.FC<CardCodexProps> = ({ onBack }) => {
           <option value="overdrive">Set 2A: Dragonic Overdrive (9)</option>
           <option value="phantom">Set 2B: Cyber Phantom (9)</option>
           <option value="arcana_vault">Set 3: Arcana &amp; Ambush Vault (10)</option>
+          <option value="maximum">Set 4: Maximum Overlord (3)</option>
         </select>
 
         <select
@@ -377,6 +379,36 @@ export const CardCodex: React.FC<CardCodexProps> = ({ onBack }) => {
                       </>
                     )}
                   </div>
+                </div>
+
+                {/* Royal Prismatic Foil Upgrade */}
+                <div className="pt-2 flex flex-wrap items-center justify-between gap-2">
+                  {royalFoils?.[inspecting.id] ? (
+                    <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-gradient-to-r from-rose-500/20 via-amber-400/25 to-cyan-400/20 border border-amber-300/75 text-amber-200 text-xs font-extrabold">
+                      <Sparkles className="w-3.5 h-3.5 text-amber-300" />
+                      ✦ ROYAL PRISMATIC FOIL ACTIVE!
+                    </span>
+                  ) : (
+                    <button
+                      type="button"
+                      disabled={
+                        (collection[inspecting.id] ?? 0) <= 0 || dust < ROYAL_FOIL_CRAFT_COST
+                      }
+                      onClick={() => {
+                        const res = craftRoyalFoil(inspecting.id);
+                        if (!res.ok) {
+                          showNotice(res.error ?? 'Cannot craft Royal Foil.');
+                          return;
+                        }
+                        soundEngine.fusion();
+                        showNotice(`✦ Upgraded ${inspecting.name} to Royal Prismatic Foil!`);
+                      }}
+                      className="px-3.5 py-1.5 rounded-xl bg-gradient-to-r from-rose-500 via-amber-400 to-cyan-400 text-slate-950 font-extrabold text-xs flex items-center gap-1.5 disabled:opacity-35 cursor-pointer shadow-[0_0_16px_rgba(251,191,36,0.4)]"
+                    >
+                      <Sparkles className="w-3.5 h-3.5" />
+                      ✦ Craft Royal Prismatic Foil ({ROYAL_FOIL_CRAFT_COST} Dust)
+                    </button>
+                  )}
                 </div>
               </div>
             </div>

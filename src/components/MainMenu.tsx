@@ -22,6 +22,7 @@ import { CARDS, CARD_MAP } from '../data/cards';
 import { CAMPAIGN_CHAPTERS } from '../data/campaign';
 import { FACTIONS } from '../data/factions';
 import { countClaimableMissions, getDuelistRank } from '../data/missions';
+import { DUELIST_SKILLS, getSkillDef } from '../data/skills';
 import { useProfileStore } from '../store/profileStore';
 import { soundEngine } from '../audio/soundEngine';
 import { Card } from './Card';
@@ -31,6 +32,7 @@ import { SaveBackupModal } from './SaveBackupModal';
 export type ScreenId =
   | 'menu'
   | 'campaign'
+  | 'spire'
   | 'quick_duel'
   | 'shop'
   | 'deck_builder'
@@ -110,8 +112,15 @@ export const MainMenu: React.FC<MainMenuProps> = ({ onNavigate }) => {
     hasChampionBadge,
     stats,
     soundEnabled,
+    selectedSkillId,
+    setSelectedSkill,
+    spireRun,
+    canClaimDailyFreePack,
     toggleSound,
   } = profile;
+
+  const freeDailyReady = canClaimDailyFreePack();
+  const activeSkill = getSkillDef(selectedSkillId);
 
   const [leaderIdx, setLeaderIdx] = useState(0);
   const [missionsOpen, setMissionsOpen] = useState(false);
@@ -485,6 +494,27 @@ export const MainMenu: React.FC<MainMenuProps> = ({ onNavigate }) => {
                   />
                 ))}
               </div>
+
+              {/* Quick Equipped Duelist Skill Pill */}
+              <div className="mt-3 inline-flex items-center gap-2 px-3 py-1 rounded-full bg-slate-950/85 border border-amber-400/50 text-[10.5px]">
+                <span className="text-amber-300 font-display font-extrabold uppercase tracking-wider">
+                  SKILL:
+                </span>
+                <select
+                  value={activeSkill.id}
+                  onChange={(e) => {
+                    soundEngine.uiClick();
+                    setSelectedSkill(e.target.value as typeof activeSkill.id);
+                  }}
+                  className="bg-transparent text-white font-bold outline-none cursor-pointer"
+                >
+                  {DUELIST_SKILLS.map((sk) => (
+                    <option key={sk.id} value={sk.id} className="bg-slate-950 text-white">
+                      {sk.skillName} ({sk.duelistName.split(',')[0]})
+                    </option>
+                  ))}
+                </select>
+              </div>
             </div>
           </div>
 
@@ -529,10 +559,12 @@ export const MainMenu: React.FC<MainMenuProps> = ({ onNavigate }) => {
             {
               id: 'shop' as ScreenId,
               label: 'SHOP',
-              sub: 'Packs',
+              sub: freeDailyReady ? 'FREE PACK!' : 'Packs',
               icon: <PackageOpen className="w-5 h-5 text-amber-300" />,
-              border: 'border-amber-400/60 hover:border-amber-300',
-              badge: packsReady > 0 ? `${packsReady}` : undefined,
+              border: freeDailyReady
+                ? 'border-amber-300 shadow-[0_0_20px_rgba(251,191,36,0.45)]'
+                : 'border-amber-400/60 hover:border-amber-300',
+              badge: freeDailyReady ? 'FREE' : packsReady > 0 ? `${packsReady}` : undefined,
             },
             {
               id: 'rules' as ScreenId,
@@ -552,7 +584,7 @@ export const MainMenu: React.FC<MainMenuProps> = ({ onNavigate }) => {
             >
               {btn.badge && (
                 <span className="absolute -top-2 right-1 px-1.5 py-0.5 rounded bg-gradient-to-r from-rose-500 to-amber-500 text-[8.5px] sm:text-[9px] font-extrabold text-white tracking-wider shadow-[0_0_12px_rgba(244,63,94,0.85)] animate-pulse">
-                  {btn.badge} PACKS
+                  {btn.badge === 'FREE' ? '🎁 FREE!' : `${btn.badge} PACKS`}
                 </span>
               )}
               {btn.icon}
@@ -566,8 +598,33 @@ export const MainMenu: React.FC<MainMenuProps> = ({ onNavigate }) => {
           ))}
         </nav>
 
-        {/* BOTTOM-RIGHT: Hero Story Campaign Banner + Giant Glowing BATTLE Button */}
+        {/* BOTTOM-RIGHT: Rift Spire Roguelike + Story Campaign + Giant DUEL! Button */}
         <div className="flex flex-col sm:flex-row items-stretch sm:items-end gap-2.5">
+          {/* RIFT SPIRE ROGUELIKE TOWER BUTTON */}
+          <motion.button
+            type="button"
+            whileHover={{ y: -4, scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+            onClick={() => go('spire')}
+            className="game-panel clip-chamfer px-3.5 py-2.5 border-fuchsia-400/70 hover:border-amber-300 flex items-center gap-2.5 text-left cursor-pointer sm:min-w-[175px]"
+          >
+            <div className="w-11 h-11 rounded-lg bg-gradient-to-br from-fuchsia-600 via-purple-700 to-amber-500 border border-amber-300/80 flex items-center justify-center shadow-[0_0_16px_rgba(217,70,239,0.5)] shrink-0">
+              <Crown className="w-5 h-5 text-white" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <div className="text-[9.5px] font-extrabold tracking-widest uppercase text-fuchsia-300">
+                ROGUELIKE
+              </div>
+              <div className="font-display font-extrabold text-sm text-white truncate">
+                RIFT SPIRE
+              </div>
+              <div className="text-[10px] text-amber-200 font-bold">
+                {spireRun?.active ? `Resume FL ${spireRun.floor}/5` : '5-Floor Draft Run'}
+              </div>
+            </div>
+            <ChevronRight className="w-4 h-4 text-fuchsia-300 shrink-0" />
+          </motion.button>
+
           {/* STORY CAMPAIGN BANNER with Next Boss Portrait */}
           <motion.button
             type="button"

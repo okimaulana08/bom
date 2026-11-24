@@ -227,4 +227,61 @@ describe('End-to-End Progression, Economy, Crafting, Campaign & Duel Flow', () =
     expect(useProfileStore.getState().claimedMissions).toContain('first_win');
     expect(useProfileStore.getState().duelSpeed).toBe(2);
   });
+
+  it('supports Daily Free Pack (1/day), Royal Prismatic Foil Craft, Skills & 5-Floor Rift Spire Draft Run', () => {
+    const store = useProfileStore.getState();
+    store.resetProfile();
+
+    // 1. Daily Free Pack opens for 0 Coins once, then locks for the rest of today!
+    expect(store.canClaimDailyFreePack()).toBe(true);
+    const coinsBefore = store.coins;
+    const freeRes = store.openPack('maximum_overlord_pack', true);
+    expect(freeRes.ok).toBe(true);
+    expect(useProfileStore.getState().coins).toBe(coinsBefore);
+    expect(useProfileStore.getState().canClaimDailyFreePack()).toBe(false);
+    expect(useProfileStore.getState().openPack('maximum_overlord_pack', true).ok).toBe(false);
+
+    // 2. Royal Prismatic Foil upgrade costs 80 Dust (120 -> 40)
+    const dustBefore = useProfileStore.getState().dust;
+    const foilRes = useProfileStore.getState().craftRoyalFoil('pyro_hatchling');
+    expect(foilRes.ok).toBe(true);
+    expect(useProfileStore.getState().royalFoils?.['pyro_hatchling']).toBe(true);
+    expect(useProfileStore.getState().dust).toBe(dustBefore - 80);
+
+    // 3. Duelist Skill selection & Tutorial flag
+    store.setSelectedSkill('destiny_draw');
+    store.completeTutorial();
+    expect(useProfileStore.getState().selectedSkillId).toBe('destiny_draw');
+    expect(useProfileStore.getState().tutorialCompleted).toBe(true);
+
+    // 4. Rift Spire Run: Start -> Win Floor 1 -> Draft Card + Blessing -> Ascend to Floor 2!
+    store.startSpireRun(STARTER_DECK.id);
+    expect(useProfileStore.getState().spireRun?.floor).toBe(1);
+    expect(useProfileStore.getState().spireRun?.deck.length).toBe(30);
+
+    useProfileStore.getState().recordDuelResult({
+      won: true,
+      chapterId: null,
+      spireFloor: 1,
+      remainingPlayerLp: 5500,
+      fusionsPerformed: 1,
+      evolutionsPerformed: 0,
+      maximumsPerformed: 1,
+    });
+
+    const afterWin = useProfileStore.getState().spireRun!;
+    expect(afterWin.pendingDraft).toBeTruthy();
+    expect(afterWin.pendingDraft!.cardChoices.length).toBe(3);
+    expect(afterWin.pendingDraft!.blessingChoices.length).toBe(3);
+
+    store.pickSpireDraftCard(afterWin.pendingDraft!.cardChoices[0]);
+    store.pickSpireBlessing(afterWin.pendingDraft!.blessingChoices[0]);
+    store.advanceSpireFloor();
+
+    const floor2Run = useProfileStore.getState().spireRun!;
+    expect(floor2Run.floor).toBe(2);
+    expect(floor2Run.deck.length).toBe(31);
+    expect(floor2Run.blessings.length).toBe(1);
+    expect(floor2Run.currentLp).toBeGreaterThanOrEqual(7000); // 5500 + 1500 rest heal!
+  });
 });

@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { ArrowLeft, Brain, Shield, Swords } from 'lucide-react';
+import { ArrowLeft, Brain, Shield, Sparkles, Swords } from 'lucide-react';
 import { AI_ARCHETYPES, type AiArchetype } from '../data/decks';
 import { FACTIONS } from '../data/factions';
+import { DUELIST_SKILLS, getSkillDef } from '../data/skills';
 import { useProfileStore } from '../store/profileStore';
 import { soundEngine } from '../audio/soundEngine';
 
@@ -16,7 +17,8 @@ interface QuickDuelSetupProps {
 }
 
 export const QuickDuelSetup: React.FC<QuickDuelSetupProps> = ({ onBack, onLaunch }) => {
-  const { decks, activeDeckId, setActiveDeck } = useProfileStore();
+  const { decks, activeDeckId, setActiveDeck, selectedSkillId, setSelectedSkill } = useProfileStore();
+  const activeSkill = getSkillDef(selectedSkillId);
   const validDecks = decks.filter((d) => d.mainDeck.length === 30);
 
   const [selectedDeckId, setSelectedDeckId] = useState(
@@ -130,6 +132,47 @@ export const QuickDuelSetup: React.FC<QuickDuelSetupProps> = ({ onBack, onLaunch
               </div>
             </div>
           </div>
+        </div>
+
+        {/* Step 2.5: Choose Duelist Skill (1/Duel) */}
+        <div className="rounded-2xl bg-slate-950/90 border border-amber-500/35 p-4">
+          <div className="text-xs uppercase tracking-wider text-amber-300 font-bold mb-2.5 flex items-center gap-1.5">
+            <Sparkles className="w-3.5 h-3.5" /> Duelist Character Skill (1/Duel):{' '}
+            <span className="text-white">{activeSkill.skillName}</span>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-2">
+            {DUELIST_SKILLS.map((sk) => {
+              const isPicked = activeSkill.id === sk.id;
+              return (
+                <button
+                  key={sk.id}
+                  type="button"
+                  onClick={() => {
+                    soundEngine.uiClick();
+                    setSelectedSkill(sk.id);
+                  }}
+                  className={`text-left p-2.5 rounded-xl border transition-all cursor-pointer flex items-center gap-2.5 ${
+                    isPicked
+                      ? `${sk.borderColor} bg-indigo-950/75 text-white shadow-[0_0_16px_rgba(251,191,36,0.25)]`
+                      : 'bg-slate-900/70 border-slate-800 text-slate-400 hover:border-slate-600'
+                  }`}
+                >
+                  <img
+                    src={sk.portrait}
+                    alt={sk.duelistName}
+                    className="w-9 h-9 rounded-lg object-cover object-top shrink-0"
+                  />
+                  <div className="min-w-0">
+                    <div className="font-display font-bold text-[11px] text-white truncate">
+                      {sk.skillName}
+                    </div>
+                    <div className="text-[9.5px] text-amber-300/90 truncate">{sk.triggerHint}</div>
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+          <p className="mt-2 text-[11px] text-slate-300">{activeSkill.description}</p>
         </div>
 
         {/* Step 3: Opponent Archetype */}

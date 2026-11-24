@@ -18,6 +18,7 @@ import { FACTIONS } from '../data/factions';
 import { KEYWORDS } from '../data/keywords';
 import { getCardArtPresentation } from '../data/cardArtStyle';
 import { getRequiredTributes } from '../engine/utils';
+import { useProfileStore } from '../store/profileStore';
 
 export interface CardProps {
   card: CardDef;
@@ -127,8 +128,11 @@ export const Card: React.FC<CardProps> = ({
     : card.keywords;
   const displayText = evo ? evo.effectText : card.effectText;
 
+  const royalFoils = useProfileStore((s) => s.royalFoils);
+  const isRoyalFoil = Boolean(royalFoils?.[card.id]);
+  const isMaximumMode = Boolean(unit?.isMaximumMode);
   const isDualFusion = card.type === 'fusion_apex' && Boolean(secondaryFaction);
-  const isPrismatic = Boolean(card.isExclusive);
+  const isPrismatic = Boolean(card.isExclusive) || isRoyalFoil || isMaximumMode;
   const isDefense = unit?.stance === 'defense';
   const isFaceDownUnit = faceDown || Boolean(unit?.faceDown);
   const isFrozen = (unit?.frozenTurns ?? 0) > 0;
@@ -559,8 +563,20 @@ export const Card: React.FC<CardProps> = ({
                 </div>
               )}
 
-              {showCompactKeywords && displayKeywords.length > 0 && (
+              {showCompactKeywords && (displayKeywords.length > 0 || card.maximumPiece) && (
                 <div className="flex flex-wrap items-center justify-center gap-0.5 mt-1">
+                  {card.maximumPiece && (
+                    <span className="px-1 py-[1px] rounded border border-amber-300/90 bg-gradient-to-r from-amber-600/90 to-fuchsia-600/90 text-white text-[7.5px] font-black leading-none uppercase">
+                      {isMaximumMode
+                        ? 'MAX MODE'
+                        : `MAX [${card.maximumPiece === 'left' ? 'L' : card.maximumPiece === 'right' ? 'R' : 'CORE'}]`}
+                    </span>
+                  )}
+                  {isRoyalFoil && !card.maximumPiece && (
+                    <span className="px-1 py-[1px] rounded border border-amber-200/90 bg-gradient-to-r from-rose-500/85 via-amber-400/85 to-cyan-400/85 text-slate-950 text-[7px] font-black leading-none uppercase">
+                      ✦ ROYAL
+                    </span>
+                  )}
                   {displayKeywords.slice(0, size === 'sm' ? 2 : 4).map((kw) => (
                     <span
                       key={kw}

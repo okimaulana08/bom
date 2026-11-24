@@ -86,7 +86,8 @@ const CARD_SPARKS = Array.from({ length: 14 }, (_, i) => {
 });
 
 export const PackShop: React.FC<PackShopProps> = ({ onBack }) => {
-  const { coins, dust, openPack } = useProfileStore();
+  const { coins, dust, openPack, canClaimDailyFreePack } = useProfileStore();
+  const freeDailyReady = canClaimDailyFreePack();
 
   const [stage, setStage] = useState<'browse' | 'sealed' | 'tearing' | 'reveal'>('browse');
   const [activePack, setActivePack] = useState<PackDef | null>(null);
@@ -117,8 +118,8 @@ export const PackShop: React.FC<PackShopProps> = ({ onBack }) => {
     return best;
   }, [packResult]);
 
-  const handlePurchase = (pack: PackDef) => {
-    const res = openPack(pack.id);
+  const handlePurchase = (pack: PackDef, useFreeDaily = false) => {
+    const res = openPack(pack.id, useFreeDaily);
     if (!res.ok || !res.result) {
       setErrorMsg(res.error ?? 'Not enough Aether Coins!');
       setTimeout(() => setErrorMsg(null), 2400);
@@ -364,19 +365,30 @@ export const PackShop: React.FC<PackShopProps> = ({ onBack }) => {
                     </p>
                   </div>
 
-                  <button
-                    type="button"
-                    disabled={!canBuy}
-                    onClick={() => handlePurchase(pack)}
-                    className={`mt-5 w-full py-3 clip-skew-btn font-display font-bold text-sm tracking-wider flex items-center justify-center gap-2 transition-all relative overflow-hidden ${
-                      canBuy
-                        ? 'shine-sweep bg-gradient-to-r from-amber-500 via-orange-500 to-fuchsia-600 text-white shadow-[0_0_24px_rgba(245,158,11,0.45)] hover:brightness-110 cursor-pointer'
-                        : 'bg-slate-800 text-slate-500 cursor-not-allowed'
-                    }`}
-                  >
-                    <Coins className="w-4 h-4" />
-                    BUY &amp; OPEN ({pack.price} Coins)
-                  </button>
+                  {freeDailyReady ? (
+                    <button
+                      type="button"
+                      onClick={() => handlePurchase(pack, true)}
+                      className="mt-5 w-full py-3 clip-skew-btn font-display font-extrabold text-sm tracking-wider flex items-center justify-center gap-2 transition-all relative overflow-hidden shine-sweep bg-gradient-to-r from-emerald-500 via-teal-400 to-cyan-500 text-slate-950 shadow-[0_0_28px_rgba(16,185,129,0.65)] hover:brightness-110 cursor-pointer"
+                    >
+                      <Sparkles className="w-4 h-4" />
+                      FREE DAILY PACK (0 COINS)!
+                    </button>
+                  ) : (
+                    <button
+                      type="button"
+                      disabled={!canBuy}
+                      onClick={() => handlePurchase(pack, false)}
+                      className={`mt-5 w-full py-3 clip-skew-btn font-display font-bold text-sm tracking-wider flex items-center justify-center gap-2 transition-all relative overflow-hidden ${
+                        canBuy
+                          ? 'shine-sweep bg-gradient-to-r from-amber-500 via-orange-500 to-fuchsia-600 text-white shadow-[0_0_24px_rgba(245,158,11,0.45)] hover:brightness-110 cursor-pointer'
+                          : 'bg-slate-800 text-slate-500 cursor-not-allowed'
+                      }`}
+                    >
+                      <Coins className="w-4 h-4" />
+                      BUY &amp; OPEN ({pack.price} Coins)
+                    </button>
+                  )}
                 </motion.div>
               );
             })}

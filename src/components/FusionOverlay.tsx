@@ -239,7 +239,11 @@ export const FusionOverlay: React.FC<FusionOverlayProps> = ({ cutIn, onDismiss }
             >
               <div
                 className={`inline-flex items-center gap-2 clip-skew-btn px-4 py-1 border text-[11px] font-display font-extrabold tracking-[0.26em] uppercase mb-1.5 ${
-                  cutIn.kind === 'fusion'
+                  cutIn.kind === 'maximum'
+                    ? 'bg-gradient-to-r from-amber-600/95 via-fuchsia-700/95 to-cyan-600/95 border-amber-200 text-white shadow-[0_0_24px_rgba(251,191,36,0.85)]'
+                    : cutIn.kind === 'skill'
+                    ? 'bg-indigo-950/95 border-amber-300 text-amber-200'
+                    : cutIn.kind === 'fusion'
                     ? 'bg-fuchsia-950/90 border-fuchsia-300 text-fuchsia-100'
                     : cutIn.kind === 'evolve'
                     ? 'bg-amber-950/90 border-amber-300 text-amber-100'
@@ -248,11 +252,17 @@ export const FusionOverlay: React.FC<FusionOverlayProps> = ({ cutIn, onDismiss }
                     : 'bg-rose-950/90 border-fuchsia-400 text-fuchsia-100'
                 }`}
               >
+                {cutIn.kind === 'maximum' && <Crown className="w-3.5 h-3.5 text-amber-200" />}
+                {cutIn.kind === 'skill' && <Sparkles className="w-3.5 h-3.5 text-amber-300" />}
                 {cutIn.kind === 'fusion' && <Layers className="w-3.5 h-3.5" />}
                 {cutIn.kind === 'evolve' && <Sparkles className="w-3.5 h-3.5" />}
                 {cutIn.kind === 'ace_summon' && <Crown className="w-3.5 h-3.5 text-amber-300" />}
                 {cutIn.kind === 'ambush' && <AlertTriangle className="w-3.5 h-3.5 text-amber-300" />}
-                {cutIn.kind === 'ambush'
+                {cutIn.kind === 'maximum'
+                  ? '3-PIECE CONVERGENCE • RUSH MAXIMUM'
+                  : cutIn.kind === 'skill'
+                  ? 'DUELIST SIGNATURE SKILL'
+                  : cutIn.kind === 'ambush'
                   ? 'CHAIN LINK 1 • TRAP'
                   : cutIn.actor === 'player'
                   ? 'YOUR SIGNATURE PLAY'
@@ -261,7 +271,11 @@ export const FusionOverlay: React.FC<FusionOverlayProps> = ({ cutIn, onDismiss }
 
               <h2
                 className={`font-display text-3xl sm:text-5xl font-black italic tracking-wider drop-shadow-[0_4px_24px_rgba(0,0,0,0.95)] ${
-                  cutIn.kind === 'fusion'
+                  cutIn.kind === 'maximum'
+                    ? 'bg-gradient-to-r from-amber-200 via-white to-fuchsia-300 bg-clip-text text-transparent'
+                    : cutIn.kind === 'skill'
+                    ? 'bg-gradient-to-r from-amber-200 via-cyan-200 to-amber-300 bg-clip-text text-transparent'
+                    : cutIn.kind === 'fusion'
                     ? 'bg-gradient-to-r from-cyan-200 via-white to-fuchsia-300 bg-clip-text text-transparent'
                     : cutIn.kind === 'evolve'
                     ? 'bg-gradient-to-r from-yellow-100 via-amber-300 to-orange-400 bg-clip-text text-transparent'
@@ -277,7 +291,59 @@ export const FusionOverlay: React.FC<FusionOverlayProps> = ({ cutIn, onDismiss }
               </p>
             </motion.div>
 
-            {/* Converging Fusion Materials + Center 3D Card Reveal */}
+            {/* Skill Duelist Portrait OR 3-Piece Maximum Formation OR Fusion/Ace Reveal */}
+            {cutIn.kind === 'skill' && cutIn.portrait ? (
+              <motion.div
+                initial={{ scale: 0.72, opacity: 0, x: -60 }}
+                animate={{ scale: 1, opacity: 1, x: 0 }}
+                transition={{ type: 'spring', stiffness: 220, damping: 18 }}
+                className="relative my-2"
+              >
+                <div
+                  className="pointer-events-none absolute -inset-4 rounded-full blur-2xl opacity-75"
+                  style={{ backgroundColor: theme.main }}
+                />
+                <div className="relative w-44 h-44 sm:w-56 sm:h-56 rounded-full p-1 bg-gradient-to-tr from-amber-400 via-white to-cyan-400 shadow-2xl">
+                  <img
+                    src={cutIn.portrait}
+                    alt={cutIn.subtitle}
+                    className="w-full h-full rounded-full object-cover object-top"
+                  />
+                </div>
+              </motion.div>
+            ) : cutIn.kind === 'maximum' ? (
+              <div className="flex items-center justify-center gap-2 sm:gap-4 relative my-1">
+                {cutIn.materialCardIds?.[0] && CARD_MAP[cutIn.materialCardIds[0]] && (
+                  <motion.div
+                    initial={{ x: -120, opacity: 0, rotate: -14 }}
+                    animate={{ x: 0, opacity: 1, rotate: -4 }}
+                    transition={{ type: 'spring', stiffness: 220, damping: 16 }}
+                  >
+                    <Card card={CARD_MAP[cutIn.materialCardIds[0]]} size="sm" interactiveTilt={false} />
+                  </motion.div>
+                )}
+                <motion.div
+                  initial={{ scale: 0.4, opacity: 0, y: -30 }}
+                  animate={{ scale: 1.08, opacity: 1, y: 0 }}
+                  transition={{ delay: 0.12, type: 'spring', stiffness: 220, damping: 15 }}
+                  className="relative z-10"
+                >
+                  <div className="pointer-events-none absolute -inset-4 rounded-2xl blur-xl opacity-85 bg-gradient-to-r from-amber-400 via-fuchsia-500 to-cyan-400" />
+                  <div className="relative">
+                    <Card card={card} size="md" interactiveTilt={false} />
+                  </div>
+                </motion.div>
+                {cutIn.materialCardIds?.[1] && CARD_MAP[cutIn.materialCardIds[1]] && (
+                  <motion.div
+                    initial={{ x: 120, opacity: 0, rotate: 14 }}
+                    animate={{ x: 0, opacity: 1, rotate: 4 }}
+                    transition={{ type: 'spring', stiffness: 220, damping: 16 }}
+                  >
+                    <Card card={CARD_MAP[cutIn.materialCardIds[1]]} size="sm" interactiveTilt={false} />
+                  </motion.div>
+                )}
+              </div>
+            ) : (
             <div className="flex items-center justify-center gap-4 relative my-1">
               {cutIn.kind === 'fusion' &&
                 cutIn.materialCardIds?.[0] &&
@@ -347,6 +413,7 @@ export const FusionOverlay: React.FC<FusionOverlayProps> = ({ cutIn, onDismiss }
                   </motion.div>
                 )}
             </div>
+            )}
 
             {/* Metallic ATK / DEF Slam Nameplate */}
             {cutIn.atk !== undefined && cutIn.def !== undefined && (
