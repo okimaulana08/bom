@@ -1,6 +1,12 @@
 export type Faction = 'pyroclast' | 'cryo_mecha' | 'umbra' | 'sylvan' | 'chrono';
 
-export type CardSetId = 'genesis' | 'overdrive' | 'phantom' | 'arcana_vault' | 'maximum';
+export type CardSetId =
+  | 'genesis'
+  | 'overdrive'
+  | 'phantom'
+  | 'arcana_vault'
+  | 'maximum'
+  | 'egyptian_gods';
 
 export type DuelistSkillId =
   | 'volcanic_ignition'

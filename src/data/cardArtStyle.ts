@@ -630,6 +630,92 @@ const PAINTED_FALLBACK_MAP: Record<string, Omit<ArtPresentation, 'isBespoke'>> =
     filter: 'saturate(1.42) contrast(1.15) brightness(1.08)',
     tintOverlay: 'linear-gradient(235deg, rgba(56,189,248,0.44), rgba(129,140,248,0.24) 60%, transparent)',
   },
+
+  // ========== SET 5: PANTHEON OF THE NILE (EGYPTIAN GODS — TEMPORARY PAINTED FALLBACKS UNTIL BESPOKE UPLOAD) ==========
+  egypt_osiris_sky_dragon: {
+    src: '/assets/cards/fusion_supernova_starwyrm.jpg',
+    objectPosition: '50% 22%',
+    scale: 1.18,
+    filter: 'saturate(1.55) contrast(1.14) hue-rotate(-14deg)',
+    tintOverlay: 'radial-gradient(circle at 50% 25%, rgba(239,68,68,0.38), rgba(250,204,21,0.2) 60%, transparent)',
+  },
+  egypt_obelisk_tormentor: {
+    src: '/assets/cards/fusion_glacial_chronolith.jpg',
+    objectPosition: '50% 24%',
+    scale: 1.22,
+    filter: 'saturate(1.48) contrast(1.18) hue-rotate(8deg)',
+    tintOverlay: 'radial-gradient(circle at 50% 30%, rgba(37,99,235,0.42), rgba(56,189,248,0.22) 65%, transparent)',
+  },
+  egypt_ra_sun_phoenix: {
+    src: '/assets/cards/fusion_aether_sovereign.jpg',
+    objectPosition: '50% 20%',
+    scale: 1.2,
+    filter: 'saturate(1.6) brightness(1.12) contrast(1.12) hue-rotate(-18deg)',
+    tintOverlay: 'radial-gradient(circle at 50% 30%, rgba(251,191,36,0.48), rgba(245,158,11,0.22) 68%, transparent)',
+  },
+  egypt_fusion_horakhty: {
+    src: '/assets/cards/chrono_clock_angel.jpg',
+    objectPosition: '50% 20%',
+    scale: 1.16,
+    filter: 'saturate(1.55) brightness(1.14) contrast(1.1)',
+    tintOverlay: 'radial-gradient(circle at 50% 25%, rgba(254,240,138,0.48), rgba(245,158,11,0.24) 65%, transparent)',
+  },
+  egypt_ra_disciple: {
+    src: '/assets/cards/chrono_star_initiate.jpg',
+    objectPosition: '50% 24%',
+    scale: 1.24,
+    filter: 'saturate(1.38) brightness(1.06) hue-rotate(-24deg)',
+    tintOverlay: 'linear-gradient(180deg, rgba(251,191,36,0.32), rgba(120,53,15,0.35))',
+  },
+  egypt_anubis_jackal: {
+    src: '/assets/cards/umbra_dread_knight.jpg',
+    objectPosition: '50% 20%',
+    scale: 1.22,
+    filter: 'saturate(1.35) contrast(1.16) hue-rotate(14deg)',
+    tintOverlay: 'linear-gradient(135deg, rgba(234,179,8,0.3), rgba(88,28,135,0.38))',
+  },
+  egypt_horus_falcon: {
+    src: '/assets/cards/pyro_sky_dragoon.jpg',
+    objectPosition: '50% 22%',
+    scale: 1.2,
+    filter: 'saturate(1.48) contrast(1.12) hue-rotate(10deg)',
+    tintOverlay: 'radial-gradient(circle at 50% 25%, rgba(251,191,36,0.36), rgba(234,88,12,0.24) 65%, transparent)',
+  },
+  egypt_sphinx_guardian: {
+    src: '/assets/cards/cryo_glacier_mech.jpg',
+    objectPosition: '50% 26%',
+    scale: 1.24,
+    filter: 'saturate(1.3) contrast(1.15) sepia(0.28)',
+    tintOverlay: 'linear-gradient(180deg, rgba(245,158,11,0.26), rgba(30,64,175,0.34))',
+  },
+  egypt_millennium_ankh: {
+    src: '/assets/cards/chrono_aether_vessel.jpg',
+    objectPosition: '50% 35%',
+    scale: 1.22,
+    filter: 'saturate(1.52) brightness(1.12) hue-rotate(-22deg)',
+    tintOverlay: 'radial-gradient(circle at 50% 45%, rgba(253,224,71,0.44), rgba(16,185,129,0.22) 68%)',
+  },
+  egypt_pyramid_domain: {
+    src: '/assets/cards/chrono_dragon_spire.jpg',
+    objectPosition: '50% 40%',
+    scale: 1.18,
+    filter: 'saturate(1.42) contrast(1.14) sepia(0.24)',
+    tintOverlay: 'linear-gradient(0deg, rgba(217,119,6,0.38), rgba(251,191,36,0.22) 60%, transparent)',
+  },
+  egypt_millennium_rod: {
+    src: '/assets/cards/pyro_wyrm_crest.jpg',
+    objectPosition: '50% 38%',
+    scale: 1.24,
+    filter: 'saturate(1.55) brightness(1.12) hue-rotate(12deg)',
+    tintOverlay: 'radial-gradient(circle at 50% 45%, rgba(250,204,21,0.44), rgba(217,119,6,0.25) 68%)',
+  },
+  egypt_pharaoh_judgment: {
+    src: '/assets/cards/pyro_mirror_force.jpg',
+    objectPosition: '50% 30%',
+    scale: 1.2,
+    filter: 'saturate(1.52) contrast(1.16) hue-rotate(-10deg)',
+    tintOverlay: 'radial-gradient(circle at 50% 35%, rgba(251,191,36,0.4), rgba(225,29,72,0.34) 68%)',
+  },
 };
 
 export function getCardArtPresentation(card: CardDef, isEvolved = false): ArtPresentation {

@@ -3,6 +3,21 @@ import { CARDS, RARITY_DISMANTLE_DUST } from './cards';
 
 export const BOOSTER_PACKS: PackDef[] = [
   {
+    id: 'egyptian_gods_pack',
+    name: 'Pantheon of the Nile Pack',
+    subtitle: 'Set 5 • Egyptian Gods • Horakhty • Pharaoh Relics',
+    price: 100,
+    badge: 'NEW SET 5',
+    featuredSetId: 'egyptian_gods',
+    description:
+      'Guaranteed 2+ Set 5 Egyptian Gods cards per pack! Summon Osiris, Obelisk, Ra, Creator Fusion Horakhty, Millennium Ankh of Rebirth & Mound of the Bound Creator!',
+    accentFrom: '#f59e0b',
+    accentTo: '#1d4ed8',
+    boostedFactions: ['chrono', 'pyroclast', 'cryo_mecha', 'umbra'],
+    boostFusion: true,
+    boostAmbush: true,
+  },
+  {
     id: 'maximum_overlord_pack',
     name: 'Maximum Overlord Pack',
     subtitle: 'Set 4 • 3-Piece Maximum Titan • Rush Legends',

@@ -623,6 +623,7 @@ export const DeckBuilder: React.FC<DeckBuilderProps> = ({ onBack }) => {
                 <option value="phantom">Set 2B: Cyber Phantom</option>
                 <option value="arcana_vault">Set 3: Arcana &amp; Ambush Vault</option>
                 <option value="maximum">Set 4: Maximum Overlord</option>
+                <option value="egyptian_gods">Set 5: Pantheon of the Nile (Egyptian Gods)</option>
               </select>
 
               {/* Deck Target Tab Toggle */}

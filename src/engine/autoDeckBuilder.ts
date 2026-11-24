@@ -444,6 +444,8 @@ function scoreCardForStrategy(
       score += strategy === 'control' || strategy === 'balanced' ? 420 : 220;
     } else if (def.id === 'chrono_dragon_spire') {
       score += strategy === 'aggro' || strategy === 'balanced' || strategy === 'fusion' ? 440 : 220;
+    } else if (def.id === 'egypt_pyramid_domain') {
+      score += strategy === 'balanced' || strategy === 'control' || strategy === 'fusion' || strategy === 'maximum' ? 500 : 340;
     }
     // Domains stay on backline — never clutter with duplicates
     if (copiesAlready >= 1) score -= 900;
@@ -1180,7 +1182,7 @@ function generateCandidateFactionSets(
     (a, b) => lockedFactions[b] - lockedFactions[a]
   );
 
-  // Build all 10 dual-faction pairs + Umbra mono (for Eclipse Sovereign)
+  // Build all 10 dual-faction pairs + Umbra/Chrono mono (for Eclipse Sovereign & Horakhty!)
   const allSets: Faction[][] = [];
   for (let i = 0; i < ALL_FACTIONS.length; i++) {
     for (let j = i + 1; j < ALL_FACTIONS.length; j++) {
@@ -1188,6 +1190,7 @@ function generateCandidateFactionSets(
     }
   }
   allSets.push(['umbra']);
+  allSets.push(['chrono']);
 
   // Filter by focusFaction if explicitly chosen
   let filtered =
