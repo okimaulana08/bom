@@ -574,27 +574,31 @@ export const MainMenu: React.FC<MainMenuProps> = ({ onNavigate }) => {
               border: 'border-indigo-400/50 hover:border-indigo-300',
             },
           ].map((btn) => (
-            <motion.button
+            <motion.div
               key={btn.id}
-              type="button"
               whileHover={{ y: -5 }}
               whileTap={{ scale: 0.96 }}
-              onClick={() => go(btn.id)}
-              className={`relative game-panel clip-chamfer-sm px-2 sm:px-4 py-2.5 sm:min-w-[108px] flex flex-col items-center justify-center gap-1 border transition-all cursor-pointer ${btn.border}`}
+              className="relative"
             >
               {btn.badge && (
-                <span className="absolute -top-2 right-1 px-1.5 py-0.5 rounded bg-gradient-to-r from-rose-500 to-amber-500 text-[8.5px] sm:text-[9px] font-extrabold text-white tracking-wider shadow-[0_0_12px_rgba(244,63,94,0.85)] animate-pulse">
+                <span className="pointer-events-none absolute -top-2.5 right-1 z-20 whitespace-nowrap px-1.5 py-0.5 rounded-md bg-gradient-to-r from-rose-500 to-amber-500 border border-amber-200/80 text-[8.5px] sm:text-[9px] font-extrabold text-white leading-tight tracking-wider shadow-[0_0_14px_rgba(244,63,94,0.9)] animate-pulse">
                   {btn.badge === 'FREE' ? '🎁 FREE!' : `${btn.badge} PACKS`}
                 </span>
               )}
-              {btn.icon}
-              <span className="font-display font-extrabold text-[10.5px] sm:text-xs tracking-wider text-white">
-                {btn.label}
-              </span>
-              <span className="text-[8.5px] sm:text-[9px] text-slate-400 leading-none truncate max-w-full">
-                {btn.sub}
-              </span>
-            </motion.button>
+              <button
+                type="button"
+                onClick={() => go(btn.id)}
+                className={`w-full h-full game-panel clip-chamfer-sm px-2 sm:px-4 py-2.5 sm:min-w-[108px] flex flex-col items-center justify-center gap-1 border transition-all cursor-pointer ${btn.border}`}
+              >
+                {btn.icon}
+                <span className="font-display font-extrabold text-[10.5px] sm:text-xs tracking-wider text-white">
+                  {btn.label}
+                </span>
+                <span className="text-[8.5px] sm:text-[9px] text-slate-400 leading-none truncate max-w-full">
+                  {btn.sub}
+                </span>
+              </button>
+            </motion.div>
           ))}
         </nav>
 
