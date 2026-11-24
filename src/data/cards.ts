@@ -523,7 +523,7 @@ export const CARDS: CardDef[] = [
     atk: 1000,
     def: 1500,
     keywords: ['Resonate'],
-    effectText: 'On Summon: Restore +600 LP. Resonate: Gain +1 Extra Normal Summon this turn!',
+    effectText: 'On Summon: Restore +600 LP. Resonate: Rush Surge — Draw 1 card!',
     lore: 'Its golden tails trail luminous pollen that mends fractured Aether cores.',
     art: '/assets/cards/sylvan_spirit_fox.jpg',
     onSummon: [{ kind: 'heal_lp', amount: 600 }],
@@ -549,7 +549,7 @@ export const CARDS: CardDef[] = [
       atk: 2300,
       def: 2800,
       keywords: ['Drain'],
-      effectText: 'Drain. On Evolve: Restore +1000 LP and gain +1 Extra Normal Summon this turn.',
+      effectText: 'Drain. On Evolve: Restore +1000 LP and Rush Surge — Draw 1 card.',
       onEvolve: [
         { kind: 'heal_lp', amount: 1000 },
         { kind: 'extra_normal_summon', amount: 1 },
@@ -593,7 +593,7 @@ export const CARDS: CardDef[] = [
     atk: 1300,
     def: 1600,
     keywords: [],
-    effectText: 'On Summon: Double Summon! Gain +1 Extra Normal Summon this turn (ideal Tribute fodder!).',
+    effectText: 'On Summon: Rush Surge — Draw 1 card (ideal Tribute & Fusion fodder!).',
     lore: 'Tends to crystalline leyline roots that pulse beneath the Rift.',
     art: '/assets/cards/sylvan_bloom_druid.jpg',
     onSummon: [{ kind: 'extra_normal_summon', amount: 1 }],
@@ -634,7 +634,7 @@ export const CARDS: CardDef[] = [
     rarity: 'common',
     level: 0,
     keywords: [],
-    effectText: 'Gain +1 Extra Normal Summon this turn and restore +800 LP.',
+    effectText: 'Rush Surge: Draw 1 card and restore +800 LP.',
     lore: 'A flower that only blooms where two worlds collide.',
     art: '/assets/cards/sylvan_aether_bloom.jpg',
     onPlay: [
@@ -734,7 +734,7 @@ export const CARDS: CardDef[] = [
       atk: 2700,
       def: 2300,
       keywords: ['Ward'],
-      effectText: 'Ward. On Evolve: Draw 2 cards and gain +1 Extra Normal Summon.',
+      effectText: 'Ward. On Evolve: Draw 3 cards (2 + Rush Surge)!',
       onEvolve: [
         { kind: 'draw', amount: 2 },
         { kind: 'extra_normal_summon', amount: 1 },
@@ -1001,7 +1001,7 @@ export const CARDS: CardDef[] = [
     def: 1000,
     keywords: ['Resonate'],
     effectText:
-      'On Summon: Gain +1 Extra Normal Summon this turn! Resonate: Inflict 400 Burn Damage to enemy LP.',
+      'On Summon: Rush Surge — Draw 1 card! Resonate: Inflict 400 Burn Damage to enemy LP.',
     lore: 'Its solar wings ignite the sky, heralding the arrival of elder drakes.',
     art: '/assets/cards/pyro_solar_whelp.jpg',
     onSummon: [{ kind: 'extra_normal_summon', amount: 1 }],

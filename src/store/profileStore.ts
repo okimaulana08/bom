@@ -332,6 +332,30 @@ export const useProfileStore = create<ProfileStore>()(
     }),
     {
       name: 'aetherbound-rift-duel-profile-v1',
+      version: 2,
+      migrate: (persisted: unknown, version: number) => {
+        const state = persisted as PlayerProfile | undefined;
+        if (!state) return createInitialProfile();
+        if (version < 2) {
+          const starterCol = buildStarterCollection();
+          const mergedCol = { ...(state.collection ?? {}) };
+          for (const [cid, qty] of Object.entries(starterCol)) {
+            mergedCol[cid] = Math.max(mergedCol[cid] ?? 0, qty);
+          }
+          const updatedDecks = (state.decks ?? []).map((d) =>
+            d.id === STARTER_DECK.id ? STARTER_DECK : d
+          );
+          if (!updatedDecks.some((d) => d.id === STARTER_DECK.id)) {
+            updatedDecks.unshift(STARTER_DECK);
+          }
+          return {
+            ...state,
+            collection: mergedCol,
+            decks: updatedDecks,
+          };
+        }
+        return state;
+      },
     }
   )
 );

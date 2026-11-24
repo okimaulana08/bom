@@ -109,7 +109,7 @@ export function getEffectiveDef(
   const domain = getDomainBonuses(state, unit.owner, registry);
   const bossDefBonus =
     unit.stance === 'defense' && state.players[unit.owner].bossModifier === 'cryo_guard_armor'
-      ? 500
+      ? 300
       : 0;
   return Math.max(0, unit.currentDef + domain.friendlyDef + bossDefBonus);
 }

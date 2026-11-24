@@ -59,7 +59,7 @@ const LOBBY_LEADERS = [
     faction: 'pyroclast' as const,
     portrait: '/assets/portraits/boss_kael.jpg',
     backdrop: '/assets/cards/pyro_inferno_sovereign.jpg',
-    quote: 'Trigger Soul Burn for +1 Extra Normal Summon and crush their 4000 LP!',
+    quote: 'Chain unlimited Rush Summons, Tribute combos & Fusions to shatter 8000 LP!',
   },
   {
     id: 'vex',

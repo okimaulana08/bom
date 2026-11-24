@@ -34,10 +34,10 @@ export const RulesGuide: React.FC<RulesGuideProps> = ({ onBack }) => {
           </button>
           <div>
             <h1 className="font-display text-2xl sm:text-3xl font-extrabold text-white">
-              Speed Duel Rules &amp; Codex Manual
+              Rush Duel Rules &amp; Codex Manual
             </h1>
             <p className="text-xs text-slate-400">
-              4000 LP • Classic Level ★ &amp; Tribute Summoning • ATK vs DEF Battle • Rift Fusion &amp; Evolution!
+              8000 LP • Unlimited Rush Summons • Draw to 5 Every Turn • Tribute, Rift Fusion &amp; Evolution!
             </p>
           </div>
         </div>
@@ -49,19 +49,24 @@ export const RulesGuide: React.FC<RulesGuideProps> = ({ onBack }) => {
             </h2>
             <ul className="text-xs text-slate-300 space-y-2 leading-relaxed">
               <li>
-                <strong className="text-white">Normal Summon / Set (1/Turn):</strong> Summon a
-                monster face-up in <strong>Attack Position</strong> OR Set it face-down in{' '}
-                <strong>Defense Position</strong>!
+                <strong className="text-white">Unlimited Rush Summons / Sets:</strong> Summon or Set
+                as many monsters as you want each turn (as long as Monster Zones or Tributes allow) —
+                even chain Lv 1–4 summons directly into a Turn 1 Tribute Boss!
               </li>
               <li>
-                <strong className="text-cyan-300">Tributes:</strong> ★1–4 need <strong>0 Tributes</strong>;
+                <strong className="text-cyan-300">Rush Draw Phase (Draw to 5):</strong> Every turn
+                after Turn 1, draw until you hold <strong>5 cards</strong> in hand (or draw 1 if you
+                already hold 5+), so you never run out of plays!
+              </li>
+              <li>
+                <strong className="text-amber-300">Tributes:</strong> ★1–4 need <strong>0 Tributes</strong>;
                 ★5–6 require <strong>1 Tribute</strong>; ★7–8 require <strong>2 Tributes</strong> from
                 your field.
               </li>
               <li>
                 <strong className="text-orange-300">Soul Burn (1/Turn):</strong> Discard 1 card from
-                hand to the Void to gain <strong>+1 Extra Normal Summon</strong> immediately (triggers{' '}
-                <strong>Resonate</strong>!).
+                hand to the Void to <strong>Draw 1 fresh card</strong> immediately (triggers{' '}
+                <strong>Resonate</strong> and fuels Void recovery!).
               </li>
               <li>
                 <strong className="text-emerald-300">Spells &amp; Special Summons:</strong> Arcana
@@ -91,7 +96,8 @@ export const RulesGuide: React.FC<RulesGuideProps> = ({ onBack }) => {
               </li>
               <li>
                 <strong className="text-emerald-300">Direct Attack:</strong> When the opponent controls{' '}
-                <strong>0 monsters</strong>, strike their <strong>4000 LP</strong> directly!
+                <strong>0 monsters</strong>, strike their <strong>8000 LP</strong> directly! (Swift
+                double-strike hits up to 2 monsters or 1 direct LP strike per turn.)
               </li>
             </ul>
           </section>
@@ -149,7 +155,7 @@ export const RulesGuide: React.FC<RulesGuideProps> = ({ onBack }) => {
             </h3>
             <p className="leading-relaxed">
               Attach <strong>Relics</strong> to face-up monsters for huge ATK/DEF boosts and keywords
-              (persists through Evolution!). Drop your rival from <strong>4000 LP to 0 LP</strong> to
+              (persists through Evolution!). Drop your rival from <strong>8000 LP to 0 LP</strong> to
               win Coins and Mythic rewards!
             </p>
           </div>

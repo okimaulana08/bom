@@ -407,7 +407,7 @@ export const DuelBoard: React.FC<DuelBoardProps> = ({ onExit, onRematch }) => {
       if (d.type === 'vanguard') {
         const req = getRequiredTributes(d);
         if (player.normalSummonsLeft <= 0)
-          return `Normal Summon used! Tap "+1 SUMMON" (Soul Burn) above any hand card!`;
+          return `Monster Zones full — Tribute or Fusion Summon!`;
         if (req > 0)
           return `★${d.level} ${d.name} needs ${req} Tribute(s) — tap TRIB(${req}) or SET above the card!`;
         return `Tap SUMMON (ATK), SET (Face-Down DEF), or a glowing Monster Zone!`;
@@ -425,7 +425,7 @@ export const DuelBoard: React.FC<DuelBoardProps> = ({ onExit, onRematch }) => {
       return `Tap "Cast ${d.name}" or tap card again to activate!`;
     }
     if (isTurnOneNoBattle && isMain) {
-      return 'TURN 1 — Summon/Set your Vanguard & Traps, then press END TURN (Battle begins Turn 2)!';
+      return 'TURN 1 RUSH DUEL — Summon/Set as many monsters as you like, then press END TURN (Battle begins Turn 2)!';
     }
     if (isBattle) {
       return readyAttackers.length > 0
@@ -446,7 +446,7 @@ export const DuelBoard: React.FC<DuelBoardProps> = ({ onExit, onRematch }) => {
     soundEngine.setBgmEnabled(next);
     if (next && duel.phase !== 'mulligan' && !duel.winner) {
       soundEngine.startBgm(
-        player.lp <= 1500 || opponent.lp <= 1500 ? 'climax' : 'normal'
+        player.lp <= 2500 || opponent.lp <= 2500 ? 'climax' : 'normal'
       );
     }
     notifyToast(next ? 'Duel BGM: ON (Adaptive Climax Synth)' : 'Duel BGM: MUTED');
@@ -465,7 +465,7 @@ export const DuelBoard: React.FC<DuelBoardProps> = ({ onExit, onRematch }) => {
   })();
 
   const isClimaxTension =
-    !duel.winner && (player.lp <= 1500 || opponent.lp <= 1500);
+    !duel.winner && (player.lp <= 2500 || opponent.lp <= 2500);
 
   const renderInspectorContent = () => (
     <>
@@ -790,7 +790,7 @@ export const DuelBoard: React.FC<DuelBoardProps> = ({ onExit, onRematch }) => {
               title={
                 bgmEnabled
                   ? isClimaxTension
-                    ? 'Duel BGM: CLIMAX MODE (LP ≤ 1500) — Click to Mute'
+                    ? 'Duel BGM: CLIMAX MODE (LP ≤ 2500) — Click to Mute'
                     : 'Duel BGM: ON — Click to Mute'
                   : 'Duel BGM: OFF — Click to Enable'
               }
@@ -1452,19 +1452,19 @@ export const DuelBoard: React.FC<DuelBoardProps> = ({ onExit, onRematch }) => {
               />
             </div>
 
-            {/* Normal Summons Remaining */}
+            {/* Rush Duel Unlimited Summons Indicator */}
             <div
               className={`game-panel clip-chamfer-sm px-2.5 sm:px-3 py-1.5 flex items-center gap-1.5 text-xs font-bold ${
-                player.normalSummonsLeft > 0 && isMain
+                isMain
                   ? 'border-amber-400/75 text-amber-200'
                   : 'border-slate-700 text-slate-400'
               }`}
-              title="Normal Summon / Set per turn (★1-4 free, ★5-6 = 1 Tribute, ★7-8 = 2 Tributes). Special Summons (Fusion/Revival) are unlimited!"
+              title="Rush Duel Rule: Unlimited Normal Summons / Sets per turn (★1-4 free, ★5-6 = 1 Tribute, ★7-8 = 2 Tributes) + Draw up to 5 cards every Draw Phase!"
             >
               <Star className="w-3.5 h-3.5 text-amber-300 fill-amber-300" />
-              <span className="font-mono-num font-extrabold">{player.normalSummonsLeft}</span>
+              <span className="font-mono-num font-extrabold text-sm leading-none">∞</span>
               <span className="text-[9.5px] uppercase tracking-wider">
-                Summon{player.normalSummonsLeft === 1 ? '' : 's'}
+                Rush Summon
               </span>
             </div>
 
@@ -1508,10 +1508,10 @@ export const DuelBoard: React.FC<DuelBoardProps> = ({ onExit, onRematch }) => {
                   ? 'border-orange-400/70 text-orange-200'
                   : 'border-slate-800 text-slate-500'
               }`}
-              title="Discard 1 hand card to Void for +1 Extra Normal Summon this turn!"
+              title="Soul Burn (1/Turn): Discard 1 hand card to Void → Draw 1 fresh card + trigger Resonate!"
             >
               <Flame className="w-3 h-3" />
-              {player.soulBurnUsedThisTurn ? 'Burned' : 'Soul Burn'}
+              {player.soulBurnUsedThisTurn ? 'Cycled' : 'Soul Burn'}
             </div>
           </div>
         </div>
@@ -1594,7 +1594,7 @@ export const DuelBoard: React.FC<DuelBoardProps> = ({ onExit, onRematch }) => {
             className="w-full max-w-4xl game-panel clip-chamfer border-cyan-400/55 shadow-[0_0_70px_rgba(34,211,238,0.28)] p-4 sm:p-6 text-center my-auto"
           >
             <div className="inline-flex items-center gap-2 clip-skew-btn px-4 py-1 bg-cyan-950/90 border border-cyan-400/60 text-cyan-200 text-[10px] sm:text-[11px] font-extrabold uppercase tracking-widest mb-2">
-              4000 LP Speed Duel • Opening Mulligan
+              8000 LP Rush Duel • Unlimited Summons • Draw to 5
             </div>
             <h2 className="font-display text-xl sm:text-3xl font-extrabold text-white">
               Prepare Your Opening Duel Hand

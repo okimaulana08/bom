@@ -100,12 +100,12 @@ describe('Heuristic AI Opponent & Full-Match Stress Simulation', () => {
     // Choosing HOLD (skipAmbushFor = 'player') lets the spell resolve & preserves the face-down trap!
     const afterHoldSpell = applyAiAction(state, spellAction, CARD_MAP, 'player');
     expect(afterHoldSpell.players.player.arcane[1]?.cardId).toBe('umbra_void_counter');
-    expect(afterHoldSpell.players.player.lp).toBeLessThan(4000);
+    expect(afterHoldSpell.players.player.lp).toBeLessThan(8000);
 
     // Choosing ACTIVATE (skipAmbushFor = undefined) negates the spell & consumes the trap!
     const afterActivateSpell = applyAiAction(state, spellAction, CARD_MAP);
     expect(afterActivateSpell.players.player.arcane[1]).toBeNull();
-    expect(afterActivateSpell.players.player.lp).toBe(4000);
+    expect(afterActivateSpell.players.player.lp).toBe(8000);
 
     // 2. Rival summons monster & attacks -> inspectAiActionTrapPrompt detects umbra_shadow_snare
     let sAtk = playCard(state, 'opponent', 'opp_m1', { slot: 0 }, CARD_MAP).state;
@@ -123,12 +123,12 @@ describe('Heuristic AI Opponent & Full-Match Stress Simulation', () => {
     // HOLD keeps trap armed and takes LP damage
     const afterHoldAtk = applyAiAction(sAtk, atkAction, CARD_MAP, 'player');
     expect(afterHoldAtk.players.player.arcane[0]?.cardId).toBe('umbra_shadow_snare');
-    expect(afterHoldAtk.players.player.lp).toBeLessThan(4000);
+    expect(afterHoldAtk.players.player.lp).toBeLessThan(8000);
 
     // ACTIVATE destroys the attacking monster & prevents LP damage
     const afterActAtk = applyAiAction(sAtk, atkAction, CARD_MAP);
     expect(afterActAtk.players.player.arcane[0]).toBeNull();
     expect(afterActAtk.players.opponent.vanguard[0]).toBeNull();
-    expect(afterActAtk.players.player.lp).toBe(4000);
+    expect(afterActAtk.players.player.lp).toBe(8000);
   });
 });

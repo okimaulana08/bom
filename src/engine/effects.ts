@@ -63,12 +63,17 @@ export function drawCardsInPlace(
   state: DuelState,
   owner: PlayerId,
   count: number,
-  registry: Record<string, CardDef>
+  registry: Record<string, CardDef>,
+  allowPartial = false
 ): void {
   const player = state.players[owner];
   for (let i = 0; i < count; i++) {
     if (player.deck.length === 0) {
-      // Deck-out LP collapse (Yu-Gi-Oh! Speed Duel rule)
+      // Rush Draw partial safety: if deck ran out mid-refill after drawing >=1 card, stop cleanly!
+      if (allowPartial && i > 0) {
+        return;
+      }
+      // Deck-out LP collapse (Yu-Gi-Oh! rule)
       player.lp = 0;
       pushEvent(
         state,
@@ -829,14 +834,15 @@ export function resolveEffectsInPlace(
       }
 
       case 'extra_normal_summon': {
+        // In Rush Duel (Unlimited Summons), Rush Surge effects draw bonus cards for momentum!
         const amt = eff.amount ?? 1;
-        state.players[owner].normalSummonsLeft += amt;
         pushEvent(
           state,
           'spell',
-          `${state.players[owner].name} gains +${amt} Extra Normal Summon this turn!`,
+          `Rush Surge! ${state.players[owner].name} draws +${amt} bonus card${amt > 1 ? 's' : ''}!`,
           { actor: owner, amount: amt }
         );
+        drawCardsInPlace(state, owner, amt, registry, true);
         break;
       }
 

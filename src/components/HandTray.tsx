@@ -205,10 +205,10 @@ export const HandTray: React.FC<HandTrayProps> = ({
                           onSoulBurn(hc.instanceId);
                         }}
                         className="clip-skew-btn px-2 py-1 bg-gradient-to-r from-orange-600 to-amber-400 border border-amber-100 text-slate-950 font-extrabold text-[9.5px] shadow-lg flex items-center gap-0.5 hover:brightness-110 cursor-pointer"
-                        title="Soul Burn: Discard into Void for +1 Extra Normal Summon this turn!"
+                        title="Soul Burn (1/Turn): Discard into Void → Draw 1 fresh card + trigger Resonate!"
                       >
                         <Flame className="w-3 h-3" />
-                        +1 SUMMON
+                        CYCLE +1
                         {hasResonate && <Sparkles className="w-2.5 h-2.5" />}
                       </button>
                     )}

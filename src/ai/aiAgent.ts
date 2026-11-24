@@ -164,31 +164,34 @@ export function decideNextAiAction(
     }
 
     // 2. Fusion Catalyst Spell from Hand (Special Summon!)
-    for (const hc of opp.hand) {
-      const d = registry[hc.cardId];
-      if (d?.arcanaSubtype === 'fusion_catalyst') {
-        const chosen = chooseCatalystFusion(state, registry, hc.instanceId);
-        if (chosen) {
-          return {
-            kind: 'play_card',
-            handInstanceId: hc.instanceId,
-            options: {
-              fusionCardId: chosen.fusionCardId,
-              fusionMaterials: chosen.materials,
-            },
-          };
+    // On Initiate difficulty, hold back Fusions until AI's Turn 3+ so new players aren't OTK'd on Turn 2!
+    if (isGrandmaster || opp.turnsTaken >= 3) {
+      for (const hc of opp.hand) {
+        const d = registry[hc.cardId];
+        if (d?.arcanaSubtype === 'fusion_catalyst') {
+          const chosen = chooseCatalystFusion(state, registry, hc.instanceId);
+          if (chosen) {
+            return {
+              kind: 'play_card',
+              handInstanceId: hc.instanceId,
+              options: {
+                fusionCardId: chosen.fusionCardId,
+                fusionMaterials: chosen.materials,
+              },
+            };
+          }
         }
       }
-    }
 
-    // 3. Contact Fusion from Field (Special Summon!)
-    const contact = chooseContactFusion(state, registry);
-    if (contact) {
-      return {
-        kind: 'contact_fusion',
-        fusionCardId: contact.fusionCardId,
-        materials: contact.materials,
-      };
+      // 3. Contact Fusion from Field (Special Summon!)
+      const contact = chooseContactFusion(state, registry);
+      if (contact) {
+        return {
+          kind: 'contact_fusion',
+          fusionCardId: contact.fusionCardId,
+          materials: contact.materials,
+        };
+      }
     }
 
     // 4. Evolution (Turn 3+ or Free Innate)
@@ -272,8 +275,7 @@ export function decideNextAiAction(
             return { kind: 'play_card', handInstanceId: hc.instanceId, options: {} };
           }
         } else if (d.onPlay?.some((e) => e.kind === 'extra_normal_summon')) {
-          const playableVanguards = opp.hand.filter((x) => registry[x.cardId]?.type === 'vanguard');
-          if (playableVanguards.length >= 2 || opp.normalSummonsLeft === 0) {
+          if (opp.hand.length < 8) {
             return { kind: 'play_card', handInstanceId: hc.instanceId, options: {} };
           }
         } else if (d.targetMode === 'friendly_unit') {
@@ -286,6 +288,10 @@ export function decideNextAiAction(
             };
           }
         } else if (d.targetMode === 'enemy_unit' || d.targetMode === 'enemy_or_face') {
+          // On Initiate AI's very first turn, avoid nuking the player's only opening monster immediately
+          if (!isGrandmaster && opp.turnsTaken === 1 && enemyUnits.length <= 1) {
+            continue;
+          }
           const sortedEnemies = [...enemyUnits].sort(
             (a, b) => unitThreatScore(state, b, registry) - unitThreatScore(state, a, registry)
           );
@@ -309,8 +315,10 @@ export function decideNextAiAction(
       }
     }
 
-    // 6. Normal Summon / Tribute Summon / Face-Down Defense Set
-    if (opp.normalSummonsLeft > 0) {
+    // 6. Rush Duel Unlimited Normal Summon / Tribute Summon / Face-Down Defense Set
+    // Initiate AI caps opening board to 2 monsters & skips Turn-2 Tributes so early turns feel fair!
+    const initiateBoardCapHit = !isGrandmaster && opp.turnsTaken === 1 && myUnits.length >= 2;
+    if (opp.normalSummonsLeft > 0 && !initiateBoardCapHit) {
       const playerMaxAtk = enemyUnits.reduce(
         (m, u) => Math.max(m, u.faceDown ? 1300 : getEffectiveAtk(state, u, registry)),
         0
@@ -356,7 +364,7 @@ export function decideNextAiAction(
               score,
             };
           }
-        } else if (tribPool.length >= reqTribs) {
+        } else if (tribPool.length >= reqTribs && (isGrandmaster || opp.turnsTaken >= 2)) {
           const picked = tribPool.slice(0, reqTribs);
           const sacrificedAtk = Math.max(...picked.map((u) => u.currentAtk));
           const bossAtk = d.atk ?? 2200;
@@ -386,29 +394,21 @@ export function decideNextAiAction(
       }
     }
 
-    // 7. Soul Burn (Discard 1 -> +1 Extra Normal Summon!) if AI has another summonable monster & fodder
-    if (!opp.soulBurnUsedThisTurn && opp.normalSummonsLeft === 0 && opp.hand.length >= 2) {
-      const hasFollowUpMonster = opp.hand.some((hc) => {
-        const d = registry[hc.cardId];
-        if (!d || d.type !== 'vanguard') return false;
-        const req = getRequiredTributes(d);
-        return req === 0 ? openVanguard !== null : myUnits.length >= req;
-      });
-      if (hasFollowUpMonster) {
-        const discardOrder = opp.hand
-          .map((hc) => {
-            const d = registry[hc.cardId]!;
-            let val = 0;
-            if (d.keywords.includes('Resonate')) val += 10;
-            if (d.type === 'vanguard' && d.level >= 7 && myUnits.length < 2) val += 5;
-            if (d.rarity === 'mythic' || d.arcanaSubtype === 'fusion_catalyst') val -= 8;
-            return { hc, val };
-          })
-          .sort((a, b) => b.val - a.val);
+    // 7. Soul Burn (Rush Duel: Discard 1 -> Draw 1 + Resonate!) — Grandmaster AI hand cycling
+    if (isGrandmaster && !opp.soulBurnUsedThisTurn && opp.hand.length >= 2 && opp.deck.length >= 4) {
+      const discardOrder = opp.hand
+        .map((hc) => {
+          const d = registry[hc.cardId]!;
+          let val = 0;
+          if (d.keywords.includes('Resonate')) val += 10;
+          if (d.type === 'vanguard' && d.level >= 7 && myUnits.length < 2) val += 6;
+          if (d.rarity === 'mythic' || d.arcanaSubtype === 'fusion_catalyst') val -= 8;
+          return { hc, val };
+        })
+        .sort((a, b) => b.val - a.val);
 
-        if (discardOrder[0] && discardOrder[0].val >= 4) {
-          return { kind: 'soul_burn', handInstanceId: discardOrder[0].hc.instanceId };
-        }
+      if (discardOrder[0] && discardOrder[0].val >= 6) {
+        return { kind: 'soul_burn', handInstanceId: discardOrder[0].hc.instanceId };
       }
     }
 

@@ -41,7 +41,9 @@ import {
   validateFusionMaterials,
 } from './utils';
 
-export const DEFAULT_LP = 4000;
+export const DEFAULT_LP = 8000;
+export const RUSH_UNLIMITED_SUMMONS = 99;
+export const RUSH_DRAW_HAND_TARGET = 5;
 
 function createPlayerState(
   id: PlayerId,
@@ -57,7 +59,7 @@ function createPlayerState(
     name,
     lp: startLp,
     maxLp: startLp,
-    normalSummonsLeft: 1,
+    normalSummonsLeft: RUSH_UNLIMITED_SUMMONS,
     evoOrbs: startEvoOrbs,
     maxEvoOrbs: startEvoOrbs,
     evolvedThisTurn: false,
@@ -82,7 +84,7 @@ export function createDuel(
   const bossMod = config.bossModifier ?? 'none';
 
   const oppLp =
-    config.opponentStartLp ?? (bossMod === 'chrono_archon_boss' ? 6000 : DEFAULT_LP);
+    config.opponentStartLp ?? (bossMod === 'chrono_archon_boss' ? 10000 : DEFAULT_LP);
   const oppOrbs =
     config.opponentStartEvoOrbs ?? (bossMod === 'chrono_archon_boss' ? 3 : 2);
 
@@ -132,13 +134,13 @@ export function createDuel(
   if (bossMod === 'pyro_hatchling_start') {
     const hatchling = registry['pyro_hatchling'];
     if (hatchling) {
-      const unit = createBoardUnit(state, 'opponent', hatchling, 1, 'attack', false);
+      const unit = createBoardUnit(state, 'opponent', hatchling, 1, 'defense', false);
       unit.summonedTurn = 0;
       state.players.opponent.vanguard[1] = unit;
       pushEvent(
         state,
         'boss_modifier',
-        `Boss Rule — Cinder Vanguard: ${config.opponentName} starts with Pyroclast Hatchling in Attack Position!`,
+        `Boss Rule — Cinder Vanguard: ${config.opponentName} starts with Pyroclast Hatchling in Defense Position (900 DEF)!`,
         { actor: 'opponent', cardId: hatchling.id }
       );
     }
@@ -169,21 +171,21 @@ export function createDuel(
     pushEvent(
       state,
       'boss_modifier',
-      `Boss Rule — Aegis Protocol: All of ${config.opponentName}'s Defense Position monsters gain +500 DEF.`,
+      `Boss Rule — Aegis Protocol: All of ${config.opponentName}'s Defense Position monsters gain +300 DEF.`,
       { actor: 'opponent' }
     );
   } else if (bossMod === 'sylvan_turn2_ramp') {
     pushEvent(
       state,
       'boss_modifier',
-      `Boss Rule — Verdant Surge: ${config.opponentName} gains +1 Extra Normal Summon on Turn 2.`,
+      `Boss Rule — Verdant Surge: ${config.opponentName} gains +1 Evo Orb and draws +1 bonus card on Turn 2.`,
       { actor: 'opponent' }
     );
   } else if (bossMod === 'chrono_archon_boss') {
     pushEvent(
       state,
       'boss_modifier',
-      `Boss Rule — Sovereign of Time: ${config.opponentName} begins with 6000 LP and 3 Evo Orbs!`,
+      `Boss Rule — Sovereign of Time: ${config.opponentName} begins with 10000 LP and 3 Evo Orbs!`,
       { actor: 'opponent' }
     );
   }
@@ -205,19 +207,21 @@ function startTurnInPlace(
 
   const p = state.players[owner];
   p.turnsTaken += 1;
-  p.normalSummonsLeft = 1;
+  p.normalSummonsLeft = RUSH_UNLIMITED_SUMMONS;
   p.evolvedThisTurn = false;
   p.soulBurnUsedThisTurn = false;
 
-  // Chapter 4 Boss Modifier: Sylvan +1 Extra Normal Summon on Turn 2
+  // Chapter 4 Boss Modifier: Sylvan +1 Evo Orb & bonus draw on Turn 2
   if (p.bossModifier === 'sylvan_turn2_ramp' && p.turnsTaken === 2) {
-    p.normalSummonsLeft += 1;
+    p.evoOrbs += 1;
+    p.maxEvoOrbs = Math.max(p.maxEvoOrbs, p.evoOrbs);
     pushEvent(
       state,
       'boss_modifier',
-      `Verdant Surge activates! ${p.name} gains +1 Extra Normal Summon this turn!`,
+      `Verdant Surge activates! ${p.name} crystallizes +1 Evo Orb and draws a bonus card!`,
       { actor: owner }
     );
+    drawCardsInPlace(state, owner, 1, registry, true);
   }
 
   // Refresh friendly monsters
@@ -250,9 +254,11 @@ function startTurnInPlace(
     { actor: owner }
   );
 
-  // Official Yu-Gi-Oh! rule: First player skips Draw on Turn 1 (starts with 5), all other turns draw 1!
+  // Official Yu-Gi-Oh! Rush Duel Draw Rule:
+  // Turn 1 starts with 5 cards (skips draw); every subsequent turn draws until 5 cards in hand (min 1 if already >=5)!
   if (state.turnNumber > 1) {
-    drawCardsInPlace(state, owner, 1, registry);
+    const rushDrawCount = Math.max(1, RUSH_DRAW_HAND_TARGET - p.hand.length);
+    drawCardsInPlace(state, owner, rushDrawCount, registry, true);
   }
 
   if (!state.winner) {
@@ -574,7 +580,7 @@ export function playCard(
     }
 
     const isSetDefense = options.summonMode === 'defense';
-    player.normalSummonsLeft -= 1;
+    // Rush Duel rule: Unlimited Normal Summons / Sets per turn (bounded by 3 Monster Zones & Tributes)
     player.hand.splice(handIdx, 1);
 
     const unit = createBoardUnit(
@@ -893,7 +899,7 @@ export function playCard(
   return { state: prevState, ok: false, error: 'This card cannot be played from hand.' };
 }
 
-/** Soul Burn (1/Turn): Discard 1 card to Void → +1 Extra Normal Summon this turn + triggers Resonate! */
+/** Soul Burn (1/Turn — Rush Duel): Discard 1 card to Void → Draw 1 fresh card + trigger Resonate! */
 export function soulBurn(
   prevState: DuelState,
   owner: PlayerId,
@@ -918,16 +924,16 @@ export function soulBurn(
   const [discarded] = player.hand.splice(idx, 1);
   player.voidPile.push(discarded.cardId);
   player.soulBurnUsedThisTurn = true;
-  player.normalSummonsLeft += 1;
 
   const def = registry[discarded.cardId];
   pushEvent(
     state,
     'soul_burn',
-    `Soul Burn! ${player.name} discards ${def?.name ?? discarded.cardId} for +1 Extra Normal Summon!`,
+    `Soul Burn! ${player.name} cycles ${def?.name ?? discarded.cardId} into the Void and draws 1 card!`,
     { actor: owner, cardId: discarded.cardId, amount: 1 }
   );
 
+  drawCardsInPlace(state, owner, 1, registry, true);
   triggerResonateInPlace(state, owner, discarded.cardId, registry);
   checkWinnerInPlace(state);
   return { state, ok: true };
@@ -1120,7 +1126,7 @@ export function canUnitAttack(
     return {
       canAttackUnits: false,
       canAttackLp: false,
-      reason: 'Player going first skips Battle Phase on Turn 1 (Speed Duel Rule).',
+      reason: 'Player going first skips Battle Phase on Turn 1 (Rush Duel Rule).',
     };
   }
   if (state.phase !== 'main' && state.phase !== 'battle') {

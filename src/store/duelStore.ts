@@ -700,10 +700,10 @@ export const useDuelStore = create<DuelStore>((set, get) => {
       }
     }
 
-    // Dynamic Adaptive BGM tension escalation when either player enters Pinch LP (<= 1500)
+    // Dynamic Adaptive BGM tension escalation when either player enters Pinch LP (<= 2500)
     if (!nextState.winner) {
       const lowLp =
-        nextState.players.player.lp <= 1500 || nextState.players.opponent.lp <= 1500;
+        nextState.players.player.lp <= 2500 || nextState.players.opponent.lp <= 2500;
       soundEngine.setBgmTension(lowLp ? 'climax' : 'normal');
     }
 

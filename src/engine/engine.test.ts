@@ -308,8 +308,8 @@ function makeDeck(cardIds: string[]): string[] {
   return deck;
 }
 
-describe('Aetherbound: Yu-Gi-Oh! Speed Duel Engine', () => {
-  it('initializes 4000 LP, enforces Turn 1 No-Battle rule, and allows immediate attacks on Turn 2+', () => {
+describe('Aetherbound: Yu-Gi-Oh! Rush Duel Engine', () => {
+  it('initializes 8000 LP, supports Unlimited Turn 1 Rush Summons & Rush Draw to 5, and enforces Turn 1 No-Battle', () => {
     const initial = createDuel(
       {
         playerName: 'Yugi',
@@ -323,16 +323,24 @@ describe('Aetherbound: Yu-Gi-Oh! Speed Duel Engine', () => {
       TEST_REGISTRY
     );
 
-    expect(initial.players.player.lp).toBe(4000);
-    expect(initial.players.opponent.lp).toBe(4000);
+    expect(initial.players.player.lp).toBe(8000);
+    expect(initial.players.opponent.lp).toBe(8000);
 
     let s = submitMulligan(initial, [], TEST_REGISTRY).state;
-    // Going first keeps 5 cards on Turn 1 and gets 1 Normal Summon
+    // Going first keeps 5 cards on Turn 1 and gets Unlimited Rush Summons!
     expect(s.players.player.hand.length).toBe(5);
-    expect(s.players.player.normalSummonsLeft).toBe(1);
+    expect(s.players.player.normalSummonsLeft).toBeGreaterThanOrEqual(99);
 
-    // Summon 1900 ATK Bruiser on Turn 1 — cannot attack on Turn 1!
+    // Summon TWO 1900 ATK Bruisers on Turn 1! (Rush Duel Unlimited Normal Summons)
     s = playCard(s, 'player', s.players.player.hand[0].instanceId, { slot: 0 }, TEST_REGISTRY).state;
+    const secondSummon = playCard(s, 'player', s.players.player.hand[0].instanceId, { slot: 1 }, TEST_REGISTRY);
+    expect(secondSummon.ok).toBe(true);
+    s = secondSummon.state;
+    expect(s.players.player.vanguard[0]?.cardId).toBe('pyro_bruiser');
+    expect(s.players.player.vanguard[1]?.cardId).toBe('pyro_bruiser');
+    expect(s.players.player.hand.length).toBe(3);
+
+    // Still cannot attack on Turn 1!
     const t1Atk = declareAttack(
       s,
       'player',
@@ -342,13 +350,16 @@ describe('Aetherbound: Yu-Gi-Oh! Speed Duel Engine', () => {
     );
     expect(t1Atk.ok).toBe(false);
 
-    // Pass to Opponent Turn 2 -> Opponent summons Hatchling (1300 ATK) and attacks immediately!
+    // Pass to Opponent Turn 2 -> Opponent summons Hatchling (1300 ATK)
     s = endTurn(s, 'player', TEST_REGISTRY).state;
     expect(s.turnNumber).toBe(2);
     s = playCard(s, 'opponent', s.players.opponent.hand[0].instanceId, { slot: 0 }, TEST_REGISTRY).state;
 
-    // Pass back to Player Turn 3 -> Bruiser (1900) attacks Hatchling (1300) -> kills + 600 Battle Damage!
+    // Pass back to Player Turn 3 -> Rush Draw refills player hand from 3 back to 5!
     s = endTurn(s, 'opponent', TEST_REGISTRY).state;
+    expect(s.players.player.hand.length).toBe(5);
+
+    // Bruiser (1900) attacks Hatchling (1300) -> kills + 600 Battle Damage (8000 -> 7400)!
     const res = declareAttack(
       s,
       'player',
@@ -358,10 +369,10 @@ describe('Aetherbound: Yu-Gi-Oh! Speed Duel Engine', () => {
     );
     expect(res.ok).toBe(true);
     expect(res.state.players.opponent.vanguard[0]).toBeNull();
-    expect(res.state.players.opponent.lp).toBe(3400);
+    expect(res.state.players.opponent.lp).toBe(7400);
   });
 
-  it('handles Tribute Summons (★6 = 1 Tribute) & Soul Burn (+1 Extra Normal Summon + Resonate)', () => {
+  it('handles Unlimited Turn-1 Tribute Chains (★6 = 1 Tribute) & Soul Burn (Cycle +1 Draw + Resonate)', () => {
     const d0 = createDuel(
       {
         playerName: 'Tester',
@@ -381,19 +392,18 @@ describe('Aetherbound: Yu-Gi-Oh! Speed Duel Engine', () => {
       { instanceId: 'b1', cardId: 'pyro_boss' },
     ];
 
-    // Normal Summon Cryo Sentry (★2)
+    // Normal Summon Cryo Sentry (★2) — Rush Duel still allows unlimited further summons!
     s = playCard(s, 'player', 'c1', { slot: 0 }, TEST_REGISTRY).state;
-    expect(s.players.player.normalSummonsLeft).toBe(0);
+    expect(s.players.player.normalSummonsLeft).toBeGreaterThanOrEqual(99);
 
-    // Soul Burn a second Cryo Sentry -> +1 Extra Normal Summon + Resonate draws 1!
+    // Soul Burn a second Cryo Sentry -> Discards 1, draws 1 + Resonate draws 1 (net +1 hand)!
     const handBefore = s.players.player.hand.length;
     const burnRes = soulBurn(s, 'player', 'c2', TEST_REGISTRY);
     expect(burnRes.ok).toBe(true);
     s = burnRes.state;
-    expect(s.players.player.normalSummonsLeft).toBe(1);
-    expect(s.players.player.hand.length).toBe(handBefore); // -1 + 1 Resonate draw
+    expect(s.players.player.hand.length).toBe(handBefore + 1); // -1 discard + 1 Soul Burn draw + 1 Resonate draw!
 
-    // Tribute Summon ★6 Ignis Rex (2500 ATK) sacrificing Cryo Sentry on field!
+    // Tribute Summon ★6 Ignis Rex (2500 ATK) sacrificing Cryo Sentry on field on the SAME turn!
     const fieldUnit = s.players.player.vanguard[0]!;
     const tribRes = playCard(
       s,
@@ -408,7 +418,7 @@ describe('Aetherbound: Yu-Gi-Oh! Speed Duel Engine', () => {
     expect(tribRes.state.recentEvents.some((e) => e.type === 'resonate')).toBe(true);
   });
 
-  it('handles Face-Down Defense Set, FLIP reveal, Recoil LP Damage, and Vex-09 (+500 DEF)', () => {
+  it('handles Face-Down Defense Set, FLIP reveal, Recoil LP Damage, and Vex-09 (+300 DEF)', () => {
     const d0 = createDuel(
       {
         playerName: 'Tester',
@@ -427,7 +437,7 @@ describe('Aetherbound: Yu-Gi-Oh! Speed Duel Engine', () => {
     s = playCard(s, 'player', s.players.player.hand[0].instanceId, { slot: 0 }, TEST_REGISTRY).state;
     s = endTurn(s, 'player', TEST_REGISTRY).state;
 
-    // Vex-09 Sets Cryo Sentry (1900 DEF + 500 Boss Rule = 2400 DEF!) Face-Down!
+    // Vex-09 Sets Cryo Sentry (1900 DEF + 300 Boss Rule = 2200 DEF!) Face-Down!
     const handBeforeFlip = s.players.opponent.hand.length - 1;
     s = playCard(
       s,
@@ -439,7 +449,7 @@ describe('Aetherbound: Yu-Gi-Oh! Speed Duel Engine', () => {
     expect(s.players.opponent.vanguard[0]?.faceDown).toBe(true);
     s = endTurn(s, 'opponent', TEST_REGISTRY).state;
 
-    // Player attacks Face-Down Defense: flips face-up (FLIP draws 1!), 1900 ATK vs 2400 DEF -> 500 Recoil LP to Player!
+    // Player attacks Face-Down Defense: flips face-up (FLIP draws 1!), 1900 ATK vs 2200 DEF -> 300 Recoil LP to Player (8000 -> 7700)!
     const atkRes = declareAttack(
       s,
       'player',
@@ -450,7 +460,7 @@ describe('Aetherbound: Yu-Gi-Oh! Speed Duel Engine', () => {
     expect(atkRes.ok).toBe(true);
     expect(atkRes.state.players.opponent.vanguard[0]?.faceDown).toBe(false);
     expect(atkRes.state.players.opponent.hand.length).toBe(handBeforeFlip + 1); // FLIP drew 1!
-    expect(atkRes.state.players.player.lp).toBe(3500); // 500 Recoil LP!
+    expect(atkRes.state.players.player.lp).toBe(7700); // 300 Recoil LP!
   });
 
   it('evolves monsters on Turn 3 preserving Equip Relics and deals On-Evolve LP burn', () => {
@@ -492,7 +502,7 @@ describe('Aetherbound: Yu-Gi-Oh! Speed Duel Engine', () => {
     // 1300 -> 2300 (+1000) + Relic 600 = 2900 ATK!
     expect(evolved.currentAtk).toBe(2900);
     expect(evolved.attachedRelics).toContain('relic_blade');
-    expect(evoRes.state.players.opponent.lp).toBe(3400); // 600 On-Evolve burn
+    expect(evoRes.state.players.opponent.lp).toBe(7400); // 600 On-Evolve burn (8000 -> 7400)
   });
 
   it('executes Dual-Faction Contact Fusion (0 Normal Summon cost) and triggers Traps on next turn', () => {
@@ -545,7 +555,7 @@ describe('Aetherbound: Yu-Gi-Oh! Speed Duel Engine', () => {
 
     // Cast Ember Lance -> countered by Nullify Rift!
     s = playCard(s, 'player', 'p_b1', { targetPlayer: 'opponent' }, TEST_REGISTRY).state;
-    expect(s.players.opponent.lp).toBe(4000);
+    expect(s.players.opponent.lp).toBe(8000);
 
     // Attack with Frostfire Chimera (has Ward!) -> Shadow Snare triggers and breaks Ward instead of destroying Chimera!
     const atkRes = declareAttack(
@@ -557,8 +567,8 @@ describe('Aetherbound: Yu-Gi-Oh! Speed Duel Engine', () => {
     );
     expect(atkRes.ok).toBe(true);
     expect(atkRes.state.players.player.vanguard[0]?.wardActive).toBe(false);
-    // Attack continues through Ward for 2800 Direct Damage!
-    expect(atkRes.state.players.opponent.lp).toBe(1200);
+    // Attack continues through Ward for 2800 Direct Damage (8000 -> 5200)!
+    expect(atkRes.state.players.opponent.lp).toBe(5200);
   });
 
   it('allows Flip Summon on the turn AFTER Setting Face-Down Defense', () => {
@@ -614,7 +624,7 @@ describe('Aetherbound: Yu-Gi-Oh! Speed Duel Engine', () => {
     let s = submitMulligan(d0, [], TEST_REGISTRY).state;
     s = endTurn(s, 'player', TEST_REGISTRY).state;
 
-    // Opponent sets Trap + activates Eclipse Sanctum Domain (triggers EoT 300 LP drain -> player 3700, opp 4300)
+    // Opponent sets Trap + activates Eclipse Sanctum Domain (triggers EoT 300 LP drain -> player 7700, opp 8300)
     s.players.opponent.hand = [
       { instanceId: 'o_trap', cardId: 'umbra_shadow_snare' },
       { instanceId: 'o_dom', cardId: 'test_eclipse_domain' },
@@ -622,8 +632,8 @@ describe('Aetherbound: Yu-Gi-Oh! Speed Duel Engine', () => {
     s = playCard(s, 'opponent', 'o_trap', { slot: 0 }, TEST_REGISTRY).state;
     s = playCard(s, 'opponent', 'o_dom', { slot: 1 }, TEST_REGISTRY).state;
     s = endTurn(s, 'opponent', TEST_REGISTRY).state;
-    expect(s.players.player.lp).toBe(3700);
-    expect(s.players.opponent.lp).toBe(4300);
+    expect(s.players.player.lp).toBe(7700);
+    expect(s.players.opponent.lp).toBe(8300);
 
     // Player casts Rift Breaker -> wipes BOTH enemy Arcane slots & draws 1!
     s.players.player.hand = [
@@ -643,11 +653,11 @@ describe('Aetherbound: Yu-Gi-Oh! Speed Duel Engine', () => {
     // Hand was 3 -> -1 Rift Breaker + 1 Draw = 3
     expect(s.players.player.hand.length).toBe(3);
 
-    // Player casts Aether Vessel -> pays 500 LP (3700 -> 3200) & draws 2 (3 - 1 + 2 = 4)
+    // Player casts Aether Vessel -> pays 500 LP (7700 -> 7200) & draws 2 (3 - 1 + 2 = 4)
     const avRes = playCard(s, 'player', 'p_av', {}, TEST_REGISTRY);
     expect(avRes.ok).toBe(true);
     s = avRes.state;
-    expect(s.players.player.lp).toBe(3200);
+    expect(s.players.player.lp).toBe(7200);
     expect(s.players.player.hand.length).toBe(4);
 
     // Aether Vessel must be rejected when LP <= 500
@@ -712,8 +722,8 @@ describe('Aetherbound: Yu-Gi-Oh! Speed Duel Engine', () => {
     );
     expect(refAtk.ok).toBe(true);
     s = refAtk.state;
-    expect(s.players.opponent.lp).toBe(4000);
-    expect(s.players.player.lp).toBe(1800); // 4000 - 2200 cap!
+    expect(s.players.opponent.lp).toBe(8000);
+    expect(s.players.player.lp).toBe(5800); // 8000 - 2200 cap!
     expect(s.players.player.vanguard[0]?.cardId).toBe('pyro_boss'); // Ignis Rex survived Reflector
 
     // Advance to next Player turn -> add 2nd Attack monster & 1 Face-Down DEF monster, then attack into Crimson Mirror Force!
@@ -722,10 +732,8 @@ describe('Aetherbound: Yu-Gi-Oh! Speed Duel Engine', () => {
     s.players.player.hand = [
       { instanceId: 'p_atk2', cardId: 'pyro_bruiser' },
       { instanceId: 'p_def1', cardId: 'cryo_sentry' },
-      { instanceId: 'p_fod', cardId: 'pyro_hatchling' },
     ];
     s = playCard(s, 'player', 'p_atk2', { slot: 1, summonMode: 'attack' }, TEST_REGISTRY).state;
-    s = soulBurn(s, 'player', 'p_fod', TEST_REGISTRY).state;
     s = playCard(s, 'player', 'p_def1', { slot: 2, summonMode: 'defense' }, TEST_REGISTRY).state;
 
     // Attack with Ignis Rex -> Crimson Mirror Force destroys BOTH Attack Position monsters (slots 0 & 1), spares DEF slot 2!
@@ -738,7 +746,7 @@ describe('Aetherbound: Yu-Gi-Oh! Speed Duel Engine', () => {
     );
     expect(mfAtk.ok).toBe(true);
     s = mfAtk.state;
-    expect(s.players.opponent.lp).toBe(4000);
+    expect(s.players.opponent.lp).toBe(8000);
     expect(s.players.player.vanguard[0]).toBeNull();
     expect(s.players.player.vanguard[1]).toBeNull();
     expect(s.players.player.vanguard[2]?.cardId).toBe('cryo_sentry');
