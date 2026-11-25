@@ -112,7 +112,7 @@ export const BESPOKE_CARD_ART: Record<string, string> = {
   egypt_pyramid_domain: '/assets/cards/egypt_pyramid_domain.jpg',
   egypt_millennium_rod: '/assets/cards/egypt_millennium_rod.jpg',
   egypt_pharaoh_judgment: '/assets/cards/egypt_pharaoh_judgment.jpg',
-  // Set 6: Yggdrasil Sky Overlord (#1-#10 installed, #11-#12 pending)
+  // Set 6: Yggdrasil Sky Overlord (#1-#12 COMPLETE!)
   ygg_sky_emperor_l: '/assets/cards/ygg_sky_emperor_l.jpg',
   ygg_sky_emperor_c: '/assets/cards/ygg_sky_emperor_c.jpg',
   ygg_sky_emperor_r: '/assets/cards/ygg_sky_emperor_r.jpg',
@@ -123,6 +123,17 @@ export const BESPOKE_CARD_ART: Record<string, string> = {
   ygg_verdant_empress: '/assets/cards/ygg_verdant_empress.jpg',
   ygg_world_bloom: '/assets/cards/ygg_world_bloom.jpg',
   ygg_canopy_crown: '/assets/cards/ygg_canopy_crown.jpg',
+  ygg_worldtree_domain: '/assets/cards/ygg_worldtree_domain.jpg',
+  ygg_root_snare: '/assets/cards/ygg_root_snare.jpg',
+  // Set 7: Legendary Dragons of the Rift (#13-#20 installed, #21-#24 pending)
+  drag_multistrike_dragias: '/assets/cards/drag_multistrike_dragias.jpg',
+  drag_azure_eyes: '/assets/cards/drag_azure_eyes.jpg',
+  drag_crimson_eyes: '/assets/cards/drag_crimson_eyes.jpg',
+  drag_fusion_azure_ultimate: '/assets/cards/drag_fusion_azure_ultimate.jpg',
+  drag_fusion_crimson_meteor: '/assets/cards/drag_fusion_crimson_meteor.jpg',
+  drag_spark_whelp: '/assets/cards/drag_spark_whelp.jpg',
+  drag_frost_wyvern: '/assets/cards/drag_frost_wyvern.jpg',
+  drag_eclipse_drake: '/assets/cards/drag_eclipse_drake.jpg',
 };
 
 /**
