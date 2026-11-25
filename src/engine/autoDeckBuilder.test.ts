@@ -46,6 +46,7 @@ describe('Smart Auto-Build Deck Optimizer', () => {
     const col = buildFullPlaysetCollection();
     col['chrono_polymerization'] = 0;
     col['chrono_convergence'] = 0;
+    col['drag_mirror_fusion'] = 0;
 
     const res = autoBuildDeck(col, CARD_MAP, { strategy: 'fusion' });
     expect(res.ok).toBe(true);
@@ -78,25 +79,38 @@ describe('Smart Auto-Build Deck Optimizer', () => {
     }
   });
 
-  it('includes complete Maximum Emperor [L]/[CORE]/[R] set only as a whole package', () => {
+  it('includes complete Maximum Titan [L]/[CORE]/[R] sets only as a whole package (supports all 3 Titans)', () => {
     const col = buildFullPlaysetCollection();
     expect(hasOwnedMaximumSet(col, CARD_MAP)).toBe(true);
 
-    const maxRes = autoBuildDeck(col, CARD_MAP, { strategy: 'maximum' });
-    expect(maxRes.ok).toBe(true);
-    expect(maxRes.report.hasCompleteMaximumSet).toBe(true);
-    expect(maxRes.mainDeck).toContain('max_aether_emperor_l');
-    expect(maxRes.mainDeck).toContain('max_aether_emperor_c');
-    expect(maxRes.mainDeck).toContain('max_aether_emperor_r');
-    expect(maxRes.report.recommendedSkillId).toBe('destiny_draw');
+    // Sylvan focus -> selects Yggdrasil World-Tree Emperor 3-piece Maximum!
+    const yggRes = autoBuildDeck(col, CARD_MAP, { strategy: 'maximum', focusFaction: 'sylvan' });
+    expect(yggRes.ok).toBe(true);
+    expect(yggRes.report.hasCompleteMaximumSet).toBe(true);
+    expect(yggRes.mainDeck).toContain('ygg_sky_emperor_l');
+    expect(yggRes.mainDeck).toContain('ygg_sky_emperor_c');
+    expect(yggRes.mainDeck).toContain('ygg_sky_emperor_r');
+    expect(yggRes.report.recommendedSkillId).toBe('destiny_draw');
 
-    // Missing one piece -> must NOT put standalone Lv8 [CORE] brick into the deck
+    // Cryo-Mecha focus -> selects Magnum Overlord Omega 3-piece Maximum!
+    const mechRes = autoBuildDeck(col, CARD_MAP, { strategy: 'maximum', focusFaction: 'cryo_mecha' });
+    expect(mechRes.ok).toBe(true);
+    expect(mechRes.report.hasCompleteMaximumSet).toBe(true);
+    expect(mechRes.mainDeck).toContain('mech_magnum_overlord_l');
+    expect(mechRes.mainDeck).toContain('mech_magnum_overlord_c');
+    expect(mechRes.mainDeck).toContain('mech_magnum_overlord_r');
+
+    // Missing one piece from EVERY Maximum set -> must NOT put any standalone Lv8 [CORE] brick into the deck
     const partial = buildFullPlaysetCollection();
     partial['max_aether_emperor_r'] = 0;
+    partial['ygg_sky_emperor_r'] = 0;
+    partial['mech_magnum_overlord_r'] = 0;
     const partialRes = autoBuildDeck(partial, CARD_MAP, { strategy: 'maximum' });
     expect(partialRes.ok).toBe(true);
     expect(partialRes.report.hasCompleteMaximumSet).toBe(false);
     expect(partialRes.mainDeck).not.toContain('max_aether_emperor_c');
+    expect(partialRes.mainDeck).not.toContain('ygg_sky_emperor_c');
+    expect(partialRes.mainDeck).not.toContain('mech_magnum_overlord_c');
     expect(partialRes.report.warnings.length).toBeGreaterThan(0);
   });
 

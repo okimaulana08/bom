@@ -624,6 +624,10 @@ export const DeckBuilder: React.FC<DeckBuilderProps> = ({ onBack }) => {
                 <option value="arcana_vault">Set 3: Arcana &amp; Ambush Vault</option>
                 <option value="maximum">Set 4: Maximum Overlord</option>
                 <option value="egyptian_gods">Set 5: Pantheon of the Nile (Egyptian Gods)</option>
+                <option value="yggdrasil_overlord">Set 6: Yggdrasil Sky Overlord</option>
+                <option value="legendary_dragons">Set 7: Legendary Dragons</option>
+                <option value="sevens_magicians">Set 8: Sevens Arcane Magicians</option>
+                <option value="supreme_mecha">Set 9: Supreme Mecha Armada</option>
               </select>
 
               {/* Deck Target Tab Toggle */}

@@ -177,6 +177,10 @@ export const CardCodex: React.FC<CardCodexProps> = ({ onBack }) => {
           <option value="arcana_vault">Set 3: Arcana &amp; Ambush Vault (10)</option>
           <option value="maximum">Set 4: Maximum Overlord (3)</option>
           <option value="egyptian_gods">Set 5: Pantheon of the Nile (12)</option>
+          <option value="yggdrasil_overlord">Set 6: Yggdrasil Sky Overlord (12)</option>
+          <option value="legendary_dragons">Set 7: Legendary Dragons (12)</option>
+          <option value="sevens_magicians">Set 8: Sevens Arcane Magicians (12)</option>
+          <option value="supreme_mecha">Set 9: Supreme Mecha Armada (12)</option>
         </select>
 
         <select

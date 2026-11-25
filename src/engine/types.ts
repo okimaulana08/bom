@@ -6,7 +6,11 @@ export type CardSetId =
   | 'phantom'
   | 'arcana_vault'
   | 'maximum'
-  | 'egyptian_gods';
+  | 'egyptian_gods'
+  | 'yggdrasil_overlord'
+  | 'legendary_dragons'
+  | 'sevens_magicians'
+  | 'supreme_mecha';
 
 export type DuelistSkillId =
   | 'volcanic_ignition'

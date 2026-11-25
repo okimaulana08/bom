@@ -8,8 +8,8 @@ import { SPIRE_BLESSINGS, SPIRE_FLOORS } from './spire';
 import { createDuel, submitMulligan } from '../engine/rules';
 
 describe('Card Database, Decks, Campaign & Booster Packs Integrity', () => {
-  it('contains 91 unique cards across all 5 factions, 5 types, and all 6 sets (incl. Set 5 Egyptian Gods)', () => {
-    expect(CARDS.length).toBeGreaterThanOrEqual(91);
+  it('contains 139 unique cards across all 5 factions, 5 types, and all 10 sets (incl. Sets 5-9)', () => {
+    expect(CARDS.length).toBeGreaterThanOrEqual(139);
     expect(DUELIST_SKILLS.length).toBe(5);
     expect(SPIRE_FLOORS.length).toBe(5);
     expect(SPIRE_BLESSINGS.length).toBe(6);
@@ -18,6 +18,9 @@ describe('Card Database, Decks, Campaign & Booster Packs Integrity', () => {
     expect(maximumCards.length).toBe(3);
     expect(maximumCards.map((c) => c.maximumPiece).sort()).toEqual(['center', 'left', 'right']);
 
+    const allMaximumSetIds = new Set(CARDS.filter((c) => c.maximumSetId).map((c) => c.maximumSetId));
+    expect(allMaximumSetIds.size).toBeGreaterThanOrEqual(3);
+
     const egyptianCards = CARDS.filter((c) => c.setId === 'egyptian_gods');
     expect(egyptianCards.length).toBe(12);
     expect(egyptianCards.filter((c) => c.rarity === 'mythic').length).toBe(4);
@@ -25,6 +28,11 @@ describe('Card Database, Decks, Campaign & Booster Packs Integrity', () => {
     expect(egyptianCards.some((c) => c.id === 'egypt_obelisk_tormentor')).toBe(true);
     expect(egyptianCards.some((c) => c.id === 'egypt_ra_sun_phoenix')).toBe(true);
     expect(egyptianCards.some((c) => c.id === 'egypt_fusion_horakhty')).toBe(true);
+
+    expect(CARDS.filter((c) => c.setId === 'yggdrasil_overlord').length).toBe(12);
+    expect(CARDS.filter((c) => c.setId === 'legendary_dragons').length).toBe(12);
+    expect(CARDS.filter((c) => c.setId === 'sevens_magicians').length).toBe(12);
+    expect(CARDS.filter((c) => c.setId === 'supreme_mecha').length).toBe(12);
 
     const ids = new Set(CARDS.map((c) => c.id));
     expect(ids.size).toBe(CARDS.length);

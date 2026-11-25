@@ -93,11 +93,65 @@ const STRATEGY_LABELS: Record<ResolvedAutoBuildStrategy, string> = {
 const MAX_MAIN_DECK = 30;
 const MAX_RIFT_DECK = 5;
 const MAX_COPIES = 3;
-const MAXIMUM_PIECE_IDS = [
-  'max_aether_emperor_l',
-  'max_aether_emperor_c',
-  'max_aether_emperor_r',
-] as const;
+
+interface DiscoveredMaximumSet {
+  setId: string;
+  leftId: string;
+  centerId: string;
+  rightId: string;
+  pieceIds: [string, string, string];
+  factions: Faction[];
+  maxAtk: number;
+  title: string;
+}
+
+function discoverMaximumSets(registry: Record<string, CardDef>): DiscoveredMaximumSet[] {
+  const bySet = new Map<string, { left?: CardDef; center?: CardDef; right?: CardDef }>();
+  for (const def of Object.values(registry)) {
+    if (!def.maximumSetId || !def.maximumPiece || def.isToken) continue;
+    const entry = bySet.get(def.maximumSetId) ?? {};
+    entry[def.maximumPiece] = def;
+    bySet.set(def.maximumSetId, entry);
+  }
+  const sets: DiscoveredMaximumSet[] = [];
+  for (const [setId, entry] of bySet.entries()) {
+    if (entry.left && entry.center && entry.right) {
+      const factions = Array.from(
+        new Set<Faction>([entry.left.faction, entry.center.faction, entry.right.faction])
+      );
+      sets.push({
+        setId,
+        leftId: entry.left.id,
+        centerId: entry.center.id,
+        rightId: entry.right.id,
+        pieceIds: [entry.left.id, entry.center.id, entry.right.id],
+        factions,
+        maxAtk: entry.center.maximumAtk ?? 4200,
+        title: entry.center.name.replace(/\s*\[CORE\]\s*$/i, ''),
+      });
+    }
+  }
+  return sets;
+}
+
+function getOwnedMaximumSets(
+  collection: Record<string, number>,
+  registry: Record<string, CardDef>
+): DiscoveredMaximumSet[] {
+  return discoverMaximumSets(registry).filter((s) =>
+    s.pieceIds.every((id) => ownedCap(collection, id) >= 1)
+  );
+}
+
+function findCompleteMaximumSetInDeck(
+  mainDeck: string[],
+  registry: Record<string, CardDef>
+): DiscoveredMaximumSet | null {
+  for (const s of discoverMaximumSets(registry)) {
+    if (s.pieceIds.every((id) => mainDeck.includes(id))) return s;
+  }
+  return null;
+}
 
 interface SlotBlueprint {
   lowMonsters: number;
@@ -243,9 +297,7 @@ export function hasOwnedMaximumSet(
   collection: Record<string, number>,
   registry: Record<string, CardDef>
 ): boolean {
-  return MAXIMUM_PIECE_IDS.every(
-    (id) => Boolean(registry[id]) && ownedCap(collection, id) >= 1
-  );
+  return getOwnedMaximumSets(collection, registry).length > 0;
 }
 
 /** Check how well a Fusion Apex's recipe is supported by the Main Deck's Vanguard factions. */
@@ -351,8 +403,8 @@ function scoreCardForStrategy(
 
   let score = rarityBonus;
 
-  // Never put standalone Maximum Center Lv8 unless running full Maximum Set
-  if (def.id === 'max_aether_emperor_c' && !useMaximumSet) {
+  // Never put standalone Maximum Center Lv8 unless running THAT active Maximum Set
+  if (def.maximumPiece === 'center' && (!useMaximumSet || !primaryFactions.includes(def.faction))) {
     return -1500;
   }
 
@@ -446,6 +498,12 @@ function scoreCardForStrategy(
       score += strategy === 'aggro' || strategy === 'balanced' || strategy === 'fusion' ? 440 : 220;
     } else if (def.id === 'egypt_pyramid_domain') {
       score += strategy === 'balanced' || strategy === 'control' || strategy === 'fusion' || strategy === 'maximum' ? 500 : 340;
+    } else if (def.id === 'ygg_worldtree_domain') {
+      score += primaryFactions.includes('sylvan') || strategy === 'control' || strategy === 'maximum' ? 520 : 280;
+    } else if (def.id === 'mag_arcane_circle') {
+      score += primaryFactions.includes('chrono') || primaryFactions.includes('umbra') || strategy === 'aggro' ? 500 : 300;
+    } else if (def.id === 'mech_repair_factory') {
+      score += primaryFactions.includes('cryo_mecha') || strategy === 'maximum' ? 520 : 260;
     }
     // Domains stay on backline — never clutter with duplicates
     if (copiesAlready >= 1) score -= 900;
@@ -615,7 +673,8 @@ export function simulateDeckConsistency(
   const rng = mulberry32(seed);
   const defs = mainDeck.map((id) => registry[id]).filter(Boolean);
   const riftDefs = riftDeck.map((id) => registry[id]).filter(Boolean);
-  const hasMaximum = MAXIMUM_PIECE_IDS.every((id) => mainDeck.includes(id));
+  const completeMax = findCompleteMaximumSetInDeck(mainDeck, registry);
+  const hasMaximum = Boolean(completeMax);
 
   let playableT1 = 0;
   let strongOpen = 0;
@@ -687,6 +746,8 @@ interface CandidateBuild {
   primaryFactions: Faction[];
   fusionCoverage: FusionCoverageEntry[];
   hasCompleteMaximumSet: boolean;
+  activeMaxSetTitle?: string;
+  activeMaxAtk?: number;
   simulation: AutoBuildSimulation;
   synergyScore: number;
   rawQuality: number;
@@ -781,8 +842,20 @@ function buildSingleCandidate(
     (c) => c.type !== 'fusion_apex' && !c.isToken && ownedCap(collection, c.id) > 0
   );
 
-  const canRunMaximum = hasOwnedMaximumSet(collection, registry);
-  const useMaximumSet = strategy === 'maximum' && canRunMaximum;
+  const ownedMaxSets = getOwnedMaximumSets(collection, registry);
+  const matchingMaxSet =
+    strategy === 'maximum' && ownedMaxSets.length > 0
+      ? [...ownedMaxSets].sort((a, b) => {
+          const covA = a.factions.filter((f) => primaryFactions.includes(f)).length / a.factions.length;
+          const covB = b.factions.filter((f) => primaryFactions.includes(f)).length / b.factions.length;
+          const coreA = primaryFactions.includes(registry[a.centerId]?.faction) ? 1 : 0;
+          const coreB = primaryFactions.includes(registry[b.centerId]?.faction) ? 1 : 0;
+          return coreB - coreA || covB - covA || b.maxAtk - a.maxAtk;
+        })[0]
+      : null;
+  const canRunMaximum = ownedMaxSets.length > 0;
+  const useMaximumSet = Boolean(matchingMaxSet);
+  const activeMaxPieceSet = new Set<string>(matchingMaxSet ? matchingMaxSet.pieceIds : []);
 
   const mainDeck: string[] = [...lockedMain];
   const lockedCount = lockedMain.length;
@@ -801,16 +874,16 @@ function buildSingleCandidate(
     return true;
   };
 
-  // Step 1: If running Maximum Titan strategy, lock in 1-2 complete sets of [L]/[CORE]/[R]!
-  if (useMaximumSet) {
+  // Step 1: If running Maximum Titan strategy, lock in 1-2 complete sets of the matching Titan's [L]/[CORE]/[R]!
+  if (matchingMaxSet) {
     const completeSetsOwned = Math.min(
-      ownedCap(collection, 'max_aether_emperor_l'),
-      ownedCap(collection, 'max_aether_emperor_c'),
-      ownedCap(collection, 'max_aether_emperor_r')
+      ownedCap(collection, matchingMaxSet.leftId),
+      ownedCap(collection, matchingMaxSet.centerId),
+      ownedCap(collection, matchingMaxSet.rightId)
     );
     const targetSets = Math.min(2, completeSetsOwned);
     for (let s = 0; s < targetSets; s++) {
-      for (const pieceId of MAXIMUM_PIECE_IDS) {
+      for (const pieceId of matchingMaxSet.pieceIds) {
         if ((usedCounts[pieceId] ?? 0) < s + 1) {
           addCard(pieceId);
         }
@@ -948,7 +1021,7 @@ function buildSingleCandidate(
       for (const targetRole of ['high_monster', 'relic', 'mid_monster', 'domain'] as CardRole[]) {
         for (let i = mainDeck.length - 1; i >= lockedCount; i--) {
           const id = mainDeck[i];
-          if (useMaximumSet && MAXIMUM_PIECE_IDS.includes(id as (typeof MAXIMUM_PIECE_IDS)[number])) {
+          if (useMaximumSet && activeMaxPieceSet.has(id)) {
             continue;
           }
           const d = registry[id];
@@ -1021,7 +1094,8 @@ function buildSingleCandidate(
         ((simulation.fusionReadyRate ?? 0) / 100) * 5
     );
   }
-  const hasCompleteMaxInDeck = MAXIMUM_PIECE_IDS.every((id) => mainDeck.includes(id));
+  const finalMaxSet = findCompleteMaximumSetInDeck(mainDeck, registry);
+  const hasCompleteMaxInDeck = Boolean(finalMaxSet);
   if (hasCompleteMaxInDeck) {
     enginePts = Math.min(25, enginePts + 7);
   }
@@ -1068,7 +1142,7 @@ function buildSingleCandidate(
   }
   if (strategy === 'maximum' && !canRunMaximum) {
     warnings.push(
-      'Set Maximum Aetherion Dread Emperor belum lengkap ([L], [CORE], [R]) — deck dirakit sebagai Rush Tempo sampai ke-3 bagian dimiliki.'
+      'Belum ada set Maximum Titan yang lengkap ([L], [CORE], [R]) — deck dirakit sebagai Rush Tempo sampai ke-3 bagian dimiliki.'
     );
   }
 
@@ -1079,6 +1153,8 @@ function buildSingleCandidate(
     primaryFactions,
     fusionCoverage: coverage,
     hasCompleteMaximumSet: hasCompleteMaxInDeck,
+    activeMaxSetTitle: finalMaxSet?.title,
+    activeMaxAtk: finalMaxSet?.maxAtk,
     simulation,
     synergyScore,
     rawQuality,
@@ -1154,16 +1230,28 @@ function generateCandidateFactionSets(
   collection: Record<string, number>,
   registry: Record<string, CardDef>
 ): Faction[][] {
-  // Maximum strategy naturally centers around Pyroclast + Cryo-Mecha + Chrono (the 3 Emperor factions!)
-  if (strategy === 'maximum' && hasOwnedMaximumSet(collection, registry)) {
-    if (focusFaction === 'auto' || focusFaction === 'pyroclast' || focusFaction === 'cryo_mecha' || focusFaction === 'chrono') {
-      return [
-        ['pyroclast', 'cryo_mecha', 'chrono'],
-        ['pyroclast', 'chrono'],
-        ['cryo_mecha', 'chrono'],
-      ];
+  // Maximum strategy dynamically derives faction candidates from ALL owned complete 3-piece Maximum Titans!
+  const ownedMaxSets = getOwnedMaximumSets(collection, registry);
+  if (strategy === 'maximum' && ownedMaxSets.length > 0) {
+    // If user explicitly picked a focusFaction that owns a dedicated Maximum CORE, lock onto those Titan(s) first!
+    const coreMatches =
+      focusFaction !== 'auto'
+        ? ownedMaxSets.filter((ms) => registry[ms.centerId]?.faction === focusFaction)
+        : [];
+    const targetMaxSets = coreMatches.length > 0 ? coreMatches : ownedMaxSets;
+
+    const sets: Faction[][] = [];
+    for (const ms of targetMaxSets) {
+      if (focusFaction === 'auto' || ms.factions.includes(focusFaction)) {
+        sets.push(ms.factions);
+        if (ms.factions.length === 1) {
+          // Also allow pairing mono-Maximum with Chrono for extra Draw/Catalyst support
+          if (ms.factions[0] !== 'chrono') sets.push([ms.factions[0], 'chrono']);
+        }
+      }
     }
-    return [[focusFaction, 'pyroclast', 'cryo_mecha']];
+    if (sets.length > 0) return sets;
+    return [[focusFaction as Faction, ...ownedMaxSets[0].factions.slice(0, 2)]];
   }
 
   // If user locked Rift Fusions, extract their required factions first!
@@ -1182,15 +1270,16 @@ function generateCandidateFactionSets(
     (a, b) => lockedFactions[b] - lockedFactions[a]
   );
 
-  // Build all 10 dual-faction pairs + Umbra/Chrono mono (for Eclipse Sovereign & Horakhty!)
+  // Build all 10 dual-faction pairs + all 5 mono-faction sets (every faction now has Mono-Faction Fusion Apexes!)
   const allSets: Faction[][] = [];
   for (let i = 0; i < ALL_FACTIONS.length; i++) {
     for (let j = i + 1; j < ALL_FACTIONS.length; j++) {
       allSets.push([ALL_FACTIONS[i], ALL_FACTIONS[j]]);
     }
   }
-  allSets.push(['umbra']);
-  allSets.push(['chrono']);
+  for (const f of ALL_FACTIONS) {
+    allSets.push([f]);
+  }
 
   // Filter by focusFaction if explicitly chosen
   let filtered =
@@ -1445,8 +1534,10 @@ export function autoBuildDeck(
   }
 
   if (winner.hasCompleteMaximumSet) {
+    const titanLabel = winner.activeMaxSetTitle ?? 'Maximum Titan';
+    const titanAtk = winner.activeMaxAtk ?? 4200;
     highlights.push(
-      `Set penuh Aetherion Dread Emperor [L]/[CORE]/[R] (4200 MAXIMUM ATK) terpasang bersama kartu Draw & perlindungan Trap.`
+      `Set penuh ${titanLabel} [L]/[CORE]/[R] (${titanAtk} MAXIMUM ATK) terpasang bersama kartu Draw & perlindungan Trap.`
     );
   }
 
@@ -1474,7 +1565,7 @@ export function autoBuildDeck(
     maximum: 'Maximum',
   };
   const suggestedName = winner.hasCompleteMaximumSet
-    ? 'Aetherion Maximum Overlord'
+    ? `${winner.activeMaxSetTitle ?? 'Maximum Overlord'} Max`
     : `${winner.primaryFactions.slice(0, 2).map((f) => FACTION_DISPLAY[f].split('-')[0]).join(' × ')} ${shortStratTag[winner.strategy]}`;
 
   return {
