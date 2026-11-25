@@ -112,6 +112,17 @@ export const BESPOKE_CARD_ART: Record<string, string> = {
   egypt_pyramid_domain: '/assets/cards/egypt_pyramid_domain.jpg',
   egypt_millennium_rod: '/assets/cards/egypt_millennium_rod.jpg',
   egypt_pharaoh_judgment: '/assets/cards/egypt_pharaoh_judgment.jpg',
+  // Set 6: Yggdrasil Sky Overlord (#1-#10 installed, #11-#12 pending)
+  ygg_sky_emperor_l: '/assets/cards/ygg_sky_emperor_l.jpg',
+  ygg_sky_emperor_c: '/assets/cards/ygg_sky_emperor_c.jpg',
+  ygg_sky_emperor_r: '/assets/cards/ygg_sky_emperor_r.jpg',
+  ygg_fusion_worldtree: '/assets/cards/ygg_fusion_worldtree.jpg',
+  ygg_seedling_sprite: '/assets/cards/ygg_seedling_sprite.jpg',
+  ygg_petal_valkyrie: '/assets/cards/ygg_petal_valkyrie.jpg',
+  ygg_ancient_treant: '/assets/cards/ygg_ancient_treant.jpg',
+  ygg_verdant_empress: '/assets/cards/ygg_verdant_empress.jpg',
+  ygg_world_bloom: '/assets/cards/ygg_world_bloom.jpg',
+  ygg_canopy_crown: '/assets/cards/ygg_canopy_crown.jpg',
 };
 
 /**
