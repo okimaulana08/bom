@@ -125,7 +125,7 @@ export const BESPOKE_CARD_ART: Record<string, string> = {
   ygg_canopy_crown: '/assets/cards/ygg_canopy_crown.jpg',
   ygg_worldtree_domain: '/assets/cards/ygg_worldtree_domain.jpg',
   ygg_root_snare: '/assets/cards/ygg_root_snare.jpg',
-  // Set 7: Legendary Dragons of the Rift (#13-#20 installed, #21-#24 pending)
+  // Set 7: Legendary Dragons of the Rift (#13-#24 COMPLETE!)
   drag_multistrike_dragias: '/assets/cards/drag_multistrike_dragias.jpg',
   drag_azure_eyes: '/assets/cards/drag_azure_eyes.jpg',
   drag_crimson_eyes: '/assets/cards/drag_crimson_eyes.jpg',
@@ -134,6 +134,17 @@ export const BESPOKE_CARD_ART: Record<string, string> = {
   drag_spark_whelp: '/assets/cards/drag_spark_whelp.jpg',
   drag_frost_wyvern: '/assets/cards/drag_frost_wyvern.jpg',
   drag_eclipse_drake: '/assets/cards/drag_eclipse_drake.jpg',
+  drag_mirror_fusion: '/assets/cards/drag_mirror_fusion.jpg',
+  drag_burst_stream: '/assets/cards/drag_burst_stream.jpg',
+  drag_fang_relic: '/assets/cards/drag_fang_relic.jpg',
+  drag_roar_ambush: '/assets/cards/drag_roar_ambush.jpg',
+  // Set 8: Sevens Arcane Magicians (#25-#30 installed, #31-#36 pending)
+  mag_sevens_archmage: '/assets/cards/mag_sevens_archmage.jpg',
+  mag_dark_sorcerer: '/assets/cards/mag_dark_sorcerer.jpg',
+  mag_starlight_apprentice: '/assets/cards/mag_starlight_apprentice.jpg',
+  mag_fusion_dark_paladin: '/assets/cards/mag_fusion_dark_paladin.jpg',
+  mag_fusion_astral_witch: '/assets/cards/mag_fusion_astral_witch.jpg',
+  mag_chrono_acolyte: '/assets/cards/mag_chrono_acolyte.jpg',
 };
 
 /**
