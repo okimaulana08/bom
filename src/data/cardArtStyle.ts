@@ -10,9 +10,10 @@ export interface ArtPresentation {
 }
 
 /**
- * All 79/79 cards across Set 1 (Genesis Rift), Set 2A (Dragonic Overdrive),
+ * All 91/91 cards across Set 1 (Genesis Rift), Set 2A (Dragonic Overdrive),
  * Set 2B (Cyber Phantom Protocol), Set 3 (Arcana & Ambush Vault),
- * and Set 4 (Maximum Overlord) now have dedicated bespoke AI-painted .jpg files!
+ * Set 4 (Maximum Overlord), and Set 5 (Pantheon of the Nile — Egyptian Gods)
+ * now have dedicated bespoke AI-painted .jpg files!
  */
 export const BESPOKE_CARD_ART: Record<string, string> = {
   fusion_aether_sovereign: '/assets/cards/fusion_aether_sovereign.jpg',
@@ -94,10 +95,23 @@ export const BESPOKE_CARD_ART: Record<string, string> = {
   chrono_aether_reflector: '/assets/cards/chrono_aether_reflector.jpg',
   pyro_mirror_force: '/assets/cards/pyro_mirror_force.jpg',
   cryo_dimensional_banish: '/assets/cards/cryo_dimensional_banish.jpg',
-  // Set 4: Maximum Overlord (#1-#3 COMPLETE — 79/79!)
+  // Set 4: Maximum Overlord (#1-#3 COMPLETE!)
   max_aether_emperor_l: '/assets/cards/max_aether_emperor_l.jpg',
   max_aether_emperor_c: '/assets/cards/max_aether_emperor_c.jpg',
   max_aether_emperor_r: '/assets/cards/max_aether_emperor_r.jpg',
+  // Set 5: Pantheon of the Nile — Egyptian Gods (#1-#12 COMPLETE — 91/91!)
+  egypt_osiris_sky_dragon: '/assets/cards/egypt_osiris_sky_dragon.jpg',
+  egypt_obelisk_tormentor: '/assets/cards/egypt_obelisk_tormentor.jpg',
+  egypt_ra_sun_phoenix: '/assets/cards/egypt_ra_sun_phoenix.jpg',
+  egypt_fusion_horakhty: '/assets/cards/egypt_fusion_horakhty.jpg',
+  egypt_ra_disciple: '/assets/cards/egypt_ra_disciple.jpg',
+  egypt_anubis_jackal: '/assets/cards/egypt_anubis_jackal.jpg',
+  egypt_horus_falcon: '/assets/cards/egypt_horus_falcon.jpg',
+  egypt_sphinx_guardian: '/assets/cards/egypt_sphinx_guardian.jpg',
+  egypt_millennium_ankh: '/assets/cards/egypt_millennium_ankh.jpg',
+  egypt_pyramid_domain: '/assets/cards/egypt_pyramid_domain.jpg',
+  egypt_millennium_rod: '/assets/cards/egypt_millennium_rod.jpg',
+  egypt_pharaoh_judgment: '/assets/cards/egypt_pharaoh_judgment.jpg',
 };
 
 /**
