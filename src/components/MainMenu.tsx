@@ -6,17 +6,22 @@ import {
   ChevronRight,
   Coins,
   Crown,
+  Download,
   Hammer,
   HardDrive,
   HelpCircle,
   Map,
   PackageOpen,
   Plus,
+  RefreshCw,
+  Share,
+  Smartphone,
   Swords,
   Trophy,
   Volume2,
   VolumeX,
   Wand2,
+  X,
 } from 'lucide-react';
 import { CARDS, CARD_MAP } from '../data/cards';
 import { CAMPAIGN_CHAPTERS } from '../data/campaign';
@@ -25,6 +30,7 @@ import { countClaimableMissions, getDuelistRank } from '../data/missions';
 import { DUELIST_SKILLS, getSkillDef } from '../data/skills';
 import { useProfileStore } from '../store/profileStore';
 import { soundEngine } from '../audio/soundEngine';
+import { usePwaInstall } from '../pwa';
 import { Card } from './Card';
 import { MissionsModal } from './MissionsModal';
 import { SaveBackupModal } from './SaveBackupModal';
@@ -125,6 +131,20 @@ export const MainMenu: React.FC<MainMenuProps> = ({ onNavigate }) => {
   const [leaderIdx, setLeaderIdx] = useState(0);
   const [missionsOpen, setMissionsOpen] = useState(false);
   const [backupOpen, setBackupOpen] = useState(false);
+  const [installHelpOpen, setInstallHelpOpen] = useState(false);
+  const pwa = usePwaInstall();
+
+  const handleInstallClick = async () => {
+    soundEngine.uiClick();
+    if (pwa.canPromptInstall) {
+      const outcome = await pwa.promptInstall();
+      if (outcome === 'unavailable') {
+        setInstallHelpOpen(true);
+      }
+      return;
+    }
+    setInstallHelpOpen(true);
+  };
   const leader = LOBBY_LEADERS[leaderIdx];
   const leaderFaction = FACTIONS[leader.faction];
 
@@ -373,6 +393,43 @@ export const MainMenu: React.FC<MainMenuProps> = ({ onNavigate }) => {
               </span>
             )}
           </button>
+
+          {/* PWA Update Ready Pill */}
+          {pwa.hasUpdate && (
+            <button
+              type="button"
+              onClick={() => {
+                soundEngine.uiClick();
+                pwa.applyUpdate();
+              }}
+              className="game-panel clip-chamfer-sm px-2.5 py-1.5 flex items-center gap-1.5 border-emerald-400 text-emerald-200 hover:brightness-110 cursor-pointer"
+              title="Update terbaru tersedia — klik untuk reload"
+            >
+              <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+              <span className="font-display font-extrabold text-[10px] sm:text-xs tracking-wider uppercase">
+                Update
+              </span>
+            </button>
+          )}
+
+          {/* Install PWA App Button (auto-hides once running as installed app!) */}
+          {!pwa.isInstalled && (
+            <button
+              type="button"
+              onClick={handleInstallClick}
+              className={`game-panel clip-chamfer-sm px-2.5 py-1.5 flex items-center gap-1.5 transition-all cursor-pointer ${
+                pwa.canPromptInstall
+                  ? 'border-cyan-400 text-cyan-200 shadow-[0_0_16px_rgba(34,211,238,0.4)] hover:brightness-110'
+                  : 'border-cyan-400/50 text-cyan-200 hover:border-cyan-300'
+              }`}
+              title="Install Aetherbound ke Layar Utama HP (PWA)"
+            >
+              <Download className="w-4 h-4 text-cyan-300" />
+              <span className="hidden sm:inline font-display font-extrabold text-xs tracking-wider uppercase">
+                Install App
+              </span>
+            </button>
+          )}
 
           {/* Save Data Backup / Restore Button */}
           <button
@@ -693,6 +750,105 @@ export const MainMenu: React.FC<MainMenuProps> = ({ onNavigate }) => {
 
       <MissionsModal open={missionsOpen} onClose={() => setMissionsOpen(false)} />
       <SaveBackupModal open={backupOpen} onClose={() => setBackupOpen(false)} />
+
+      {/* PWA INSTALL GUIDE MODAL (iOS Safari / Manual Browser Fallback) */}
+      {installHelpOpen && (
+        <div
+          onClick={() => setInstallHelpOpen(false)}
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-md p-4"
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            className="w-full max-w-md game-panel clip-chamfer border-cyan-400/70 shadow-[0_0_55px_rgba(34,211,238,0.3)] overflow-hidden"
+          >
+            <div className="px-4 py-3 border-b border-slate-800 bg-gradient-to-r from-cyan-950/70 via-slate-950 to-indigo-950/70 flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Smartphone className="w-5 h-5 text-cyan-300" />
+                <div>
+                  <h3 className="font-display font-extrabold text-sm text-white uppercase tracking-wider">
+                    Install ke Layar Utama HP
+                  </h3>
+                  <p className="text-[10.5px] text-slate-400">
+                    Mode layar penuh &amp; bisa dimainkan offline
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setInstallHelpOpen(false)}
+                className="p-1.5 rounded-lg bg-slate-900 border border-slate-700 text-slate-300 hover:text-white cursor-pointer"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <div className="p-4 space-y-3 text-xs text-slate-200">
+              <div className="flex items-center gap-3 p-2.5 rounded-xl bg-slate-950/90 border border-slate-800">
+                <img
+                  src="/icons/icon-192.png"
+                  alt="Rift Duel Icon"
+                  className="w-12 h-12 rounded-xl border border-amber-400/70 shrink-0"
+                />
+                <div>
+                  <div className="font-display font-extrabold text-sm text-white">
+                    Aetherbound: Rift Duel
+                  </div>
+                  <div className="text-[11px] text-cyan-300">
+                    Full-screen App • Offline AI Duel • Auto-Save
+                  </div>
+                </div>
+              </div>
+
+              {pwa.isIosSafari ? (
+                <div className="rounded-xl bg-indigo-950/50 border border-indigo-400/40 p-3 space-y-2">
+                  <div className="font-display font-bold text-amber-300 uppercase text-[11px]">
+                    Cara Install di iPhone / iPad (Safari):
+                  </div>
+                  <ol className="list-decimal list-inside space-y-1.5 text-[11.5px] text-slate-200">
+                    <li>
+                      Ketuk tombol <strong className="text-cyan-300 inline-flex items-center gap-0.5"><Share className="w-3 h-3 inline" /> Share</strong> di bar bawah Safari.
+                    </li>
+                    <li>
+                      Scroll ke bawah lalu pilih <strong className="text-white">Add to Home Screen</strong> (<em>Tambahkan ke Layar Utama</em>).
+                    </li>
+                    <li>
+                      Ketuk <strong className="text-emerald-300">Add</strong> — ikon <strong>Rift Duel</strong> langsung muncul di HP!
+                    </li>
+                  </ol>
+                </div>
+              ) : (
+                <div className="rounded-xl bg-indigo-950/50 border border-indigo-400/40 p-3 space-y-2">
+                  <div className="font-display font-bold text-amber-300 uppercase text-[11px]">
+                    Cara Install di Android (Chrome / Edge):
+                  </div>
+                  <ol className="list-decimal list-inside space-y-1.5 text-[11.5px] text-slate-200">
+                    <li>
+                      Buka menu <strong className="text-cyan-300">⋮ (titik tiga)</strong> di kanan atas browser.
+                    </li>
+                    <li>
+                      Pilih <strong className="text-white">Install app</strong> atau <strong className="text-white">Add to Home screen</strong>.
+                    </li>
+                    <li>
+                      Ketuk <strong className="text-emerald-300">Install</strong> — game otomatis terpasang seperti aplikasi native!
+                    </li>
+                  </ol>
+                  <p className="text-[10.5px] text-slate-400 pt-1">
+                    Tips: Di iPhone/iPad, buka lewat <strong>Safari</strong> lalu pilih <em>Share → Add to Home Screen</em>.
+                  </p>
+                </div>
+              )}
+
+              <button
+                type="button"
+                onClick={() => setInstallHelpOpen(false)}
+                className="w-full clip-skew-btn py-2.5 bg-gradient-to-r from-cyan-600 to-indigo-600 text-white font-display font-extrabold text-xs tracking-wider cursor-pointer"
+              >
+                MENGERTI
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
