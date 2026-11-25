@@ -138,13 +138,24 @@ export const BESPOKE_CARD_ART: Record<string, string> = {
   drag_burst_stream: '/assets/cards/drag_burst_stream.jpg',
   drag_fang_relic: '/assets/cards/drag_fang_relic.jpg',
   drag_roar_ambush: '/assets/cards/drag_roar_ambush.jpg',
-  // Set 8: Sevens Arcane Magicians (#25-#30 installed, #31-#36 pending)
+  // Set 8: Sevens Arcane Magicians (#25-#36 COMPLETE!)
   mag_sevens_archmage: '/assets/cards/mag_sevens_archmage.jpg',
   mag_dark_sorcerer: '/assets/cards/mag_dark_sorcerer.jpg',
   mag_starlight_apprentice: '/assets/cards/mag_starlight_apprentice.jpg',
   mag_fusion_dark_paladin: '/assets/cards/mag_fusion_dark_paladin.jpg',
   mag_fusion_astral_witch: '/assets/cards/mag_fusion_astral_witch.jpg',
   mag_chrono_acolyte: '/assets/cards/mag_chrono_acolyte.jpg',
+  mag_shadow_witch: '/assets/cards/mag_shadow_witch.jpg',
+  mag_time_sage: '/assets/cards/mag_time_sage.jpg',
+  mag_thousand_knives: '/assets/cards/mag_thousand_knives.jpg',
+  mag_arcane_circle: '/assets/cards/mag_arcane_circle.jpg',
+  mag_grimoire_relic: '/assets/cards/mag_grimoire_relic.jpg',
+  mag_magic_cylinder: '/assets/cards/mag_magic_cylinder.jpg',
+  // Set 9: Supreme Mecha Armada (#37-#40 installed, #41-#48 pending)
+  mech_magnum_overlord_l: '/assets/cards/mech_magnum_overlord_l.jpg',
+  mech_magnum_overlord_c: '/assets/cards/mech_magnum_overlord_c.jpg',
+  mech_magnum_overlord_r: '/assets/cards/mech_magnum_overlord_r.jpg',
+  mech_fusion_cyber_end: '/assets/cards/mech_fusion_cyber_end.jpg',
 };
 
 /**
