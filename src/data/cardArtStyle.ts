@@ -10,9 +10,11 @@ export interface ArtPresentation {
 }
 
 /**
- * All 91/91 cards across Set 1 (Genesis Rift), Set 2A (Dragonic Overdrive),
+ * All 139/139 cards across Set 1 (Genesis Rift), Set 2A (Dragonic Overdrive),
  * Set 2B (Cyber Phantom Protocol), Set 3 (Arcana & Ambush Vault),
- * Set 4 (Maximum Overlord), and Set 5 (Pantheon of the Nile — Egyptian Gods)
+ * Set 4 (Maximum Overlord), Set 5 (Pantheon of the Nile — Egyptian Gods),
+ * Set 6 (Yggdrasil Sky Overlord), Set 7 (Legendary Dragons),
+ * Set 8 (Sevens Arcane Magicians), and Set 9 (Supreme Mecha Armada)
  * now have dedicated bespoke AI-painted .jpg files!
  */
 export const BESPOKE_CARD_ART: Record<string, string> = {
@@ -151,11 +153,19 @@ export const BESPOKE_CARD_ART: Record<string, string> = {
   mag_arcane_circle: '/assets/cards/mag_arcane_circle.jpg',
   mag_grimoire_relic: '/assets/cards/mag_grimoire_relic.jpg',
   mag_magic_cylinder: '/assets/cards/mag_magic_cylinder.jpg',
-  // Set 9: Supreme Mecha Armada (#37-#40 installed, #41-#48 pending)
+  // Set 9: Supreme Mecha Armada (#37-#48 COMPLETE — 139/139!)
   mech_magnum_overlord_l: '/assets/cards/mech_magnum_overlord_l.jpg',
   mech_magnum_overlord_c: '/assets/cards/mech_magnum_overlord_c.jpg',
   mech_magnum_overlord_r: '/assets/cards/mech_magnum_overlord_r.jpg',
   mech_fusion_cyber_end: '/assets/cards/mech_fusion_cyber_end.jpg',
+  mech_cyber_proto: '/assets/cards/mech_cyber_proto.jpg',
+  mech_cyber_viper: '/assets/cards/mech_cyber_viper.jpg',
+  mech_rail_titan: '/assets/cards/mech_rail_titan.jpg',
+  mech_fortress_carrier: '/assets/cards/mech_fortress_carrier.jpg',
+  mech_limiter_overdrive: '/assets/cards/mech_limiter_overdrive.jpg',
+  mech_repair_factory: '/assets/cards/mech_repair_factory.jpg',
+  mech_plasma_thruster: '/assets/cards/mech_plasma_thruster.jpg',
+  mech_emp_barrier: '/assets/cards/mech_emp_barrier.jpg',
 };
 
 /**
