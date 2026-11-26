@@ -39,6 +39,31 @@ export const HandTray: React.FC<HandTrayProps> = ({
 
   const count = player.hand.length;
 
+  const selectedItem = (() => {
+    if (!selectedHandId) return null;
+    const hc = player.hand.find((h) => h.instanceId === selectedHandId);
+    if (!hc) return null;
+    const def = CARD_MAP[hc.cardId];
+    if (!def) return null;
+    const reqTributes = getRequiredTributes(def);
+    const canPlayNow =
+      isPlayerMain &&
+      (def.type !== 'vanguard' ||
+        (player.normalSummonsLeft > 0 &&
+          (reqTributes === 0 ? myBoardCount < 3 : myBoardCount >= reqTributes)));
+    const hasResonate = def.keywords.includes('Resonate');
+    return { hc, def, reqTributes, canPlayNow, hasResonate };
+  })();
+
+  const isImmediateBackrowAction =
+    selectedItem &&
+    selectedItem.def.type !== 'vanguard' &&
+    selectedItem.def.arcanaSubtype !== 'fusion_catalyst' &&
+    (selectedItem.def.type === 'ambush' ||
+      selectedItem.def.arcanaSubtype === 'domain' ||
+      !selectedItem.def.targetMode ||
+      selectedItem.def.targetMode === 'none');
+
   return (
     <div className="relative flex flex-col md:flex-row md:items-end justify-between gap-2 px-1 sm:px-3 pt-1 pb-2">
       {/* MOBILE COMPACT UTILITY STRIP */}
@@ -114,130 +139,173 @@ export const HandTray: React.FC<HandTrayProps> = ({
         )}
       </button>
 
-      {/* CENTER: FULL-WIDTH SWIPEABLE HAND ON MOBILE + CURVED ARC FAN ON DESKTOP */}
-      <div className="w-full md:flex-1 min-w-0 overflow-x-auto scrollbar-none">
-        <div className="flex items-end justify-start md:justify-center gap-2 sm:gap-2.5 md:-space-x-3 md:hover:space-x-1.5 transition-all duration-200 px-4 pt-12 pb-3 w-max md:w-auto mx-auto">
-          {player.hand.map((hc, idx) => {
-            const def = CARD_MAP[hc.cardId];
-            if (!def) return null;
-            const reqTributes = getRequiredTributes(def);
-            const canPlayNow =
-              isPlayerMain &&
-              (def.type !== 'vanguard' ||
-                (player.normalSummonsLeft > 0 &&
-                  (reqTributes === 0 ? myBoardCount < 3 : myBoardCount >= reqTributes)));
+      {/* CENTER: UNCLIPPED SELECTED-CARD ACTION BAR + SWIPEABLE HAND */}
+      <div className="w-full md:flex-1 min-w-0 flex flex-col">
+        {/* DEDICATED UNCLIPPED ACTION BAR ABOVE HAND (NEVER CUT OFF BY OVERFLOW-X-AUTO!) */}
+        {selectedItem && isPlayerMain && (
+          <div className="relative z-40 px-2 pt-1 pb-0.5 flex flex-wrap items-center justify-center gap-1.5">
+            <span className="hidden sm:inline-flex items-center px-2 py-0.5 rounded bg-slate-950/90 border border-slate-700/80 text-[10px] font-bold text-slate-200 max-w-[165px] truncate">
+              {selectedItem.def.name}
+            </span>
 
-            const isSelected = selectedHandId === hc.instanceId;
-            const hasResonate = def.keywords.includes('Resonate');
-
-            const mid = (count - 1) / 2;
-            const offset = idx - mid;
-            const fanRot = isSelected ? 0 : Math.max(-8, Math.min(8, offset * 2.2));
-            const fanDrop = isSelected ? 0 : Math.abs(offset) * 3;
-
-            return (
-              <div
-                key={hc.instanceId}
-                className={`relative shrink-0 transition-all duration-200 ${
-                  isSelected
-                    ? '-translate-y-4 z-40'
-                    : 'hover:-translate-y-4 hover:z-40 z-10'
-                }`}
-              >
-                <div
-                  className="md:[transform:var(--fan-tf)] transition-transform duration-200 hover:!transform-none"
-                  style={
-                    {
-                      '--fan-tf': isSelected
-                        ? 'none'
-                        : `translateY(${fanDrop}px) rotate(${fanRot}deg)`,
-                    } as React.CSSProperties
+            {selectedItem.def.type === 'vanguard' && selectedItem.canPlayNow && (
+              <>
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onSummonMonster(selectedItem.hc.instanceId, 'attack');
+                  }}
+                  className="clip-skew-btn px-3 py-1.5 bg-gradient-to-r from-amber-500 to-rose-600 border border-amber-200 text-white font-extrabold text-[10px] shadow-lg flex items-center gap-1 hover:brightness-110 cursor-pointer"
+                  title={
+                    selectedItem.reqTributes > 0
+                      ? `Tribute ${selectedItem.reqTributes} monster(s) to Summon in Attack Position`
+                      : 'Normal Summon in Attack Position'
                   }
                 >
-                  <Card
-                    card={def}
-                    size="sm"
-                    selected={isSelected}
-                    playableGlow={canPlayNow}
-                    onClick={() => onSelectCard(hc.instanceId)}
-                    onHover={onHoverCard}
-                  />
-                </div>
+                  <Swords className="w-3 h-3" />
+                  {selectedItem.reqTributes > 0 ? `TRIB(${selectedItem.reqTributes})` : 'SUMMON'}
+                </button>
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onSummonMonster(selectedItem.hc.instanceId, 'defense');
+                  }}
+                  className="clip-skew-btn px-2.5 py-1.5 bg-gradient-to-r from-cyan-600 to-indigo-700 border border-cyan-200 text-white font-extrabold text-[10px] shadow-lg flex items-center gap-1 hover:brightness-110 cursor-pointer"
+                  title="Set Face-Down in Defense Position"
+                >
+                  <Shield className="w-3 h-3" /> SET
+                </button>
+              </>
+            )}
 
-                {/* FLOATING YU-GI-OH! ACTION PILLS ABOVE SELECTED CARD */}
-                {isSelected && isPlayerMain && (
-                  <div className="absolute -top-11 left-1/2 -translate-x-1/2 z-50 flex items-center gap-1 whitespace-nowrap">
-                    {def.type === 'vanguard' && canPlayNow && (
-                      <>
-                        <button
-                          type="button"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            onSummonMonster(hc.instanceId, 'attack');
-                          }}
-                          className="clip-skew-btn px-2.5 py-1 bg-gradient-to-r from-amber-500 to-rose-600 border border-amber-200 text-white font-extrabold text-[9.5px] shadow-lg flex items-center gap-0.5 hover:brightness-110 cursor-pointer"
-                          title={
-                            reqTributes > 0
-                              ? `Tribute ${reqTributes} monster(s) to Summon in Attack Position`
-                              : 'Normal Summon in Attack Position'
-                          }
-                        >
-                          <Swords className="w-3 h-3" />
-                          {reqTributes > 0 ? `TRIB(${reqTributes})` : 'SUMMON'}
-                        </button>
-                        <button
-                          type="button"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            onSummonMonster(hc.instanceId, 'defense');
-                          }}
-                          className="clip-skew-btn px-2 py-1 bg-gradient-to-r from-cyan-600 to-indigo-700 border border-cyan-200 text-white font-extrabold text-[9.5px] shadow-lg flex items-center gap-0.5 hover:brightness-110 cursor-pointer"
-                          title="Set Face-Down in Defense Position"
-                        >
-                          <Shield className="w-3 h-3" /> SET
-                        </button>
-                      </>
-                    )}
+            {selectedItem.def.type !== 'vanguard' && selectedItem.canPlayNow && (
+              selectedItem.def.arcanaSubtype === 'fusion_catalyst' ? (
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onSelectCard(selectedItem.hc.instanceId);
+                  }}
+                  className="clip-skew-btn px-3 py-1.5 bg-gradient-to-r from-fuchsia-600 to-indigo-600 border border-fuchsia-200 text-white font-extrabold text-[10px] shadow-lg flex items-center gap-1 hover:brightness-110 cursor-pointer"
+                  title="Open Fusion Summon menu"
+                >
+                  <Layers className="w-3 h-3" /> FUSE
+                </button>
+              ) : isImmediateBackrowAction ? (
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onSelectCard(selectedItem.hc.instanceId);
+                  }}
+                  className="clip-skew-btn px-3 py-1.5 bg-gradient-to-r from-emerald-500 to-teal-600 border border-emerald-200 text-slate-950 font-extrabold text-[10px] shadow-lg flex items-center gap-1 hover:brightness-110 cursor-pointer"
+                  title={
+                    selectedItem.def.type === 'ambush'
+                      ? 'Set Ambush Trap face-down'
+                      : 'Activate Arcana Spell'
+                  }
+                >
+                  <Sparkles className="w-3 h-3" />
+                  {selectedItem.def.type === 'ambush' ? 'SET TRAP' : 'ACTIVATE'}
+                </button>
+              ) : (
+                <span className="px-2.5 py-1 rounded bg-cyan-950/90 border border-cyan-400/70 text-[10px] font-bold text-cyan-200">
+                  Tap target on board
+                </span>
+              )
+            )}
 
-                    {!player.soulBurnUsedThisTurn && (
-                      <button
-                        type="button"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          onSoulBurn(hc.instanceId);
-                        }}
-                        className="clip-skew-btn px-2 py-1 bg-gradient-to-r from-orange-600 to-amber-400 border border-amber-100 text-slate-950 font-extrabold text-[9.5px] shadow-lg flex items-center gap-0.5 hover:brightness-110 cursor-pointer"
-                        title="Soul Burn (1/Turn): Discard into Void → Draw 1 fresh card + trigger Resonate!"
-                      >
-                        <Flame className="w-3 h-3" />
-                        CYCLE +1
-                        {hasResonate && <Sparkles className="w-2.5 h-2.5" />}
-                      </button>
-                    )}
+            {!player.soulBurnUsedThisTurn && (
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onSoulBurn(selectedItem.hc.instanceId);
+                }}
+                className="clip-skew-btn px-2.5 py-1.5 bg-gradient-to-r from-orange-600 to-amber-400 border border-amber-100 text-slate-950 font-extrabold text-[10px] shadow-lg flex items-center gap-1 hover:brightness-110 cursor-pointer"
+                title="Soul Burn (1/Turn): Discard into Void → Draw 1 fresh card + trigger Resonate!"
+              >
+                <Flame className="w-3 h-3" />
+                CYCLE +1
+                {selectedItem.hasResonate && <Sparkles className="w-2.5 h-2.5" />}
+              </button>
+            )}
 
-                    {onInspectCard && (
-                      <button
-                        type="button"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          onInspectCard(def.id);
-                        }}
-                        className="lg:hidden clip-skew-btn px-2 py-1 bg-slate-950/95 border border-cyan-400/85 text-cyan-200 font-extrabold text-[9.5px] shadow-lg flex items-center gap-0.5 cursor-pointer"
-                        title={`Read full card details for ${def.name}`}
-                      >
-                        <Info className="w-3 h-3" />
-                        INFO
-                      </button>
-                    )}
+            {onInspectCard && (
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onInspectCard(selectedItem.def.id);
+                }}
+                className="lg:hidden clip-skew-btn px-2.5 py-1.5 bg-slate-950/95 border border-cyan-400/85 text-cyan-200 font-extrabold text-[10px] shadow-lg flex items-center gap-1 cursor-pointer"
+                title={`Read full card details for ${selectedItem.def.name}`}
+              >
+                <Info className="w-3 h-3" />
+                INFO
+              </button>
+            )}
+          </div>
+        )}
+
+        {/* FULL-WIDTH SWIPEABLE HAND ON MOBILE + CURVED ARC FAN ON DESKTOP */}
+        <div className="w-full overflow-x-auto scrollbar-none">
+          <div className="flex items-end justify-start md:justify-center gap-2 sm:gap-2.5 md:-space-x-3 md:hover:space-x-1.5 transition-all duration-200 px-4 pt-6 pb-3 w-max md:w-auto mx-auto">
+            {player.hand.map((hc, idx) => {
+              const def = CARD_MAP[hc.cardId];
+              if (!def) return null;
+              const reqTributes = getRequiredTributes(def);
+              const canPlayNow =
+                isPlayerMain &&
+                (def.type !== 'vanguard' ||
+                  (player.normalSummonsLeft > 0 &&
+                    (reqTributes === 0 ? myBoardCount < 3 : myBoardCount >= reqTributes)));
+
+              const isSelected = selectedHandId === hc.instanceId;
+
+              const mid = (count - 1) / 2;
+              const offset = idx - mid;
+              const fanRot = isSelected ? 0 : Math.max(-8, Math.min(8, offset * 2.2));
+              const fanDrop = isSelected ? 0 : Math.abs(offset) * 3;
+
+              return (
+                <div
+                  key={hc.instanceId}
+                  className={`relative shrink-0 transition-all duration-200 ${
+                    isSelected
+                      ? '-translate-y-3 z-40'
+                      : 'hover:-translate-y-3 hover:z-40 z-10'
+                  }`}
+                >
+                  <div
+                    className="md:[transform:var(--fan-tf)] transition-transform duration-200 hover:!transform-none"
+                    style={
+                      {
+                        '--fan-tf': isSelected
+                          ? 'none'
+                          : `translateY(${fanDrop}px) rotate(${fanRot}deg)`,
+                      } as React.CSSProperties
+                    }
+                  >
+                    <Card
+                      card={def}
+                      size="sm"
+                      selected={isSelected}
+                      playableGlow={canPlayNow}
+                      onClick={() => onSelectCard(hc.instanceId)}
+                      onHover={onHoverCard}
+                    />
                   </div>
-                )}
-              </div>
-            );
-          })}
+                </div>
+              );
+            })}
 
-          {player.hand.length === 0 && (
-            <div className="py-10 px-6 text-xs text-slate-500 italic">No cards in hand</div>
-          )}
+            {player.hand.length === 0 && (
+              <div className="py-10 px-6 text-xs text-slate-500 italic">No cards in hand</div>
+            )}
+          </div>
         </div>
       </div>
 
