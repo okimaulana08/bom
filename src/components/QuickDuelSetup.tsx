@@ -177,10 +177,10 @@ export const QuickDuelSetup: React.FC<QuickDuelSetupProps> = ({ onBack, onLaunch
 
         {/* Step 3: Opponent Archetype */}
         <div>
-          <div className="text-xs uppercase tracking-wider text-fuchsia-300 font-bold mb-3">
+          <div className="text-xs uppercase tracking-wider text-fuchsia-300 font-bold mb-2.5">
             3. Choose Rival Archetype
           </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3.5">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-2.5 sm:gap-3">
             {AI_ARCHETYPES.map((arch) => {
               const faction = FACTIONS[arch.faction];
               const isSelected = selectedArchetype.id === arch.id;
@@ -188,31 +188,34 @@ export const QuickDuelSetup: React.FC<QuickDuelSetupProps> = ({ onBack, onLaunch
                 <motion.button
                   key={arch.id}
                   type="button"
-                  whileHover={{ y: -4 }}
+                  whileHover={{ y: -3 }}
+                  whileTap={{ scale: 0.98 }}
                   onClick={() => {
                     soundEngine.uiClick();
                     setSelectedArchetype(arch);
                   }}
-                  className={`text-left rounded-2xl border p-3 transition-all cursor-pointer ${
+                  className={`text-left rounded-xl border p-2.5 transition-all cursor-pointer flex items-center gap-3 lg:flex-col lg:items-stretch lg:gap-2 ${
                     isSelected
-                      ? 'bg-indigo-950/60 border-cyan-400 shadow-[0_0_24px_rgba(34,211,238,0.3)]'
+                      ? 'bg-indigo-950/65 border-cyan-400 shadow-[0_0_20px_rgba(34,211,238,0.3)]'
                       : 'bg-slate-950/85 border-slate-800 hover:border-slate-600'
                   }`}
                 >
                   <img
                     src={arch.portrait}
                     alt={arch.name}
-                    className="w-full aspect-square rounded-xl object-cover border border-slate-700 mb-2.5"
+                    className="w-16 h-16 sm:w-18 sm:h-18 lg:w-full lg:h-28 xl:h-32 rounded-lg object-cover object-top border border-slate-700 shrink-0"
                   />
-                  <div className={`text-[10px] font-bold uppercase ${faction.textColor}`}>
-                    {arch.title}
+                  <div className="min-w-0 flex-1">
+                    <div className={`text-[9.5px] font-extrabold uppercase tracking-wider truncate ${faction.textColor}`}>
+                      {arch.title}
+                    </div>
+                    <div className="font-display font-bold text-sm text-white leading-tight mt-0.5 truncate">
+                      {arch.name}
+                    </div>
+                    <p className="text-[11px] text-slate-400 mt-1 line-clamp-2 lg:line-clamp-3 leading-snug">
+                      {arch.description}
+                    </p>
                   </div>
-                  <div className="font-display font-bold text-sm text-white leading-tight mt-0.5">
-                    {arch.name}
-                  </div>
-                  <p className="text-[11px] text-slate-400 mt-1 line-clamp-3">
-                    {arch.description}
-                  </p>
                 </motion.button>
               );
             })}
