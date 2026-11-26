@@ -19,6 +19,37 @@ import { KEYWORDS } from '../data/keywords';
 import { getCardArtPresentation } from '../data/cardArtStyle';
 import { getRequiredTributes } from '../engine/utils';
 import { useProfileStore } from '../store/profileStore';
+import { haptics } from '../utils/haptics';
+
+const EGYPT_GOD_STYLE: Record<
+  string,
+  { rim: string; auraClass: string; badge: string; badgeClass: string }
+> = {
+  egypt_osiris_sky_dragon: {
+    rim: 'linear-gradient(135deg, #fecaca 0%, #dc2626 28%, #fde047 50%, #991b1b 74%, #fbbf24 100%)',
+    auraClass: 'egypt-god-crimson',
+    badge: 'DIVINE SKY GOD',
+    badgeClass: 'from-red-700 via-rose-500 to-amber-400 text-white border-amber-200',
+  },
+  egypt_obelisk_tormentor: {
+    rim: 'linear-gradient(135deg, #bfdbfe 0%, #2563eb 28%, #fde047 50%, #1e3a8a 74%, #38bdf8 100%)',
+    auraClass: 'egypt-god-sapphire',
+    badge: 'DIVINE TITAN',
+    badgeClass: 'from-blue-700 via-sky-500 to-amber-300 text-white border-sky-200',
+  },
+  egypt_ra_sun_phoenix: {
+    rim: 'linear-gradient(135deg, #fef9c3 0%, #fbbf24 26%, #ffffff 50%, #f59e0b 74%, #b45309 100%)',
+    auraClass: 'egypt-god-solar',
+    badge: 'SOLAR DEITY',
+    badgeClass: 'from-amber-400 via-yellow-200 to-orange-500 text-slate-950 border-white',
+  },
+  egypt_fusion_horakhty: {
+    rim: 'linear-gradient(135deg, #ffffff 0%, #fef08a 22%, #fbbf24 48%, #f59e0b 74%, #fef9c3 100%)',
+    auraClass: 'egypt-god-solar',
+    badge: 'CREATOR OF LIGHT',
+    badgeClass: 'from-yellow-200 via-amber-400 to-yellow-100 text-slate-950 border-white',
+  },
+};
 
 export interface CardProps {
   card: CardDef;
@@ -39,6 +70,7 @@ export interface CardProps {
   targetableGlow?: 'friendly' | 'enemy' | null;
   onClick?: () => void;
   onHover?: (card: CardDef, isEvolved: boolean) => void;
+  onLongPress?: (card: CardDef, isEvolved: boolean) => void;
   className?: string;
 }
 
@@ -97,9 +129,13 @@ export const Card: React.FC<CardProps> = ({
   targetableGlow = null,
   onClick,
   onHover,
+  onLongPress,
   className = '',
 }) => {
   const cardRef = useRef<HTMLDivElement>(null);
+  const longPressTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const longPressFiredRef = useRef(false);
+  const pointerStartRef = useRef<{ x: number; y: number } | null>(null);
   const [tilt, setTilt] = useState({ rx: 0, ry: 0, gx: 50, gy: 50, hovering: false });
   const [previewEvolved, setPreviewEvolved] = useState(false);
 
@@ -132,6 +168,7 @@ export const Card: React.FC<CardProps> = ({
   const isRoyalFoil = Boolean(royalFoils?.[card.id]);
   const isMaximumMode = Boolean(unit?.isMaximumMode);
   const isDualFusion = card.type === 'fusion_apex' && Boolean(secondaryFaction);
+  const egyptGodMeta = EGYPT_GOD_STYLE[card.id];
   const isPrismatic = Boolean(card.isExclusive) || isRoyalFoil || isMaximumMode;
   const isDefense = unit?.stance === 'defense';
   const isFaceDownUnit = faceDown || Boolean(unit?.faceDown);
@@ -139,11 +176,19 @@ export const Card: React.FC<CardProps> = ({
   const hasWard = unit ? unit.wardActive : displayKeywords.includes('Ward');
   const reqTributes = getRequiredTributes(card);
 
-  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+  const clearLongPress = () => {
+    if (longPressTimerRef.current) {
+      clearTimeout(longPressTimerRef.current);
+      longPressTimerRef.current = null;
+    }
+    pointerStartRef.current = null;
+  };
+
+  const updateTiltFromPoint = (clientX: number, clientY: number) => {
     if (!interactiveTilt || !cardRef.current) return;
     const rect = cardRef.current.getBoundingClientRect();
-    const px = (e.clientX - rect.left) / rect.width;
-    const py = (e.clientY - rect.top) / rect.height;
+    const px = Math.max(0, Math.min(1, (clientX - rect.left) / rect.width));
+    const py = Math.max(0, Math.min(1, (clientY - rect.top) / rect.height));
     setTilt({
       rx: (0.5 - py) * 18,
       ry: (px - 0.5) * 18,
@@ -153,7 +198,12 @@ export const Card: React.FC<CardProps> = ({
     });
   };
 
+  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    updateTiltFromPoint(e.clientX, e.clientY);
+  };
+
   const handleMouseLeave = () => {
+    clearLongPress();
     setTilt({ rx: 0, ry: 0, gx: 50, gy: 50, hovering: false });
   };
 
@@ -163,10 +213,56 @@ export const Card: React.FC<CardProps> = ({
     }
   };
 
+  const handlePointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
+    longPressFiredRef.current = false;
+    if (onLongPress && (!isFaceDownUnit || ownerPeekLabel)) {
+      pointerStartRef.current = { x: e.clientX, y: e.clientY };
+      clearLongPress();
+      pointerStartRef.current = { x: e.clientX, y: e.clientY };
+      longPressTimerRef.current = setTimeout(() => {
+        longPressFiredRef.current = true;
+        longPressTimerRef.current = null;
+        haptics.longPress();
+        onLongPress(card, isEvolved);
+      }, 320);
+    }
+  };
+
+  const handlePointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
+    if (pointerStartRef.current) {
+      const dx = Math.abs(e.clientX - pointerStartRef.current.x);
+      const dy = Math.abs(e.clientY - pointerStartRef.current.y);
+      if (dx > 10 || dy > 10) {
+        clearLongPress();
+      }
+    }
+    if (interactiveTilt && e.pointerType === 'touch' && e.buttons > 0) {
+      updateTiltFromPoint(e.clientX, e.clientY);
+    }
+  };
+
+  const handlePointerUpOrCancel = () => {
+    clearLongPress();
+    if (tilt.hovering) {
+      setTilt({ rx: 0, ry: 0, gx: 50, gy: 50, hovering: false });
+    }
+  };
+
+  const handleCardClick = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (longPressFiredRef.current) {
+      longPressFiredRef.current = false;
+      e.stopPropagation();
+      return;
+    }
+    onClick?.();
+  };
+
   let rimGradient: string;
   if (isPrismatic) {
     rimGradient =
       'linear-gradient(135deg, #fb7185 0%, #fbbf24 25%, #34d399 50%, #22d3ee 75%, #c084fc 100%)';
+  } else if (egyptGodMeta) {
+    rimGradient = egyptGodMeta.rim;
   } else if (isEvolved) {
     rimGradient =
       'linear-gradient(135deg, #fef08a 0%, #f59e0b 40%, #ffffff 52%, #fbbf24 68%, #b45309 100%)';
@@ -307,10 +403,14 @@ export const Card: React.FC<CardProps> = ({
   return (
     <div
       ref={cardRef}
-      onClick={onClick}
+      onClick={handleCardClick}
       onMouseMove={handleMouseMove}
       onMouseLeave={handleMouseLeave}
       onMouseEnter={handleMouseEnter}
+      onPointerDown={handlePointerDown}
+      onPointerMove={handlePointerMove}
+      onPointerUp={handlePointerUpOrCancel}
+      onPointerCancel={handlePointerUpOrCancel}
       className={`relative select-none perspective-1000 transition-transform duration-200 ${SIZE_CLASSES[size]} ${
         isDefense ? '-rotate-6' : ''
       } ${onClick ? 'cursor-pointer' : ''} ${outerShadow} ${className}`}
@@ -319,6 +419,9 @@ export const Card: React.FC<CardProps> = ({
         className={`w-full h-full relative transition-transform duration-150 ease-out ${
           isEvolved ? 'awakened-glow' : ''
         } ${isPrismatic ? 'prism-glow' : ''} ${
+          egyptGodMeta && !locked ? egyptGodMeta.auraClass : ''
+        } ${
+          !egyptGodMeta &&
           unit &&
           !isFaceDownUnit &&
           (isEvolved || card.rarity === 'mythic' || card.type === 'fusion_apex')
@@ -339,7 +442,7 @@ export const Card: React.FC<CardProps> = ({
               (isEvolved || card.rarity === 'mythic'))
               ? 'shine-sweep overflow-hidden'
               : ''
-          }`}
+          } ${card.rarity === 'mythic' && !locked ? 'mythic-foil-sweep overflow-hidden' : ''}`}
           style={{ background: rimGradient }}
         >
           <div
@@ -438,6 +541,13 @@ export const Card: React.FC<CardProps> = ({
 
             {/* TOP-RIGHT CREST */}
             <div className="absolute top-1.5 right-1.5 z-20 flex items-center gap-1">
+              {egyptGodMeta && !isEvolved && (
+                <span
+                  className={`clip-skew-btn px-2 py-0.5 bg-gradient-to-r border font-extrabold text-[7.5px] tracking-wider flex items-center gap-0.5 shadow-lg ${egyptGodMeta.badgeClass}`}
+                >
+                  <Crown className="w-2.5 h-2.5" /> {size === 'lg' ? egyptGodMeta.badge : 'DIVINE'}
+                </span>
+              )}
               {isEvolved && (
                 <span className="clip-skew-btn px-2 py-0.5 bg-gradient-to-r from-amber-500 via-yellow-300 to-amber-500 text-slate-950 font-extrabold text-[8px] tracking-wider flex items-center gap-0.5 shadow-lg">
                   <Crown className="w-2.5 h-2.5" /> AWAKENED

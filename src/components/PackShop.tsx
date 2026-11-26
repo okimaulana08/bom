@@ -15,7 +15,9 @@ import { BOOSTER_PACKS } from '../data/packs';
 import { CARD_MAP } from '../data/cards';
 import { useProfileStore } from '../store/profileStore';
 import { soundEngine } from '../audio/soundEngine';
+import { haptics } from '../utils/haptics';
 import { Card } from './Card';
+import { RollingNumber } from './RollingNumber';
 
 interface PackShopProps {
   onBack: () => void;
@@ -108,6 +110,7 @@ export const PackShop: React.FC<PackShopProps> = ({ onBack }) => {
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const draggingRef = useRef(false);
   const startXRef = useRef(0);
+  const lastTearTickRef = useRef(0);
 
   const highestRarity: Rarity = useMemo(() => {
     if (!packResult) return 'rare';
@@ -139,8 +142,12 @@ export const PackShop: React.FC<PackShopProps> = ({ onBack }) => {
   const completeTear = () => {
     if (stage !== 'sealed') return;
     soundEngine.packTear();
+    haptics.heavyImpact();
     if (highestRarity === 'mythic') {
-      setTimeout(() => soundEngine.evolve(), 120);
+      setTimeout(() => {
+        soundEngine.evolve();
+        haptics.victory();
+      }, 120);
     }
     setTearProgress(100);
     setStage('tearing');
@@ -152,6 +159,8 @@ export const PackShop: React.FC<PackShopProps> = ({ onBack }) => {
   const handlePointerDown = (e: React.PointerEvent) => {
     draggingRef.current = true;
     startXRef.current = e.clientX;
+    lastTearTickRef.current = 0;
+    haptics.packTick();
   };
 
   const handlePointerMove = (e: React.PointerEvent) => {
@@ -159,7 +168,12 @@ export const PackShop: React.FC<PackShopProps> = ({ onBack }) => {
     const dx = Math.max(0, e.clientX - startXRef.current);
     const pct = Math.min(100, Math.round((dx / 170) * 100));
     setTearProgress(pct);
-    if (pct >= 86) {
+    const tickStep = Math.floor(pct / 22);
+    if (tickStep > lastTearTickRef.current) {
+      lastTearTickRef.current = tickStep;
+      haptics.packTick();
+    }
+    if (pct >= 84) {
       draggingRef.current = false;
       completeTear();
     }
@@ -167,7 +181,8 @@ export const PackShop: React.FC<PackShopProps> = ({ onBack }) => {
 
   const handlePointerUp = () => {
     draggingRef.current = false;
-    if (tearProgress < 86) setTearProgress(0);
+    lastTearTickRef.current = 0;
+    if (tearProgress < 84) setTearProgress(0);
   };
 
   const handlePackHover = (e: React.MouseEvent<HTMLDivElement>) => {
@@ -194,6 +209,9 @@ export const PackShop: React.FC<PackShopProps> = ({ onBack }) => {
     if (!packResult || revealedSlots[idx]) return;
     const pull = packResult.pulls[idx];
     soundEngine.revealRarity(pull.rarity);
+    if (pull.rarity === 'mythic') haptics.victory();
+    else if (pull.rarity === 'epic') haptics.impact();
+    else haptics.cardSelect();
     setRevealedSlots((prev) => prev.map((v, i) => (i === idx ? true : v)));
     setSlotBurstId((prev) => prev.map((v, i) => (i === idx ? v + 1 : v)));
     triggerSpotlight(pull.rarity);
@@ -279,12 +297,12 @@ export const PackShop: React.FC<PackShopProps> = ({ onBack }) => {
         <div className="flex items-center gap-3">
           <div className="px-3.5 py-2 rounded-xl bg-amber-950/50 border border-amber-400/50 flex items-center gap-2">
             <Coins className="w-4 h-4 text-amber-300" />
-            <span className="font-mono-num font-extrabold text-amber-200">{coins}</span>
+            <RollingNumber value={coins} className="font-mono-num font-extrabold text-amber-200" />
             <span className="text-[10px] uppercase text-amber-300/80">Coins</span>
           </div>
           <div className="px-3.5 py-2 rounded-xl bg-fuchsia-950/50 border border-fuchsia-400/50 flex items-center gap-2">
             <Wand2 className="w-4 h-4 text-fuchsia-300" />
-            <span className="font-mono-num font-extrabold text-fuchsia-200">{dust}</span>
+            <RollingNumber value={dust} className="font-mono-num font-extrabold text-fuchsia-200" />
             <span className="text-[10px] uppercase text-fuchsia-300/80">Dust</span>
           </div>
         </div>
@@ -548,13 +566,19 @@ export const PackShop: React.FC<PackShopProps> = ({ onBack }) => {
                     y: tearProgress > 5 ? -(tearProgress * 0.25) : 0,
                     rotate: tearProgress > 5 ? -(tearProgress * 0.16) : 0,
                   }}
-                  className="relative h-16 bg-gradient-to-r from-slate-900/95 via-white/25 to-slate-900/95 border-b-2 border-dashed border-amber-300/90 flex items-center justify-center cursor-ew-resize touch-none z-20"
+                  className="relative h-20 sm:h-16 bg-gradient-to-r from-slate-900/95 via-white/25 to-slate-900/95 border-b-2 border-dashed border-amber-300/90 flex items-center justify-center cursor-ew-resize touch-none z-20 overflow-hidden"
                 >
                   <div
-                    className="absolute inset-y-0 left-0 bg-gradient-to-r from-amber-300 via-white to-cyan-300 transition-all opacity-85"
+                    className="absolute inset-y-0 left-0 bg-gradient-to-r from-amber-300 via-white to-cyan-300 transition-all opacity-90"
                     style={{ width: `${tearProgress}%` }}
                   />
-                  <span className="relative z-10 text-[11px] font-display font-extrabold tracking-[0.22em] text-white uppercase drop-shadow">
+                  {tearProgress > 3 && (
+                    <div
+                      className="pointer-events-none absolute top-1/2 -translate-y-1/2 w-5 h-5 rounded-full bg-white shadow-[0_0_22px_#fde047,0_0_38px_#38bdf8] z-20"
+                      style={{ left: `calc(${tearProgress}% - 10px)` }}
+                    />
+                  )}
+                  <span className="relative z-10 text-xs sm:text-[11px] font-display font-extrabold tracking-[0.22em] text-white uppercase drop-shadow">
                     ➔ SWIPE TO RIP ➔
                   </span>
                 </motion.div>

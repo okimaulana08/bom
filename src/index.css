@@ -7,12 +7,34 @@
     --font-mono: 'JetBrains Mono', monospace;
   }
 
+  html,
+  body {
+    overscroll-behavior: none;
+    -webkit-tap-highlight-color: transparent;
+    -webkit-touch-callout: none;
+    touch-action: manipulation;
+  }
+
   body {
     font-family: var(--font-ui);
     background: #04050c;
-    min-height: 100vh;
+    min-height: 100dvh;
     color: #f1f5f9;
   }
+
+  button,
+  [role='button'] {
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+  }
+}
+
+.safe-pt {
+  padding-top: max(0.75rem, env(safe-area-inset-top));
+}
+
+.safe-pb {
+  padding-bottom: max(0.75rem, env(safe-area-inset-bottom));
 }
 
 .font-display {
@@ -258,3 +280,83 @@
 .board-aura-umbra { animation: auraUmbra 2.5s ease-in-out infinite; }
 .board-aura-chrono { animation: auraChrono 2.3s ease-in-out infinite; }
 .board-aura-sylvan { animation: auraSylvan 2.7s ease-in-out infinite; }
+
+/* ================= 3D PERSPECTIVE DUEL ARENA ================= */
+.arena-3d-stage {
+  perspective: 1200px;
+}
+
+.arena-3d-plane {
+  transform-style: preserve-3d;
+  transition: transform 0.35s ease;
+}
+
+@media (min-width: 768px) {
+  .arena-3d-plane {
+    transform: rotateX(7deg);
+    transform-origin: center 55%;
+  }
+}
+
+/* ================= PRESTIGE MYTHIC / EGYPTIAN GOD / MAXIMUM VFX ================= */
+@keyframes mythicDiagonalGlint {
+  0% { transform: translateX(-160%) rotate(25deg); opacity: 0; }
+  12% { opacity: 0.75; }
+  45% { transform: translateX(220%) rotate(25deg); opacity: 0.65; }
+  52%, 100% { transform: translateX(220%) rotate(25deg); opacity: 0; }
+}
+
+.mythic-foil-sweep::before {
+  content: '';
+  position: absolute;
+  top: -40%;
+  left: -40%;
+  width: 58%;
+  height: 180%;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.08) 25%,
+    rgba(253, 224, 71, 0.55) 48%,
+    rgba(255, 255, 255, 0.7) 52%,
+    rgba(56, 189, 248, 0.45) 64%,
+    transparent 100%
+  );
+  animation: mythicDiagonalGlint 3.6s ease-in-out infinite;
+  pointer-events: none;
+  z-index: 15;
+}
+
+@keyframes godCrimsonAura {
+  0%, 100% { filter: drop-shadow(0 0 12px rgba(220, 38, 38, 0.7)) drop-shadow(0 0 24px rgba(251, 191, 36, 0.45)); }
+  50% { filter: drop-shadow(0 0 22px rgba(248, 113, 113, 0.95)) drop-shadow(0 0 38px rgba(253, 224, 71, 0.8)); }
+}
+
+@keyframes godSapphireAura {
+  0%, 100% { filter: drop-shadow(0 0 12px rgba(37, 99, 235, 0.75)) drop-shadow(0 0 24px rgba(56, 189, 248, 0.5)); }
+  50% { filter: drop-shadow(0 0 22px rgba(96, 165, 250, 0.98)) drop-shadow(0 0 38px rgba(253, 224, 71, 0.75)); }
+}
+
+@keyframes godSolarAura {
+  0%, 100% { filter: drop-shadow(0 0 14px rgba(245, 158, 11, 0.8)) drop-shadow(0 0 28px rgba(254, 240, 138, 0.55)); }
+  50% { filter: drop-shadow(0 0 26px rgba(253, 224, 71, 1)) drop-shadow(0 0 46px rgba(251, 146, 60, 0.9)); }
+}
+
+.egypt-god-crimson { animation: godCrimsonAura 2.2s ease-in-out infinite; }
+.egypt-god-sapphire { animation: godSapphireAura 2.2s ease-in-out infinite; }
+.egypt-god-solar { animation: godSolarAura 2.0s ease-in-out infinite; }
+
+@keyframes maximumConduitPulse {
+  0%, 100% {
+    opacity: 0.72;
+    box-shadow: 0 0 18px rgba(251, 191, 36, 0.7), 0 0 38px rgba(217, 70, 239, 0.55);
+  }
+  50% {
+    opacity: 1;
+    box-shadow: 0 0 30px rgba(34, 211, 238, 0.95), 0 0 58px rgba(251, 191, 36, 0.85);
+  }
+}
+
+.maximum-link-beam {
+  animation: maximumConduitPulse 1.7s ease-in-out infinite;
+}

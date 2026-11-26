@@ -34,6 +34,7 @@ import {
   type TrapPromptInfo,
 } from '../ai/aiAgent';
 import { soundEngine } from '../audio/soundEngine';
+import { haptics } from '../utils/haptics';
 import { type MatchRewardSummary, useProfileStore } from './profileStore';
 
 export interface CutInBanner {
@@ -340,6 +341,7 @@ export const useDuelStore = create<DuelStore>((set, get) => {
           const def = ev.cardId ? CARD_MAP[ev.cardId] : undefined;
           const isAce = Boolean(def && (def.rarity === 'mythic' || def.level >= 7));
           soundEngine.summonSlam(isAce);
+          haptics.summon(isAce);
 
           const sumSlot = resolveUnitSlot(ev.targetInstanceId, nextState, prevState);
           const faction: Faction = def?.faction ?? 'chrono';
@@ -452,6 +454,7 @@ export const useDuelStore = create<DuelStore>((set, get) => {
           break;
         case 'evolve': {
           soundEngine.evolve();
+          haptics.heavyImpact();
           raiseShake(2);
           const def = ev.cardId ? CARD_MAP[ev.cardId] : undefined;
           const evoSlot = resolveUnitSlot(ev.targetInstanceId, nextState, prevState);
@@ -484,6 +487,7 @@ export const useDuelStore = create<DuelStore>((set, get) => {
         }
         case 'fusion': {
           soundEngine.fusion();
+          haptics.heavyImpact();
           raiseShake(3);
           const def = ev.cardId ? CARD_MAP[ev.cardId] : undefined;
           const fuseSlot = resolveUnitSlot(ev.targetInstanceId, nextState, prevState);
@@ -528,6 +532,7 @@ export const useDuelStore = create<DuelStore>((set, get) => {
         }
         case 'skill': {
           soundEngine.evolve();
+          haptics.impact();
           raiseShake(2);
           const skillOwner = ev.actor ?? 'player';
           const skillDef = getSkillDef(nextState.players[skillOwner].skillId);
@@ -552,6 +557,7 @@ export const useDuelStore = create<DuelStore>((set, get) => {
         }
         case 'maximum': {
           soundEngine.fusion();
+          haptics.heavyImpact();
           raiseShake(3);
           const def = ev.cardId ? CARD_MAP[ev.cardId] : undefined;
           const maxOwner = ev.actor ?? 'player';
@@ -589,6 +595,7 @@ export const useDuelStore = create<DuelStore>((set, get) => {
         }
         case 'ambush': {
           soundEngine.ambush();
+          haptics.impact();
           raiseShake(2);
           const def = ev.cardId ? CARD_MAP[ev.cardId] : undefined;
           if (def && !newCutIn) {
@@ -689,6 +696,7 @@ export const useDuelStore = create<DuelStore>((set, get) => {
           if (isLethal) {
             hadLethalBlow = true;
             soundEngine.finalBlow();
+            haptics.heavyImpact();
             raiseShake(3);
             newCanvasFx.push({
               id: `${ev.id}_final`,
@@ -699,6 +707,8 @@ export const useDuelStore = create<DuelStore>((set, get) => {
             });
           } else {
             soundEngine.elementalImpact(lastAttackFaction ?? 'pyroclast', amt >= 1000);
+            if (amt >= 1500) haptics.heavyImpact();
+            else haptics.impact();
             if (amt >= 2000) raiseShake(3);
             else if (amt >= 1000) raiseShake(2);
             else raiseShake(1);
@@ -819,13 +829,17 @@ export const useDuelStore = create<DuelStore>((set, get) => {
         set({ rewardSummary: summary, winnerModalReady: false });
         if (winnerModalTimer) clearTimeout(winnerModalTimer);
         winnerModalTimer = setTimeout(() => {
-          if (won) soundEngine.victory();
-          else soundEngine.defeat();
+          if (won) {
+            soundEngine.victory();
+            haptics.victory();
+          } else soundEngine.defeat();
           set({ winnerModalReady: true });
         }, 1200);
       } else {
-        if (won) soundEngine.victory();
-        else soundEngine.defeat();
+        if (won) {
+          soundEngine.victory();
+          haptics.victory();
+        } else soundEngine.defeat();
         set({ rewardSummary: summary, winnerModalReady: true });
       }
     }

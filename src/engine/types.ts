@@ -494,6 +494,12 @@ export interface MatchHistoryEntry {
   maximums: number;
 }
 
+export type PlaymatId =
+  | 'rift_coliseum'
+  | 'nile_pyramid'
+  | 'yggdrasil_sky'
+  | 'orbital_mecha';
+
 export interface PlayerProfile {
   coins: number;
   dust: number;
@@ -509,6 +515,7 @@ export interface PlayerProfile {
   trapPromptMode?: 'manual' | 'auto';
   duelSpeed?: 1 | 2;
   selectedSkillId?: DuelistSkillId;
+  selectedPlaymatId?: PlaymatId;
   lastFreePackDate?: string | null;
   loginStreak?: number;
   lastLoginClaimDate?: string | null;

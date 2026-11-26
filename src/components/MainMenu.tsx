@@ -1,8 +1,10 @@
 import React, { useMemo, useState } from 'react';
-import { motion } from 'framer-motion';
+import { AnimatePresence, motion } from 'framer-motion';
 import {
   Award,
   BookOpen,
+  Check,
+  ChevronDown,
   ChevronRight,
   Coins,
   Crown,
@@ -13,11 +15,15 @@ import {
   HardDrive,
   HelpCircle,
   Map,
+  Music,
   PackageOpen,
+  Palette,
   Plus,
   RefreshCw,
+  Settings,
   Share,
   Smartphone,
+  Sparkles,
   Swords,
   Trophy,
   Volume2,
@@ -30,12 +36,15 @@ import { CAMPAIGN_CHAPTERS } from '../data/campaign';
 import { DAILY_STREAK_REWARDS } from '../data/dailyRewards';
 import { FACTIONS } from '../data/factions';
 import { countClaimableMissions, getDuelistRank } from '../data/missions';
+import { ARENA_PLAYMATS, getPlaymatDef } from '../data/playmats';
 import { DUELIST_SKILLS, getSkillDef } from '../data/skills';
 import { useProfileStore } from '../store/profileStore';
 import { soundEngine } from '../audio/soundEngine';
+import { haptics } from '../utils/haptics';
 import { usePwaInstall } from '../pwa';
 import { Card } from './Card';
 import { MissionsModal } from './MissionsModal';
+import { RollingNumber } from './RollingNumber';
 import { SaveBackupModal } from './SaveBackupModal';
 
 export type ScreenId =
@@ -121,8 +130,11 @@ export const MainMenu: React.FC<MainMenuProps> = ({ onNavigate }) => {
     hasChampionBadge,
     stats,
     soundEnabled,
+    bgmEnabled = true,
     selectedSkillId,
     setSelectedSkill,
+    selectedPlaymatId,
+    setSelectedPlaymat,
     spireRun,
     canClaimDailyFreePack,
     canClaimDailyLogin,
@@ -130,6 +142,7 @@ export const MainMenu: React.FC<MainMenuProps> = ({ onNavigate }) => {
     claimDailyLogin,
     loginStreak,
     toggleSound,
+    toggleBgm,
   } = profile;
 
   const freeDailyReady = canClaimDailyFreePack();
@@ -137,12 +150,15 @@ export const MainMenu: React.FC<MainMenuProps> = ({ onNavigate }) => {
   const nextLoginDay = getNextLoginDay();
   const currentStreak = loginStreak ?? 0;
   const activeSkill = getSkillDef(selectedSkillId);
+  const activePlaymat = getPlaymatDef(selectedPlaymatId);
 
   const [leaderIdx, setLeaderIdx] = useState(0);
   const [missionsOpen, setMissionsOpen] = useState(false);
   const [backupOpen, setBackupOpen] = useState(false);
   const [installHelpOpen, setInstallHelpOpen] = useState(false);
   const [streakOpen, setStreakOpen] = useState(false);
+  const [settingsOpen, setSettingsOpen] = useState(false);
+  const [skillDrawerOpen, setSkillDrawerOpen] = useState(false);
   const [streakClaimResult, setStreakClaimResult] = useState<{
     day: number;
     coinsGained: number;
@@ -153,6 +169,7 @@ export const MainMenu: React.FC<MainMenuProps> = ({ onNavigate }) => {
 
   const handleInstallClick = async () => {
     soundEngine.uiClick();
+    haptics.tap();
     if (pwa.canPromptInstall) {
       const outcome = await pwa.promptInstall();
       if (outcome === 'unavailable') {
@@ -162,6 +179,7 @@ export const MainMenu: React.FC<MainMenuProps> = ({ onNavigate }) => {
     }
     setInstallHelpOpen(true);
   };
+
   const leader = LOBBY_LEADERS[leaderIdx];
   const leaderFaction = FACTIONS[leader.faction];
 
@@ -174,7 +192,8 @@ export const MainMenu: React.FC<MainMenuProps> = ({ onNavigate }) => {
   );
   const collectionPct = Math.round((uniqueOwned / CARDS.length) * 100);
   const packsReady = Math.floor(coins / 100);
-  const duelistLevel = 1 + stats.duelsWon + Math.floor(stats.packsOpened / 2) + completedChapters.length * 2;
+  const duelistLevel =
+    1 + stats.duelsWon + Math.floor(stats.packsOpened / 2) + completedChapters.length * 2;
 
   const nextChapter =
     CAMPAIGN_CHAPTERS.find((c) => !completedChapters.includes(c.id)) ??
@@ -183,6 +202,7 @@ export const MainMenu: React.FC<MainMenuProps> = ({ onNavigate }) => {
   const go = (target: ScreenId) => {
     soundEngine.setEnabled(soundEnabled);
     soundEngine.uiClick();
+    haptics.tap();
     onNavigate(target);
   };
 
@@ -190,10 +210,9 @@ export const MainMenu: React.FC<MainMenuProps> = ({ onNavigate }) => {
   const rightCard = CARD_MAP['fusion_aether_sovereign'];
 
   return (
-    <div className="min-h-screen lg:h-screen w-full lg:overflow-hidden overflow-x-hidden relative bg-[#04050c] text-slate-100 flex flex-col justify-between select-none">
+    <div className="min-h-[100dvh] lg:h-[100dvh] w-full lg:overflow-hidden overflow-x-hidden relative bg-[#04050c] text-slate-100 flex flex-col justify-between select-none">
       {/* ================= LAYER 1: FULL-BLEED ARENA SANCTUM BACKDROP ================= */}
       <div className="absolute inset-0 z-0 overflow-hidden">
-        {/* Dedicated Bespoke Rift Coliseum Sanctum Backdrop + Leader Accent Layer */}
         <img
           src="/assets/arenas/lobby_sanctum.jpg"
           alt=""
@@ -234,7 +253,7 @@ export const MainMenu: React.FC<MainMenuProps> = ({ onNavigate }) => {
         <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
           <svg
             viewBox="0 0 600 600"
-            className="w-[540px] h-[540px] sm:w-[680px] sm:h-[680px] opacity-25 animate-spin-slow"
+            className="w-[460px] h-[460px] sm:w-[680px] sm:h-[680px] opacity-25 animate-spin-slow"
             fill="none"
           >
             <circle cx="300" cy="300" r="275" stroke="#38bdf8" strokeWidth="1.5" strokeDasharray="16 10" />
@@ -245,7 +264,7 @@ export const MainMenu: React.FC<MainMenuProps> = ({ onNavigate }) => {
           </svg>
           <svg
             viewBox="0 0 400 400"
-            className="absolute w-[340px] h-[340px] sm:w-[440px] sm:h-[440px] opacity-30 animate-spin-reverse"
+            className="absolute w-[300px] h-[300px] sm:w-[440px] sm:h-[440px] opacity-30 animate-spin-reverse"
             fill="none"
           >
             <circle cx="200" cy="200" r="185" stroke="#c084fc" strokeWidth="1.6" strokeDasharray="24 12" />
@@ -276,21 +295,22 @@ export const MainMenu: React.FC<MainMenuProps> = ({ onNavigate }) => {
         </div>
       </div>
 
-      {/* ================= LAYER 2: TOP MOBILE-GAME HUD BAR ================= */}
-      <header className="relative z-20 px-3 sm:px-6 pt-3 flex flex-wrap items-center justify-between gap-2.5">
+      {/* ================= LAYER 2: SLIM 1-ROW MOBILE GAME TOP BAR ================= */}
+      <header className="relative z-20 px-2.5 sm:px-6 safe-pt flex items-center justify-between gap-2">
         {/* TOP-LEFT: Sculpted Duelist Profile & Rank Crest */}
         <button
           type="button"
           onClick={() => {
             soundEngine.uiClick();
+            haptics.tap();
             setMissionsOpen(true);
           }}
-          className="flex items-center gap-2.5 text-left group cursor-pointer"
+          className="flex items-center gap-2 sm:gap-2.5 text-left group cursor-pointer min-w-0"
           title="View Duelist Rank Ladder & Missions"
         >
           <div className="relative shrink-0">
             <div
-              className="w-12 h-12 sm:w-14 sm:h-14 clip-hex p-[2.5px] transition-transform group-hover:scale-105"
+              className="w-11 h-11 sm:w-14 sm:h-14 clip-hex p-[2.5px] transition-transform group-hover:scale-105"
               style={{
                 background: `linear-gradient(180deg, ${rankInfo.current.accentFrom}, ${rankInfo.current.accentTo})`,
                 boxShadow: `0 0 24px ${rankInfo.current.glow}`,
@@ -302,34 +322,34 @@ export const MainMenu: React.FC<MainMenuProps> = ({ onNavigate }) => {
                 className="w-full h-full clip-hex object-cover"
               />
             </div>
-            <span className="absolute -bottom-1 -right-1 px-1.5 py-0.5 rounded bg-slate-950 border border-amber-400 font-mono-num text-[9px] sm:text-[10px] font-extrabold text-amber-300 shadow">
+            <span className="absolute -bottom-1 -right-1 px-1.5 py-0.5 rounded bg-slate-950 border border-amber-400 font-mono-num text-[8.5px] sm:text-[10px] font-extrabold text-amber-300 shadow">
               LV.{duelistLevel}
             </span>
           </div>
 
           <div
-            className={`game-panel clip-chamfer-sm px-3 sm:px-4 py-1.5 sm:py-2 min-w-[175px] sm:min-w-[250px] border transition-colors ${rankInfo.current.borderClass}`}
+            className={`game-panel clip-chamfer-sm px-2.5 sm:px-4 py-1 sm:py-2 w-[138px] sm:w-[235px] border transition-colors ${rankInfo.current.borderClass}`}
           >
-            <div className="flex items-center justify-between gap-2">
-              <div className="flex items-center gap-1.5 min-w-0">
+            <div className="flex items-center justify-between gap-1">
+              <div className="flex items-center gap-1 min-w-0">
                 {hasChampionBadge ? (
-                  <Crown className="w-4 h-4 text-amber-300 shrink-0" />
+                  <Crown className="w-3.5 h-3.5 text-amber-300 shrink-0" />
                 ) : (
-                  <Trophy className={`w-3.5 h-3.5 shrink-0 ${rankInfo.current.textClass}`} />
+                  <Trophy className={`w-3 h-3 sm:w-3.5 sm:h-3.5 shrink-0 ${rankInfo.current.textClass}`} />
                 )}
                 <span
-                  className={`font-display font-extrabold text-xs sm:text-sm tracking-wider truncate ${rankInfo.current.textClass}`}
+                  className={`font-display font-extrabold text-[10.5px] sm:text-sm tracking-wider truncate ${rankInfo.current.textClass}`}
                 >
                   {rankInfo.current.name}
                 </span>
               </div>
-              <span className="font-mono-num text-[10px] font-bold text-emerald-300 shrink-0">
+              <span className="hidden sm:inline font-mono-num text-[10px] font-bold text-emerald-300 shrink-0">
                 {stats.duelsWon}W • {rankInfo.rp}RP
               </span>
             </div>
 
-            <div className="mt-1.5 flex items-center gap-2">
-              <div className="flex-1 h-2 rounded-full bg-slate-900 border border-slate-700/80 overflow-hidden">
+            <div className="mt-1 sm:mt-1.5 flex items-center gap-1.5">
+              <div className="flex-1 h-1.5 sm:h-2 rounded-full bg-slate-900 border border-slate-700/80 overflow-hidden">
                 <div
                   className="h-full transition-all"
                   style={{
@@ -338,14 +358,14 @@ export const MainMenu: React.FC<MainMenuProps> = ({ onNavigate }) => {
                   }}
                 />
               </div>
-              <span className="font-mono-num text-[9.5px] font-bold text-cyan-200 shrink-0">
+              <span className="font-mono-num text-[8.5px] sm:text-[9.5px] font-bold text-cyan-200 shrink-0">
                 {uniqueOwned}/{CARDS.length}
               </span>
             </div>
           </div>
         </button>
 
-        {/* CENTER GAME LOGO CREST (Desktop) */}
+        {/* CENTER GAME LOGO CREST (Desktop xl+) */}
         <div className="hidden xl:flex flex-col items-center pointer-events-none">
           <div className="font-display text-2xl font-extrabold tracking-[0.22em] bg-gradient-to-b from-white via-cyan-100 to-amber-300 bg-clip-text text-transparent drop-shadow-[0_4px_16px_rgba(0,0,0,0.95)]">
             AETHERBOUND
@@ -359,19 +379,22 @@ export const MainMenu: React.FC<MainMenuProps> = ({ onNavigate }) => {
           </div>
         </div>
 
-        {/* TOP-RIGHT: Metallic Beveled Currency Bar & Audio/Rules */}
-        <div className="flex items-center gap-2">
-          {/* Coins Capsule + Quick Shop + Button */}
+        {/* TOP-RIGHT: Clean Coins + Dust (Rolling Counters) + Single Settings Drawer Button */}
+        <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
+          {/* Coins Capsule */}
           <button
             type="button"
             onClick={() => go('shop')}
-            className="game-panel-gold clip-chamfer-sm pl-3 pr-1.5 py-1.5 flex items-center gap-2 hover:brightness-110 transition-all cursor-pointer"
+            className="game-panel-gold clip-chamfer-sm pl-2 sm:pl-3 pr-1 sm:pr-1.5 py-1.5 flex items-center gap-1.5 sm:gap-2 hover:brightness-110 transition-all cursor-pointer"
             title="Open Booster Pack Vault"
           >
-            <Coins className="w-4 h-4 text-amber-300" />
-            <span className="font-mono-num font-extrabold text-sm text-amber-100">{coins}</span>
-            <span className="w-5 h-5 rounded bg-amber-400/90 text-slate-950 flex items-center justify-center">
-              <Plus className="w-3.5 h-3.5 stroke-[3]" />
+            <Coins className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-amber-300 shrink-0" />
+            <RollingNumber
+              value={coins}
+              className="font-mono-num font-extrabold text-xs sm:text-sm text-amber-100"
+            />
+            <span className="w-4 h-4 sm:w-5 sm:h-5 rounded bg-amber-400/90 text-slate-950 flex items-center justify-center">
+              <Plus className="w-3 h-3 sm:w-3.5 sm:h-3.5 stroke-[3]" />
             </span>
           </button>
 
@@ -379,62 +402,14 @@ export const MainMenu: React.FC<MainMenuProps> = ({ onNavigate }) => {
           <button
             type="button"
             onClick={() => go('codex')}
-            className="game-panel clip-chamfer-sm px-3 py-1.5 flex items-center gap-1.5 border-fuchsia-500/50 hover:brightness-110 transition-all cursor-pointer"
+            className="game-panel clip-chamfer-sm px-2 sm:px-3 py-1.5 flex items-center gap-1 sm:gap-1.5 border-fuchsia-500/50 hover:brightness-110 transition-all cursor-pointer"
             title="Craft Cards with Aether Dust in Codex"
           >
-            <Wand2 className="w-4 h-4 text-fuchsia-300" />
-            <span className="font-mono-num font-extrabold text-sm text-fuchsia-100">{dust}</span>
-          </button>
-
-          {/* 7-Day Daily Login Streak Button */}
-          <button
-            type="button"
-            onClick={() => {
-              soundEngine.uiClick();
-              setStreakClaimResult(null);
-              setStreakOpen(true);
-            }}
-            className={`relative game-panel clip-chamfer-sm px-2.5 sm:px-3 py-1.5 flex items-center gap-1.5 transition-all cursor-pointer ${
-              dailyLoginReady
-                ? 'border-orange-400 text-amber-200 shadow-[0_0_18px_rgba(251,146,60,0.5)]'
-                : 'border-slate-700 text-slate-200 hover:border-amber-400/70'
-            }`}
-            title="7-Day Daily Login Streak Rewards"
-          >
-            <Flame className={`w-4 h-4 ${dailyLoginReady ? 'text-orange-400 animate-pulse' : 'text-amber-300'}`} />
-            <span className="hidden sm:inline font-display font-extrabold text-xs tracking-wider uppercase">
-              {dailyLoginReady ? `Day ${nextLoginDay}!` : `Streak ${currentStreak}/7`}
-            </span>
-            {dailyLoginReady && (
-              <span className="px-1.5 py-0.5 rounded-full bg-gradient-to-r from-orange-500 to-amber-400 text-[9px] font-extrabold text-slate-950 animate-pulse">
-                🎁
-              </span>
-            )}
-          </button>
-
-          {/* Missions & Rank Button */}
-          <button
-            type="button"
-            onClick={() => {
-              soundEngine.uiClick();
-              setMissionsOpen(true);
-            }}
-            className={`relative game-panel clip-chamfer-sm px-2.5 sm:px-3 py-1.5 flex items-center gap-1.5 transition-all cursor-pointer ${
-              claimableMissions > 0
-                ? 'border-amber-400 text-amber-200 shadow-[0_0_18px_rgba(251,191,36,0.45)]'
-                : 'border-indigo-400/50 text-indigo-200 hover:border-amber-400/70'
-            }`}
-            title="Open Missions & Duelist Rank Ladder"
-          >
-            <Award className="w-4 h-4 text-amber-300" />
-            <span className="hidden sm:inline font-display font-extrabold text-xs tracking-wider uppercase">
-              Missions
-            </span>
-            {claimableMissions > 0 && (
-              <span className="px-1.5 py-0.5 rounded-full bg-gradient-to-r from-rose-500 to-amber-400 text-[9px] font-extrabold text-slate-950 animate-pulse">
-                {claimableMissions}
-              </span>
-            )}
+            <Wand2 className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-fuchsia-300 shrink-0" />
+            <RollingNumber
+              value={dust}
+              className="font-mono-num font-extrabold text-xs sm:text-sm text-fuchsia-100"
+            />
           </button>
 
           {/* PWA Update Ready Pill */}
@@ -443,67 +418,140 @@ export const MainMenu: React.FC<MainMenuProps> = ({ onNavigate }) => {
               type="button"
               onClick={() => {
                 soundEngine.uiClick();
+                haptics.tap();
                 pwa.applyUpdate();
               }}
-              className="game-panel clip-chamfer-sm px-2.5 py-1.5 flex items-center gap-1.5 border-emerald-400 text-emerald-200 hover:brightness-110 cursor-pointer"
+              className="game-panel clip-chamfer-sm px-2 py-1.5 flex items-center gap-1 border-emerald-400 text-emerald-200 hover:brightness-110 cursor-pointer"
               title="Update terbaru tersedia — klik untuk reload"
             >
               <RefreshCw className="w-3.5 h-3.5 animate-spin" />
-              <span className="font-display font-extrabold text-[10px] sm:text-xs tracking-wider uppercase">
+              <span className="hidden sm:inline font-display font-extrabold text-xs uppercase">
                 Update
               </span>
             </button>
           )}
 
-          {/* Install PWA App Button (auto-hides once running as installed app!) */}
-          {!pwa.isInstalled && (
-            <button
-              type="button"
-              onClick={handleInstallClick}
-              className={`game-panel clip-chamfer-sm px-2.5 py-1.5 flex items-center gap-1.5 transition-all cursor-pointer ${
-                pwa.canPromptInstall
-                  ? 'border-cyan-400 text-cyan-200 shadow-[0_0_16px_rgba(34,211,238,0.4)] hover:brightness-110'
-                  : 'border-cyan-400/50 text-cyan-200 hover:border-cyan-300'
-              }`}
-              title="Install Aetherbound ke Layar Utama HP (PWA)"
-            >
-              <Download className="w-4 h-4 text-cyan-300" />
-              <span className="hidden sm:inline font-display font-extrabold text-xs tracking-wider uppercase">
-                Install App
-              </span>
-            </button>
-          )}
-
-          {/* Save Data Backup / Restore Button */}
+          {/* Unified Settings / Audio / Playmat / Backup / PWA Drawer Button */}
           <button
             type="button"
             onClick={() => {
               soundEngine.uiClick();
-              setBackupOpen(true);
+              haptics.tap();
+              setSettingsOpen(true);
             }}
-            className="game-panel clip-chamfer-sm p-2.5 text-slate-200 hover:text-cyan-300 cursor-pointer"
-            title="Backup / Restore Save Data (.JSON)"
+            className="relative game-panel clip-chamfer-sm p-2 sm:p-2.5 text-slate-200 hover:text-cyan-300 hover:border-cyan-400/70 transition-all cursor-pointer"
+            title="Settings, Arena Playmat, Audio & Save Backup"
           >
-            <HardDrive className="w-4 h-4" />
-          </button>
-
-          {/* Sound Toggle */}
-          <button
-            type="button"
-            onClick={() => {
-              toggleSound();
-              soundEngine.setEnabled(!soundEnabled);
-            }}
-            className="game-panel clip-chamfer-sm p-2.5 text-slate-200 hover:text-cyan-300 cursor-pointer"
-            title="Toggle Audio"
-          >
-            {soundEnabled ? <Volume2 className="w-4 h-4" /> : <VolumeX className="w-4 h-4" />}
+            <Settings className="w-4 h-4" />
+            {!soundEnabled && (
+              <span className="absolute top-1 right-1 w-2 h-2 rounded-full bg-rose-500" />
+            )}
           </button>
         </div>
       </header>
 
+      {/* ================= LAYER 2.5: FLOATING MOBILE GAME SIDE ICON RIBBON ================= */}
+      <div className="fixed right-2.5 sm:right-5 top-[72px] sm:top-[84px] z-20 flex flex-col gap-2">
+        {/* 7-Day Streak Ribbon Button */}
+        <motion.button
+          type="button"
+          whileHover={{ scale: 1.06 }}
+          whileTap={{ scale: 0.94 }}
+          onClick={() => {
+            soundEngine.uiClick();
+            haptics.tap();
+            setStreakClaimResult(null);
+            setStreakOpen(true);
+          }}
+          className={`relative w-12 h-12 sm:w-14 sm:h-14 rounded-2xl game-panel flex flex-col items-center justify-center gap-0.5 border transition-all cursor-pointer ${
+            dailyLoginReady
+              ? 'border-orange-400 shadow-[0_0_20px_rgba(251,146,60,0.55)] bg-orange-950/60'
+              : 'border-slate-700/80 hover:border-amber-400/70'
+          }`}
+          title="7-Day Login Streak Rewards"
+        >
+          {dailyLoginReady && (
+            <span className="absolute -top-1.5 -right-1.5 w-4 h-4 rounded-full bg-gradient-to-r from-rose-500 to-amber-400 text-[9px] font-black text-slate-950 flex items-center justify-center shadow animate-bounce">
+              !
+            </span>
+          )}
+          <Flame className={`w-4 h-4 sm:w-5 sm:h-5 ${dailyLoginReady ? 'text-orange-400 animate-pulse' : 'text-amber-300'}`} />
+          <span className="font-display font-extrabold text-[7.5px] sm:text-[8.5px] uppercase tracking-wider text-amber-100 leading-none">
+            {dailyLoginReady ? `DAY ${nextLoginDay}` : `${currentStreak}/7`}
+          </span>
+        </motion.button>
+
+        {/* Missions Ribbon Button */}
+        <motion.button
+          type="button"
+          whileHover={{ scale: 1.06 }}
+          whileTap={{ scale: 0.94 }}
+          onClick={() => {
+            soundEngine.uiClick();
+            haptics.tap();
+            setMissionsOpen(true);
+          }}
+          className={`relative w-12 h-12 sm:w-14 sm:h-14 rounded-2xl game-panel flex flex-col items-center justify-center gap-0.5 border transition-all cursor-pointer ${
+            claimableMissions > 0
+              ? 'border-amber-400 shadow-[0_0_20px_rgba(251,191,36,0.5)] bg-amber-950/50'
+              : 'border-indigo-400/50 hover:border-amber-400/70'
+          }`}
+          title="Missions & Duelist Rank Ladder"
+        >
+          {claimableMissions > 0 && (
+            <span className="absolute -top-1.5 -right-1.5 min-w-[18px] h-[18px] px-1 rounded-full bg-gradient-to-r from-rose-500 to-amber-400 text-[9px] font-black text-slate-950 flex items-center justify-center shadow animate-pulse">
+              {claimableMissions}
+            </span>
+          )}
+          <Award className="w-4 h-4 sm:w-5 sm:h-5 text-amber-300" />
+          <span className="font-display font-extrabold text-[7.5px] sm:text-[8.5px] uppercase tracking-wider text-indigo-100 leading-none">
+            QUESTS
+          </span>
+        </motion.button>
+
+        {/* Arena Playmat Quick Picker Ribbon */}
+        <motion.button
+          type="button"
+          whileHover={{ scale: 1.06 }}
+          whileTap={{ scale: 0.94 }}
+          onClick={() => {
+            soundEngine.uiClick();
+            haptics.tap();
+            setSettingsOpen(true);
+          }}
+          className="relative w-12 h-12 sm:w-14 sm:h-14 rounded-2xl game-panel border border-cyan-400/45 hover:border-cyan-300 flex flex-col items-center justify-center gap-0.5 transition-all cursor-pointer"
+          title={`Arena Playmat: ${activePlaymat.name}`}
+        >
+          <Palette className="w-4 h-4 sm:w-5 sm:h-5 text-cyan-300" />
+          <span className="font-display font-extrabold text-[7.5px] sm:text-[8.5px] uppercase tracking-wider text-cyan-100 leading-none">
+            ARENA
+          </span>
+        </motion.button>
+
+        {/* Install PWA Ribbon (auto-hides once installed) */}
+        {!pwa.isInstalled && (
+          <motion.button
+            type="button"
+            whileHover={{ scale: 1.06 }}
+            whileTap={{ scale: 0.94 }}
+            onClick={handleInstallClick}
+            className={`relative w-12 h-12 sm:w-14 sm:h-14 rounded-2xl game-panel flex flex-col items-center justify-center gap-0.5 border transition-all cursor-pointer ${
+              pwa.canPromptInstall
+                ? 'border-cyan-400 shadow-[0_0_18px_rgba(34,211,238,0.45)]'
+                : 'border-cyan-400/45 hover:border-cyan-300'
+            }`}
+            title="Install Aetherbound ke Layar Utama HP (PWA)"
+          >
+            <Download className="w-4 h-4 sm:w-5 sm:h-5 text-cyan-300" />
+            <span className="font-display font-extrabold text-[7.5px] sm:text-[8.5px] uppercase tracking-wider text-cyan-100 leading-none">
+              APP
+            </span>
+          </motion.button>
+        )}
+      </div>
+
       {/* ================= LAYER 3: LIVE CENTERPIECE CHARACTER & FLOATING ACE CARDS ================= */}
-      <main className="relative z-10 flex-1 flex items-center justify-center px-4">
+      <main className="relative z-10 flex-1 flex items-center justify-center px-4 py-2">
         <div className="relative flex items-center justify-center w-full max-w-5xl">
           {/* Left Floating 3D Showcase Card */}
           {leftCard && (
@@ -524,6 +572,20 @@ export const MainMenu: React.FC<MainMenuProps> = ({ onNavigate }) => {
 
           {/* Centerpiece Live-2D Boss/Leader Medallion */}
           <div className="relative flex flex-col items-center z-20">
+            {/* Compact Mobile Title Crest */}
+            <div className="xl:hidden mb-2.5 text-center pointer-events-none">
+              <div className="font-display text-lg sm:text-2xl font-extrabold tracking-[0.22em] bg-gradient-to-b from-white via-cyan-100 to-amber-300 bg-clip-text text-transparent drop-shadow-[0_3px_12px_rgba(0,0,0,0.95)] leading-none">
+                AETHERBOUND
+              </div>
+              <div className="flex items-center justify-center gap-2 mt-0.5">
+                <span className="h-[1px] w-7 bg-gradient-to-r from-transparent to-amber-400/80" />
+                <span className="text-[8.5px] sm:text-[9.5px] font-extrabold tracking-[0.34em] text-amber-300 uppercase">
+                  RIFT DUEL
+                </span>
+                <span className="h-[1px] w-7 bg-gradient-to-l from-transparent to-amber-400/80" />
+              </div>
+            </div>
+
             <motion.div
               key={leader.id}
               initial={{ scale: 0.9, opacity: 0 }}
@@ -531,14 +593,15 @@ export const MainMenu: React.FC<MainMenuProps> = ({ onNavigate }) => {
               transition={{ type: 'spring', stiffness: 180, damping: 18 }}
               onClick={() => {
                 soundEngine.uiClick();
+                haptics.tap();
                 setLeaderIdx((i) => (i + 1) % LOBBY_LEADERS.length);
               }}
               className="relative cursor-pointer group animate-breathe"
-              title="Click to switch featured Rift Leader"
+              title="Tap to switch featured Rift Leader"
             >
               {/* Outer Glowing Energy Ring */}
               <div
-                className="w-56 h-56 sm:w-72 sm:h-72 rounded-full p-[4px] shadow-2xl"
+                className="w-48 h-48 sm:w-68 sm:h-68 rounded-full p-[4px] shadow-2xl"
                 style={{
                   background: `linear-gradient(135deg, ${leaderFaction.primaryHex}, #fef08a 50%, ${leaderFaction.secondaryHex})`,
                   boxShadow: `0 0 65px ${leaderFaction.primaryHex}66`,
@@ -551,7 +614,7 @@ export const MainMenu: React.FC<MainMenuProps> = ({ onNavigate }) => {
                     className="w-full h-full object-cover object-top scale-105 group-hover:scale-110 transition-transform duration-500"
                   />
                   <div
-                    className="absolute inset-x-0 bottom-0 h-20"
+                    className="absolute inset-x-0 bottom-0 h-16 sm:h-20"
                     style={{
                       background:
                         'linear-gradient(0deg, rgba(4,5,14,0.92) 0%, transparent 100%)',
@@ -565,24 +628,25 @@ export const MainMenu: React.FC<MainMenuProps> = ({ onNavigate }) => {
                 <div className="font-display font-extrabold text-xs sm:text-sm tracking-wider text-amber-200">
                   {leader.name}
                 </div>
-                <div className="text-[9px] uppercase tracking-[0.22em] text-cyan-300">
+                <div className="text-[8.5px] sm:text-[9px] uppercase tracking-[0.22em] text-cyan-300">
                   {leader.title}
                 </div>
               </div>
             </motion.div>
 
-            {/* Voice Quote Subtitle + Leader Switch Dots */}
-            <div className="mt-7 max-w-md text-center px-4">
-              <p className="text-xs sm:text-sm text-slate-200/95 italic drop-shadow-[0_2px_8px_rgba(0,0,0,0.95)]">
+            {/* Voice Quote Subtitle + Leader Switch Dots + Custom Skill Selector Button */}
+            <div className="mt-6 max-w-md text-center px-4">
+              <p className="text-[11.5px] sm:text-sm text-slate-200/95 italic drop-shadow-[0_2px_8px_rgba(0,0,0,0.95)] line-clamp-2">
                 “{leader.quote}”
               </p>
-              <div className="mt-2.5 flex items-center justify-center gap-1.5">
+              <div className="mt-2 flex items-center justify-center gap-1.5">
                 {LOBBY_LEADERS.map((l, idx) => (
                   <button
                     key={l.id}
                     type="button"
                     onClick={() => {
                       soundEngine.uiClick();
+                      haptics.tap();
                       setLeaderIdx(idx);
                     }}
                     className={`h-1.5 rounded-full transition-all cursor-pointer ${
@@ -595,25 +659,31 @@ export const MainMenu: React.FC<MainMenuProps> = ({ onNavigate }) => {
                 ))}
               </div>
 
-              {/* Quick Equipped Duelist Skill Pill */}
-              <div className="mt-3 inline-flex items-center gap-2 px-3 py-1 rounded-full bg-slate-950/85 border border-amber-400/50 text-[10.5px]">
-                <span className="text-amber-300 font-display font-extrabold uppercase tracking-wider">
-                  SKILL:
-                </span>
-                <select
-                  value={activeSkill.id}
-                  onChange={(e) => {
+              {/* Custom Game Duelist Skill Trigger Button (replaces native browser <select>) */}
+              <div className="mt-2.5 flex justify-center">
+                <button
+                  type="button"
+                  onClick={() => {
                     soundEngine.uiClick();
-                    setSelectedSkill(e.target.value as typeof activeSkill.id);
+                    haptics.tap();
+                    setSkillDrawerOpen(true);
                   }}
-                  className="bg-transparent text-white font-bold outline-none cursor-pointer"
+                  className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-slate-950/90 hover:bg-indigo-950/90 border border-amber-400/60 hover:border-amber-300 shadow-[0_0_18px_rgba(251,191,36,0.22)] transition-all cursor-pointer"
+                  title="Choose Equipped Duelist Character Skill"
                 >
-                  {DUELIST_SKILLS.map((sk) => (
-                    <option key={sk.id} value={sk.id} className="bg-slate-950 text-white">
-                      {sk.skillName} ({sk.duelistName.split(',')[0]})
-                    </option>
-                  ))}
-                </select>
+                  <img
+                    src={activeSkill.portrait}
+                    alt={activeSkill.duelistName}
+                    className="w-5 h-5 rounded-full object-cover border border-amber-300/80 shrink-0"
+                  />
+                  <span className="text-amber-300 font-display font-extrabold text-[10px] uppercase tracking-wider">
+                    SKILL:
+                  </span>
+                  <span className="text-white font-bold text-[11px] truncate max-w-[160px] sm:max-w-none">
+                    {activeSkill.skillName}
+                  </span>
+                  <ChevronDown className="w-3.5 h-3.5 text-amber-300 shrink-0" />
+                </button>
               </div>
             </div>
           </div>
@@ -638,8 +708,8 @@ export const MainMenu: React.FC<MainMenuProps> = ({ onNavigate }) => {
       </main>
 
       {/* ================= LAYER 4: BOTTOM MOBILE TCG DOCK & BATTLE LAUNCHERS ================= */}
-      <footer className="relative z-20 px-3 sm:px-6 pb-4 pt-2 flex flex-col lg:flex-row items-stretch lg:items-end justify-between gap-3">
-        {/* BOTTOM-LEFT: Mobile Game Icon Dock */}
+      <footer className="relative z-20 px-2.5 sm:px-6 safe-pb pt-2 flex flex-col-reverse lg:flex-row items-stretch lg:items-end justify-between gap-2.5 sm:gap-3">
+        {/* BOTTOM-LEFT (BOTTOM ON MOBILE): Mobile Game 4-Icon Dock */}
         <nav className="grid grid-cols-4 sm:flex sm:items-end gap-1.5 sm:gap-2.5">
           {[
             {
@@ -688,13 +758,13 @@ export const MainMenu: React.FC<MainMenuProps> = ({ onNavigate }) => {
               <button
                 type="button"
                 onClick={() => go(btn.id)}
-                className={`w-full h-full game-panel clip-chamfer-sm px-2 sm:px-4 py-2.5 sm:min-w-[108px] flex flex-col items-center justify-center gap-1 border transition-all cursor-pointer ${btn.border}`}
+                className={`w-full h-full game-panel clip-chamfer-sm px-2 sm:px-4 py-2 sm:py-2.5 sm:min-w-[104px] flex flex-col items-center justify-center gap-0.5 sm:gap-1 border transition-all cursor-pointer ${btn.border}`}
               >
                 {btn.icon}
-                <span className="font-display font-extrabold text-[10.5px] sm:text-xs tracking-wider text-white">
+                <span className="font-display font-extrabold text-[10px] sm:text-xs tracking-wider text-white">
                   {btn.label}
                 </span>
-                <span className="text-[8.5px] sm:text-[9px] text-slate-400 leading-none truncate max-w-full">
+                <span className="text-[8px] sm:text-[9px] text-slate-400 leading-none truncate max-w-full">
                   {btn.sub}
                 </span>
               </button>
@@ -702,73 +772,76 @@ export const MainMenu: React.FC<MainMenuProps> = ({ onNavigate }) => {
           ))}
         </nav>
 
-        {/* BOTTOM-RIGHT: Rift Spire Roguelike + Story Campaign + Giant DUEL! Button */}
-        <div className="flex flex-col sm:flex-row items-stretch sm:items-end gap-2.5">
-          {/* RIFT SPIRE ROGUELIKE TOWER BUTTON */}
-          <motion.button
-            type="button"
-            whileHover={{ y: -4, scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
-            onClick={() => go('spire')}
-            className="game-panel clip-chamfer px-3.5 py-2.5 border-fuchsia-400/70 hover:border-amber-300 flex items-center gap-2.5 text-left cursor-pointer sm:min-w-[175px]"
-          >
-            <div className="w-11 h-11 rounded-lg bg-gradient-to-br from-fuchsia-600 via-purple-700 to-amber-500 border border-amber-300/80 flex items-center justify-center shadow-[0_0_16px_rgba(217,70,239,0.5)] shrink-0">
-              <Crown className="w-5 h-5 text-white" />
-            </div>
-            <div className="flex-1 min-w-0">
-              <div className="text-[9.5px] font-extrabold tracking-widest uppercase text-fuchsia-300">
-                ROGUELIKE
+        {/* BOTTOM-RIGHT (ABOVE DOCK ON MOBILE): Battle Mode Launchers */}
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-end gap-2">
+          {/* Compact 2-Column Row on Mobile for Spire & Story */}
+          <div className="grid grid-cols-2 sm:flex sm:items-end gap-2">
+            {/* RIFT SPIRE ROGUELIKE TOWER BUTTON */}
+            <motion.button
+              type="button"
+              whileHover={{ y: -4, scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              onClick={() => go('spire')}
+              className="game-panel clip-chamfer px-2.5 sm:px-3.5 py-2 sm:py-2.5 border-fuchsia-400/70 hover:border-amber-300 flex items-center gap-2 sm:gap-2.5 text-left cursor-pointer sm:min-w-[172px]"
+            >
+              <div className="w-9 h-9 sm:w-11 sm:h-11 rounded-lg bg-gradient-to-br from-fuchsia-600 via-purple-700 to-amber-500 border border-amber-300/80 flex items-center justify-center shadow-[0_0_16px_rgba(217,70,239,0.5)] shrink-0">
+                <Crown className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
               </div>
-              <div className="font-display font-extrabold text-sm text-white truncate">
-                RIFT SPIRE
+              <div className="flex-1 min-w-0">
+                <div className="text-[8.5px] sm:text-[9.5px] font-extrabold tracking-widest uppercase text-fuchsia-300">
+                  ROGUELIKE
+                </div>
+                <div className="font-display font-extrabold text-xs sm:text-sm text-white truncate">
+                  RIFT SPIRE
+                </div>
+                <div className="text-[9px] sm:text-[10px] text-amber-200 font-bold truncate">
+                  {spireRun?.active ? `Resume FL ${spireRun.floor}/5` : '5-Floor Draft'}
+                </div>
               </div>
-              <div className="text-[10px] text-amber-200 font-bold">
-                {spireRun?.active ? `Resume FL ${spireRun.floor}/5` : '5-Floor Draft Run'}
-              </div>
-            </div>
-            <ChevronRight className="w-4 h-4 text-fuchsia-300 shrink-0" />
-          </motion.button>
+              <ChevronRight className="hidden sm:block w-4 h-4 text-fuchsia-300 shrink-0" />
+            </motion.button>
 
-          {/* STORY CAMPAIGN BANNER with Next Boss Portrait */}
-          <motion.button
-            type="button"
-            whileHover={{ y: -4, scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
-            onClick={() => go('campaign')}
-            className="game-panel clip-chamfer px-3.5 py-2.5 border-indigo-400/65 hover:border-cyan-300 flex items-center gap-3 text-left cursor-pointer min-w-[250px]"
-          >
-            <img
-              src={nextChapter.portrait}
-              alt={nextChapter.bossName}
-              className="w-12 h-12 rounded-lg object-cover border-2 border-cyan-400/80 shadow-[0_0_16px_rgba(34,211,238,0.45)] shrink-0"
-            />
-            <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-1.5 text-[10px] font-extrabold tracking-widest uppercase text-cyan-300">
-                <Map className="w-3 h-3" /> STORY CAMPAIGN
+            {/* STORY CAMPAIGN BANNER with Next Boss Portrait */}
+            <motion.button
+              type="button"
+              whileHover={{ y: -4, scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              onClick={() => go('campaign')}
+              className="game-panel clip-chamfer px-2.5 sm:px-3.5 py-2 sm:py-2.5 border-indigo-400/65 hover:border-cyan-300 flex items-center gap-2 sm:gap-3 text-left cursor-pointer sm:min-w-[235px]"
+            >
+              <img
+                src={nextChapter.portrait}
+                alt={nextChapter.bossName}
+                className="w-9 h-9 sm:w-12 sm:h-12 rounded-lg object-cover border-2 border-cyan-400/80 shadow-[0_0_16px_rgba(34,211,238,0.45)] shrink-0"
+              />
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-1 text-[8.5px] sm:text-[10px] font-extrabold tracking-widest uppercase text-cyan-300">
+                  <Map className="w-2.5 h-2.5 sm:w-3 sm:h-3 shrink-0" /> STORY
+                </div>
+                <div className="font-display font-extrabold text-xs sm:text-sm text-white truncate">
+                  CH.{nextChapter.id}: {nextChapter.bossName.split(',')[0]}
+                </div>
+                <div className="mt-0.5 sm:mt-1 flex items-center gap-0.5 sm:gap-1">
+                  {CAMPAIGN_CHAPTERS.map((ch) => (
+                    <span
+                      key={ch.id}
+                      className={`w-1.5 sm:w-2 h-1.5 rounded-sm ${
+                        completedChapters.includes(ch.id)
+                          ? 'bg-emerald-400 shadow-[0_0_6px_#34d399]'
+                          : ch.id === nextChapter.id
+                          ? 'bg-amber-400 animate-pulse'
+                          : 'bg-slate-700'
+                      }`}
+                    />
+                  ))}
+                  <span className="hidden sm:inline text-[10px] text-slate-400 font-mono-num ml-1">
+                    {completedChapters.length}/{CAMPAIGN_CHAPTERS.length}
+                  </span>
+                </div>
               </div>
-              <div className="font-display font-extrabold text-sm text-white truncate">
-                CH.{nextChapter.id}: {nextChapter.bossName.split(',')[0]}
-              </div>
-              <div className="mt-1 flex items-center gap-1">
-                {CAMPAIGN_CHAPTERS.map((ch) => (
-                  <span
-                    key={ch.id}
-                    className={`w-2 h-1.5 rounded-sm ${
-                      completedChapters.includes(ch.id)
-                        ? 'bg-emerald-400 shadow-[0_0_6px_#34d399]'
-                        : ch.id === nextChapter.id
-                        ? 'bg-amber-400 animate-pulse'
-                        : 'bg-slate-700'
-                    }`}
-                  />
-                ))}
-                <span className="text-[10px] text-slate-400 font-mono-num ml-1">
-                  {completedChapters.length}/{CAMPAIGN_CHAPTERS.length}
-                </span>
-              </div>
-            </div>
-            <ChevronRight className="w-5 h-5 text-cyan-300 shrink-0" />
-          </motion.button>
+              <ChevronRight className="hidden sm:block w-5 h-5 text-cyan-300 shrink-0" />
+            </motion.button>
+          </div>
 
           {/* GIANT GLOWING QUICK DUEL / BATTLE BUTTON */}
           <motion.button
@@ -776,7 +849,7 @@ export const MainMenu: React.FC<MainMenuProps> = ({ onNavigate }) => {
             whileHover={{ y: -4, scale: 1.03 }}
             whileTap={{ scale: 0.97 }}
             onClick={() => go('quick_duel')}
-            className="relative overflow-hidden shine-sweep clip-skew-btn px-8 sm:px-10 py-4 bg-gradient-to-r from-amber-500 via-orange-500 to-rose-600 border-2 border-amber-200/80 shadow-[0_0_38px_rgba(249,115,22,0.65)] flex items-center justify-center gap-3 cursor-pointer"
+            className="relative overflow-hidden shine-sweep clip-skew-btn px-8 sm:px-10 py-3.5 sm:py-4 bg-gradient-to-r from-amber-500 via-orange-500 to-rose-600 border-2 border-amber-200/80 shadow-[0_0_38px_rgba(249,115,22,0.65)] flex items-center justify-center gap-3 cursor-pointer"
           >
             <Swords className="w-6 h-6 text-white drop-shadow" />
             <div className="text-left">
@@ -793,6 +866,311 @@ export const MainMenu: React.FC<MainMenuProps> = ({ onNavigate }) => {
 
       <MissionsModal open={missionsOpen} onClose={() => setMissionsOpen(false)} />
       <SaveBackupModal open={backupOpen} onClose={() => setBackupOpen(false)} />
+
+      {/* ================= CUSTOM DUELIST SKILL PICKER BOTTOM-SHEET DRAWER ================= */}
+      <AnimatePresence>
+        {skillDrawerOpen && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={() => setSkillDrawerOpen(false)}
+            className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/80 backdrop-blur-md p-0 sm:p-4"
+          >
+            <motion.div
+              initial={{ y: 80, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              exit={{ y: 80, opacity: 0 }}
+              transition={{ type: 'spring', stiffness: 320, damping: 28 }}
+              onClick={(e) => e.stopPropagation()}
+              className="w-full sm:max-w-lg max-h-[85dvh] game-panel rounded-t-3xl sm:rounded-none sm:clip-chamfer border-t-2 sm:border border-amber-400/70 shadow-[0_0_60px_rgba(251,191,36,0.28)] flex flex-col overflow-hidden safe-pb"
+            >
+              <div className="px-4 sm:px-5 py-3.5 border-b border-slate-800 bg-gradient-to-r from-amber-950/60 via-slate-950 to-indigo-950/60 flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Sparkles className="w-5 h-5 text-amber-300" />
+                  <div>
+                    <h3 className="font-display font-extrabold text-sm sm:text-base text-white uppercase tracking-wider">
+                      Equip Duelist Skill
+                    </h3>
+                    <p className="text-[10.5px] text-slate-400">
+                      1× per Duel signature character power (inspired by Speed Duel)
+                    </p>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setSkillDrawerOpen(false)}
+                  className="p-1.5 rounded-lg bg-slate-900 border border-slate-700 text-slate-300 hover:text-white cursor-pointer"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+
+              <div className="p-3.5 sm:p-4 overflow-y-auto space-y-2.5">
+                {DUELIST_SKILLS.map((sk) => {
+                  const isEquipped = sk.id === activeSkill.id;
+                  const f = FACTIONS[sk.faction];
+                  return (
+                    <button
+                      key={sk.id}
+                      type="button"
+                      onClick={() => {
+                        soundEngine.uiClick();
+                        haptics.cardSelect();
+                        setSelectedSkill(sk.id);
+                        setSkillDrawerOpen(false);
+                      }}
+                      className={`w-full text-left rounded-2xl border p-3 flex items-center gap-3 transition-all cursor-pointer ${
+                        isEquipped
+                          ? 'bg-gradient-to-r from-amber-950/75 via-indigo-950/85 to-slate-950 border-amber-300 shadow-[0_0_22px_rgba(251,191,36,0.3)]'
+                          : 'bg-slate-950/80 border-slate-800 hover:border-cyan-400/60'
+                      }`}
+                    >
+                      <div
+                        className="w-14 h-14 rounded-xl p-[2px] shrink-0"
+                        style={{
+                          background: `linear-gradient(135deg, ${f.primaryHex}, #fde047)`,
+                        }}
+                      >
+                        <img
+                          src={sk.portrait}
+                          alt={sk.duelistName}
+                          className="w-full h-full rounded-[10px] object-cover object-top"
+                        />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center justify-between gap-2">
+                          <span className="font-display font-extrabold text-xs sm:text-sm text-white truncate">
+                            {sk.skillName}
+                          </span>
+                          {isEquipped && (
+                            <span className="px-2 py-0.5 rounded-full bg-amber-400 text-slate-950 text-[9px] font-black uppercase tracking-wider flex items-center gap-0.5 shrink-0">
+                              <Check className="w-3 h-3" /> EQUIPPED
+                            </span>
+                          )}
+                        </div>
+                        <div className="text-[10px] font-bold uppercase tracking-wider text-cyan-300 mt-0.5">
+                          {sk.duelistName} • <span className="text-amber-200">{sk.triggerHint}</span>
+                        </div>
+                        <p className="mt-1 text-[11px] text-slate-300 leading-snug">
+                          {sk.description}
+                        </p>
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* ================= UNIFIED SETTINGS & ARENA PLAYMAT DRAWER ================= */}
+      <AnimatePresence>
+        {settingsOpen && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={() => setSettingsOpen(false)}
+            className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/80 backdrop-blur-md p-0 sm:p-4"
+          >
+            <motion.div
+              initial={{ y: 80, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              exit={{ y: 80, opacity: 0 }}
+              transition={{ type: 'spring', stiffness: 320, damping: 28 }}
+              onClick={(e) => e.stopPropagation()}
+              className="w-full sm:max-w-lg max-h-[88dvh] game-panel rounded-t-3xl sm:rounded-none sm:clip-chamfer border-t-2 sm:border border-cyan-400/70 shadow-[0_0_60px_rgba(34,211,238,0.28)] flex flex-col overflow-hidden safe-pb"
+            >
+              <div className="px-4 sm:px-5 py-3.5 border-b border-slate-800 bg-gradient-to-r from-cyan-950/65 via-slate-950 to-indigo-950/65 flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Settings className="w-5 h-5 text-cyan-300" />
+                  <div>
+                    <h3 className="font-display font-extrabold text-sm sm:text-base text-white uppercase tracking-wider">
+                      Settings &amp; Arena Customization
+                    </h3>
+                    <p className="text-[10.5px] text-slate-400">
+                      Audio, Haptics, Arena Playmat &amp; Save Data
+                    </p>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setSettingsOpen(false)}
+                  className="p-1.5 rounded-lg bg-slate-900 border border-slate-700 text-slate-300 hover:text-white cursor-pointer"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+
+              <div className="p-4 overflow-y-auto space-y-4">
+                {/* Audio & Haptics */}
+                <div>
+                  <div className="text-[10px] font-display font-extrabold uppercase tracking-[0.2em] text-cyan-300 mb-2">
+                    Audio &amp; Tactile Feedback
+                  </div>
+                  <div className="grid grid-cols-2 gap-2">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const next = !soundEnabled;
+                        toggleSound();
+                        soundEngine.setEnabled(next);
+                        if (next) {
+                          soundEngine.uiClick();
+                          haptics.tap();
+                        }
+                      }}
+                      className={`rounded-xl border px-3 py-2.5 flex items-center justify-between cursor-pointer transition-all ${
+                        soundEnabled
+                          ? 'bg-emerald-950/50 border-emerald-400/70 text-emerald-100'
+                          : 'bg-slate-950 border-slate-800 text-slate-400'
+                      }`}
+                    >
+                      <span className="flex items-center gap-2 text-xs font-bold">
+                        {soundEnabled ? (
+                          <Volume2 className="w-4 h-4 text-emerald-300" />
+                        ) : (
+                          <VolumeX className="w-4 h-4 text-slate-500" />
+                        )}
+                        SFX &amp; Haptics
+                      </span>
+                      <span className="text-[10px] font-extrabold uppercase">
+                        {soundEnabled ? 'ON' : 'OFF'}
+                      </span>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => {
+                        soundEngine.uiClick();
+                        haptics.tap();
+                        toggleBgm();
+                      }}
+                      className={`rounded-xl border px-3 py-2.5 flex items-center justify-between cursor-pointer transition-all ${
+                        bgmEnabled
+                          ? 'bg-indigo-950/60 border-cyan-400/70 text-cyan-100'
+                          : 'bg-slate-950 border-slate-800 text-slate-400'
+                      }`}
+                    >
+                      <span className="flex items-center gap-2 text-xs font-bold">
+                        <Music className="w-4 h-4 text-cyan-300" />
+                        Battle BGM
+                      </span>
+                      <span className="text-[10px] font-extrabold uppercase">
+                        {bgmEnabled ? 'ON' : 'OFF'}
+                      </span>
+                    </button>
+                  </div>
+                </div>
+
+                {/* Switchable Arena Playmat Picker */}
+                <div>
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="text-[10px] font-display font-extrabold uppercase tracking-[0.2em] text-amber-300 flex items-center gap-1.5">
+                      <Palette className="w-3.5 h-3.5" /> Battle Arena Playmat
+                    </div>
+                    <span className="text-[10px] text-slate-400">{activePlaymat.name}</span>
+                  </div>
+                  <div className="grid grid-cols-2 gap-2.5">
+                    {ARENA_PLAYMATS.map((mat) => {
+                      const isPicked = mat.id === activePlaymat.id;
+                      return (
+                        <button
+                          key={mat.id}
+                          type="button"
+                          onClick={() => {
+                            soundEngine.uiClick();
+                            haptics.cardSelect();
+                            setSelectedPlaymat(mat.id);
+                          }}
+                          className={`group relative rounded-xl overflow-hidden border-2 text-left transition-all cursor-pointer ${
+                            isPicked
+                              ? 'border-amber-300 shadow-[0_0_20px_rgba(251,191,36,0.45)]'
+                              : 'border-slate-800 hover:border-cyan-400/70'
+                          }`}
+                        >
+                          <div className="h-20 relative overflow-hidden bg-slate-950">
+                            <img
+                              src={mat.image}
+                              alt={mat.name}
+                              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                            />
+                            <div
+                              className="absolute inset-0"
+                              style={{
+                                background:
+                                  'linear-gradient(180deg, transparent 10%, rgba(4,6,15,0.92) 100%)',
+                              }}
+                            />
+                            {isPicked && (
+                              <span className="absolute top-1.5 right-1.5 px-1.5 py-0.5 rounded-full bg-amber-400 text-slate-950 text-[8.5px] font-black uppercase flex items-center gap-0.5 shadow">
+                                <Check className="w-2.5 h-2.5" /> ACTIVE
+                              </span>
+                            )}
+                            <div className="absolute inset-x-2 bottom-1.5">
+                              <div className="font-display font-extrabold text-[11px] text-white leading-tight truncate">
+                                {mat.name}
+                              </div>
+                              <div className="text-[9px] text-slate-300 truncate">
+                                {mat.subtitle}
+                              </div>
+                            </div>
+                          </div>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* System Actions */}
+                <div className="grid grid-cols-2 gap-2 pt-1 border-t border-slate-800/80">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      soundEngine.uiClick();
+                      haptics.tap();
+                      setSettingsOpen(false);
+                      setBackupOpen(true);
+                    }}
+                    className="rounded-xl bg-slate-950 border border-slate-700 hover:border-cyan-400 px-3 py-2.5 text-xs font-bold text-slate-200 flex items-center justify-center gap-2 cursor-pointer"
+                  >
+                    <HardDrive className="w-4 h-4 text-cyan-300" />
+                    Backup Save (.JSON)
+                  </button>
+
+                  {!pwa.isInstalled ? (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setSettingsOpen(false);
+                        handleInstallClick();
+                      }}
+                      className="rounded-xl bg-cyan-950/60 border border-cyan-400/70 hover:brightness-110 px-3 py-2.5 text-xs font-bold text-cyan-100 flex items-center justify-center gap-2 cursor-pointer"
+                    >
+                      <Smartphone className="w-4 h-4 text-cyan-300" />
+                      Install App (HP)
+                    </button>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setSettingsOpen(false);
+                        go('rules');
+                      }}
+                      className="rounded-xl bg-indigo-950/60 border border-indigo-400/70 hover:brightness-110 px-3 py-2.5 text-xs font-bold text-indigo-100 flex items-center justify-center gap-2 cursor-pointer"
+                    >
+                      <HelpCircle className="w-4 h-4 text-indigo-300" />
+                      Rules &amp; Guide
+                    </button>
+                  )}
+                </div>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* 7-DAY LOGIN STREAK MODAL */}
       {streakOpen && (
@@ -900,6 +1278,7 @@ export const MainMenu: React.FC<MainMenuProps> = ({ onNavigate }) => {
                       const res = claimDailyLogin();
                       if (res.ok) {
                         soundEngine.evolve();
+                        haptics.victory();
                         setStreakClaimResult({
                           day: res.day ?? nextLoginDay,
                           coinsGained: res.coinsGained ?? 0,

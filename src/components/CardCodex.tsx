@@ -2,6 +2,8 @@ import React, { useMemo, useState } from 'react';
 import { motion } from 'framer-motion';
 import {
   ArrowLeft,
+  Check,
+  ChevronDown,
   Layers,
   Lock,
   Search,
@@ -16,7 +18,23 @@ import { FACTIONS, FACTION_LIST } from '../data/factions';
 import { KEYWORDS } from '../data/keywords';
 import { ROYAL_FOIL_CRAFT_COST, useProfileStore } from '../store/profileStore';
 import { soundEngine } from '../audio/soundEngine';
+import { haptics } from '../utils/haptics';
 import { Card } from './Card';
+import { RollingNumber } from './RollingNumber';
+
+const CODEX_SET_OPTIONS: { id: CardSetId | 'all'; label: string; short: string }[] = [
+  { id: 'all', label: `All Sets (${CARDS.length} Cards)`, short: `All Sets (${CARDS.length})` },
+  { id: 'genesis', label: 'Set 1: Genesis Rift (48)', short: 'Set 1: Genesis' },
+  { id: 'overdrive', label: 'Set 2A: Dragonic Overdrive (9)', short: 'Set 2A: Overdrive' },
+  { id: 'phantom', label: 'Set 2B: Cyber Phantom (9)', short: 'Set 2B: Phantom' },
+  { id: 'arcana_vault', label: 'Set 3: Arcana & Ambush Vault (10)', short: 'Set 3: Arcana' },
+  { id: 'maximum', label: 'Set 4: Maximum Overlord (3)', short: 'Set 4: Maximum' },
+  { id: 'egyptian_gods', label: 'Set 5: Pantheon of the Nile (12)', short: 'Set 5: Nile Gods' },
+  { id: 'yggdrasil_overlord', label: 'Set 6: Yggdrasil Sky Overlord (12)', short: 'Set 6: Yggdrasil' },
+  { id: 'legendary_dragons', label: 'Set 7: Legendary Dragons (12)', short: 'Set 7: Dragons' },
+  { id: 'sevens_magicians', label: 'Set 8: Sevens Arcane Magicians (12)', short: 'Set 8: Magicians' },
+  { id: 'supreme_mecha', label: 'Set 9: Supreme Mecha Armada (12)', short: 'Set 9: Mecha' },
+];
 
 interface CardCodexProps {
   onBack: () => void;
@@ -32,6 +50,7 @@ export const CardCodex: React.FC<CardCodexProps> = ({ onBack }) => {
   const [type, setType] = useState<CardType | 'all'>('all');
   const [rarity, setRarity] = useState<Rarity | 'all'>('all');
   const [onlyEvolve, setOnlyEvolve] = useState(false);
+  const [setPickerOpen, setSetPickerOpen] = useState(false);
   const [inspecting, setInspecting] = useState<CardDef | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
 
@@ -120,7 +139,7 @@ export const CardCodex: React.FC<CardCodexProps> = ({ onBack }) => {
           </div>
           <div className="px-3.5 py-2 rounded-xl bg-fuchsia-950/60 border border-fuchsia-400/50 flex items-center gap-2 text-xs">
             <Wand2 className="w-4 h-4 text-fuchsia-300" />
-            <span className="font-mono-num font-extrabold text-fuchsia-200">{dust}</span>
+            <RollingNumber value={dust} className="font-mono-num font-extrabold text-fuchsia-200" />
             <span className="text-fuchsia-300/80">Dust</span>
           </div>
         </div>
@@ -165,52 +184,87 @@ export const CardCodex: React.FC<CardCodexProps> = ({ onBack }) => {
           </button>
         ))}
 
-        <select
-          value={setFilter}
-          onChange={(e) => setSetFilter(e.target.value as CardSetId | 'all')}
-          className="rounded-lg bg-slate-900 border border-amber-400/55 px-2.5 py-1.5 text-xs font-bold text-amber-200 cursor-pointer"
+        <button
+          type="button"
+          onClick={() => {
+            soundEngine.uiClick();
+            haptics.tap();
+            setSetPickerOpen(true);
+          }}
+          className="rounded-lg bg-slate-900 hover:bg-amber-950/50 border border-amber-400/55 px-2.5 py-1.5 text-xs font-bold text-amber-200 flex items-center gap-1.5 cursor-pointer transition-colors"
         >
-          <option value="all">All Sets ({CARDS.length})</option>
-          <option value="genesis">Set 1: Genesis Rift (48)</option>
-          <option value="overdrive">Set 2A: Dragonic Overdrive (9)</option>
-          <option value="phantom">Set 2B: Cyber Phantom (9)</option>
-          <option value="arcana_vault">Set 3: Arcana &amp; Ambush Vault (10)</option>
-          <option value="maximum">Set 4: Maximum Overlord (3)</option>
-          <option value="egyptian_gods">Set 5: Pantheon of the Nile (12)</option>
-          <option value="yggdrasil_overlord">Set 6: Yggdrasil Sky Overlord (12)</option>
-          <option value="legendary_dragons">Set 7: Legendary Dragons (12)</option>
-          <option value="sevens_magicians">Set 8: Sevens Arcane Magicians (12)</option>
-          <option value="supreme_mecha">Set 9: Supreme Mecha Armada (12)</option>
-        </select>
+          <Sparkles className="w-3.5 h-3.5 text-amber-300 shrink-0" />
+          <span>
+            {CODEX_SET_OPTIONS.find((o) => o.id === setFilter)?.short ?? `All Sets (${CARDS.length})`}
+          </span>
+          <ChevronDown className="w-3.5 h-3.5 text-amber-300/80 shrink-0" />
+        </button>
 
-        <select
-          value={type}
-          onChange={(e) => setType(e.target.value as CardType | 'all')}
-          className="rounded-lg bg-slate-900 border border-slate-700 px-2.5 py-1.5 text-xs text-slate-200"
-        >
-          <option value="all">All Types</option>
-          <option value="vanguard">Vanguard</option>
-          <option value="fusion_apex">Fusion Apex</option>
-          <option value="arcana">Arcana Spell</option>
-          <option value="ambush">Ambush Trap</option>
-          <option value="relic">Relic</option>
-        </select>
+        {/* Type Filter Pills */}
+        <div className="inline-flex flex-wrap items-center gap-1">
+          {(
+            [
+              { id: 'all', label: 'All Types' },
+              { id: 'vanguard', label: 'Monster' },
+              { id: 'fusion_apex', label: 'Fusion' },
+              { id: 'arcana', label: 'Spell' },
+              { id: 'ambush', label: 'Trap' },
+              { id: 'relic', label: 'Equip' },
+            ] as const
+          ).map((t) => (
+            <button
+              key={t.id}
+              type="button"
+              onClick={() => {
+                haptics.tap();
+                setType(t.id as CardType | 'all');
+              }}
+              className={`px-2 py-1.5 rounded-lg border text-xs font-bold cursor-pointer transition-colors ${
+                type === t.id
+                  ? 'bg-cyan-950/85 border-cyan-400 text-cyan-100'
+                  : 'bg-slate-900 border-slate-700 text-slate-400 hover:text-slate-200'
+              }`}
+            >
+              {t.label}
+            </button>
+          ))}
+        </div>
 
-        <select
-          value={rarity}
-          onChange={(e) => setRarity(e.target.value as Rarity | 'all')}
-          className="rounded-lg bg-slate-900 border border-slate-700 px-2.5 py-1.5 text-xs text-slate-200"
-        >
-          <option value="all">All Rarities</option>
-          <option value="common">Common</option>
-          <option value="rare">Rare</option>
-          <option value="epic">Epic</option>
-          <option value="mythic">Mythic</option>
-        </select>
+        {/* Rarity Filter Pills */}
+        <div className="inline-flex flex-wrap items-center gap-1">
+          {(
+            [
+              { id: 'all', label: 'All Rarity', activeClass: 'bg-slate-200 text-slate-950 border-white' },
+              { id: 'common', label: 'Common', activeClass: 'bg-slate-700 text-white border-slate-400' },
+              { id: 'rare', label: 'Rare', activeClass: 'bg-sky-950 text-sky-200 border-sky-400' },
+              { id: 'epic', label: 'Epic', activeClass: 'bg-purple-950 text-purple-200 border-purple-400' },
+              { id: 'mythic', label: 'Mythic', activeClass: 'bg-amber-950 text-amber-200 border-amber-400' },
+            ] as const
+          ).map((r) => (
+            <button
+              key={r.id}
+              type="button"
+              onClick={() => {
+                haptics.tap();
+                setRarity(r.id as Rarity | 'all');
+              }}
+              className={`px-2 py-1.5 rounded-lg border text-xs font-bold cursor-pointer transition-colors ${
+                rarity === r.id
+                  ? r.activeClass
+                  : 'bg-slate-900 border-slate-700 text-slate-400 hover:text-slate-200'
+              }`}
+            >
+              {r.label}
+            </button>
+          ))}
+        </div>
 
         <button
           type="button"
-          onClick={() => setOnlyEvolve((v) => !v)}
+          onClick={() => {
+            haptics.tap();
+            setOnlyEvolve((v) => !v);
+          }}
           className={`px-2.5 py-1.5 rounded-lg border text-xs font-bold flex items-center gap-1 cursor-pointer ${
             onlyEvolve
               ? 'bg-amber-950/80 border-amber-400 text-amber-200'
@@ -220,6 +274,60 @@ export const CardCodex: React.FC<CardCodexProps> = ({ onBack }) => {
           <Sparkles className="w-3.5 h-3.5" /> Evolvable
         </button>
       </div>
+
+      {/* CUSTOM SET PICKER DRAWER (REPLACES RAW NATIVE <select>) */}
+      {setPickerOpen && (
+        <div
+          onClick={() => setSetPickerOpen(false)}
+          className="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-end sm:items-center justify-center p-0 sm:p-4"
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            className="w-full sm:max-w-md max-h-[82dvh] game-panel rounded-t-3xl sm:rounded-none sm:clip-chamfer border-t-2 sm:border border-amber-400/70 flex flex-col overflow-hidden safe-pb"
+          >
+            <div className="px-4 py-3 border-b border-slate-800 bg-gradient-to-r from-amber-950/65 to-slate-950 flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Sparkles className="w-4 h-4 text-amber-300" />
+                <h3 className="font-display font-extrabold text-sm text-white uppercase tracking-wider">
+                  Filter by Card Expansion Set
+                </h3>
+              </div>
+              <button
+                type="button"
+                onClick={() => setSetPickerOpen(false)}
+                className="p-1.5 rounded-lg bg-slate-900 border border-slate-700 text-slate-300 hover:text-white cursor-pointer"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+            <div className="p-3 overflow-y-auto space-y-1.5">
+              {CODEX_SET_OPTIONS.map((opt) => {
+                const isSelected = setFilter === opt.id;
+                return (
+                  <button
+                    key={opt.id}
+                    type="button"
+                    onClick={() => {
+                      soundEngine.uiClick();
+                      haptics.tap();
+                      setSetFilter(opt.id);
+                      setSetPickerOpen(false);
+                    }}
+                    className={`w-full text-left rounded-xl border px-3 py-2.5 flex items-center justify-between gap-2 text-xs font-bold transition-all cursor-pointer ${
+                      isSelected
+                        ? 'bg-amber-950/65 border-amber-300 text-amber-100'
+                        : 'bg-slate-950/85 border-slate-800 text-slate-300 hover:border-amber-400/50 hover:text-white'
+                    }`}
+                  >
+                    <span>{opt.label}</span>
+                    {isSelected && <Check className="w-4 h-4 text-amber-300 shrink-0" />}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Gallery Grid */}
       <div className="max-w-7xl w-full mx-auto py-6 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 sm:gap-5">

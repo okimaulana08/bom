@@ -5,6 +5,7 @@ import {
   BookMarked,
   Check,
   CheckCircle2,
+  ChevronDown,
   Code2,
   Copy,
   Crown,
@@ -37,7 +38,23 @@ import { FACTIONS, FACTION_LIST } from '../data/factions';
 import { getSkillDef } from '../data/skills';
 import { useProfileStore } from '../store/profileStore';
 import { soundEngine } from '../audio/soundEngine';
+import { haptics } from '../utils/haptics';
 import { Card } from './Card';
+import { RollingNumber } from './RollingNumber';
+
+const DECK_SET_OPTIONS: { id: CardSetId | 'all'; label: string; short: string }[] = [
+  { id: 'all', label: `All Sets (${CARDS.length} Cards)`, short: `All Sets (${CARDS.length})` },
+  { id: 'genesis', label: 'Set 1: Genesis Core', short: 'Set 1: Genesis' },
+  { id: 'overdrive', label: 'Set 2A: Dragonic Overdrive', short: 'Set 2A: Overdrive' },
+  { id: 'phantom', label: 'Set 2B: Cyber Phantom', short: 'Set 2B: Phantom' },
+  { id: 'arcana_vault', label: 'Set 3: Arcana & Ambush Vault', short: 'Set 3: Arcana' },
+  { id: 'maximum', label: 'Set 4: Maximum Overlord', short: 'Set 4: Maximum' },
+  { id: 'egyptian_gods', label: 'Set 5: Pantheon of the Nile (Egyptian Gods)', short: 'Set 5: Nile Gods' },
+  { id: 'yggdrasil_overlord', label: 'Set 6: Yggdrasil Sky Overlord', short: 'Set 6: Yggdrasil' },
+  { id: 'legendary_dragons', label: 'Set 7: Legendary Dragons', short: 'Set 7: Dragons' },
+  { id: 'sevens_magicians', label: 'Set 8: Sevens Arcane Magicians', short: 'Set 8: Magicians' },
+  { id: 'supreme_mecha', label: 'Set 9: Supreme Mecha Armada', short: 'Set 9: Mecha' },
+];
 
 function encodeDeckCode(name: string, mainDeck: string[], riftDeck: string[]): string {
   const payload = JSON.stringify({ n: name, m: mainDeck, r: riftDeck });
@@ -116,6 +133,8 @@ export const DeckBuilder: React.FC<DeckBuilderProps> = ({ onBack }) => {
   const [autoFillMode, setAutoFillMode] = useState(false);
   const [equipRecommendedSkill, setEquipRecommendedSkill] = useState(true);
   const [historyOpen, setHistoryOpen] = useState(false);
+  const [deckPickerOpen, setDeckPickerOpen] = useState(false);
+  const [setPickerOpen, setSetPickerOpen] = useState(false);
 
   const currentDeckRecord = deckRecords?.[editingDeckId] ?? { wins: 0, losses: 0 };
   const currentDeckTotal = currentDeckRecord.wins + currentDeckRecord.losses;
@@ -535,22 +554,28 @@ export const DeckBuilder: React.FC<DeckBuilderProps> = ({ onBack }) => {
 
         <div className="flex flex-wrap items-center gap-2">
           <div className="px-3 py-1.5 rounded-xl bg-fuchsia-950/60 border border-fuchsia-400/50 flex items-center gap-1.5 text-xs font-bold text-fuchsia-200">
-            <Wand2 className="w-3.5 h-3.5" /> {dust} Dust
+            <Wand2 className="w-3.5 h-3.5" />
+            <RollingNumber value={dust} className="font-mono-num" /> Dust
           </div>
-          <select
-            value={editingDeckId}
-            onChange={(e) => {
-              const found = decks.find((d) => d.id === e.target.value);
-              if (found) loadDeckIntoEditor(found);
+          <button
+            type="button"
+            onClick={() => {
+              soundEngine.uiClick();
+              haptics.tap();
+              setDeckPickerOpen(true);
             }}
-            className="rounded-xl bg-slate-900 border border-slate-700 px-3 py-1.5 text-xs text-white"
+            className="rounded-xl bg-slate-900 hover:bg-indigo-950/80 border border-cyan-400/55 px-3 py-1.5 text-xs font-bold text-white flex items-center gap-1.5 cursor-pointer transition-colors"
+            title="Switch Active Deck"
           >
-            {decks.map((d) => (
-              <option key={d.id} value={d.id}>
-                {d.name} ({d.mainDeck.length}/30 • {d.riftDeck.length}R)
-              </option>
-            ))}
-          </select>
+            <Layers className="w-3.5 h-3.5 text-cyan-300 shrink-0" />
+            <span className="truncate max-w-[140px] sm:max-w-[200px]">
+              {decks.find((d) => d.id === editingDeckId)?.name ?? deckName}
+            </span>
+            <span className="text-[10px] font-mono-num text-cyan-300">
+              ({mainDeck.length}/30)
+            </span>
+            <ChevronDown className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+          </button>
           <button
             type="button"
             onClick={createNewDeck}
@@ -604,6 +629,134 @@ export const DeckBuilder: React.FC<DeckBuilderProps> = ({ onBack }) => {
         </div>
       )}
 
+      {/* CUSTOM DECK SWITCHER MODAL (REPLACES RAW NATIVE <select>) */}
+      {deckPickerOpen && (
+        <div
+          onClick={() => setDeckPickerOpen(false)}
+          className="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-end sm:items-center justify-center p-0 sm:p-4"
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            className="w-full sm:max-w-md max-h-[80dvh] game-panel rounded-t-3xl sm:rounded-none sm:clip-chamfer border-t-2 sm:border border-cyan-400/70 flex flex-col overflow-hidden safe-pb"
+          >
+            <div className="px-4 py-3 border-b border-slate-800 bg-gradient-to-r from-cyan-950/65 to-slate-950 flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Layers className="w-4 h-4 text-cyan-300" />
+                <h3 className="font-display font-extrabold text-sm text-white uppercase tracking-wider">
+                  Select Deck to Edit
+                </h3>
+              </div>
+              <button
+                type="button"
+                onClick={() => setDeckPickerOpen(false)}
+                className="p-1.5 rounded-lg bg-slate-900 border border-slate-700 text-slate-300 hover:text-white cursor-pointer"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+            <div className="p-3 overflow-y-auto space-y-2">
+              {decks.map((d) => {
+                const isSelected = d.id === editingDeckId;
+                const rec = deckRecords?.[d.id];
+                const tot = (rec?.wins ?? 0) + (rec?.losses ?? 0);
+                const wr = tot > 0 ? Math.round(((rec?.wins ?? 0) / tot) * 100) : null;
+                return (
+                  <button
+                    key={d.id}
+                    type="button"
+                    onClick={() => {
+                      soundEngine.uiClick();
+                      haptics.cardSelect();
+                      loadDeckIntoEditor(d);
+                      setDeckPickerOpen(false);
+                    }}
+                    className={`w-full text-left rounded-xl border p-3 flex items-center justify-between gap-2 transition-all cursor-pointer ${
+                      isSelected
+                        ? 'bg-cyan-950/60 border-cyan-300 shadow-[0_0_16px_rgba(34,211,238,0.28)]'
+                        : 'bg-slate-950/85 border-slate-800 hover:border-cyan-400/50'
+                    }`}
+                  >
+                    <div className="min-w-0">
+                      <div className="font-display font-bold text-xs sm:text-sm text-white truncate flex items-center gap-1.5">
+                        {d.name}
+                        {d.id === activeDeckId && (
+                          <span className="px-1.5 py-0.5 rounded bg-emerald-500/20 border border-emerald-400/50 text-[8.5px] font-extrabold text-emerald-300">
+                            ACTIVE
+                          </span>
+                        )}
+                      </div>
+                      <div className="text-[10.5px] text-slate-400 font-mono-num mt-0.5">
+                        {d.mainDeck.length}/30 Main • {d.riftDeck.length}/5 Rift
+                        {wr !== null && (
+                          <span className="ml-2 text-amber-300 font-bold">
+                            {rec?.wins}W-{rec?.losses}L ({wr}%)
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                    {isSelected && <Check className="w-4 h-4 text-cyan-300 shrink-0" />}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* CUSTOM CARD SET PICKER MODAL (REPLACES RAW NATIVE <select>) */}
+      {setPickerOpen && (
+        <div
+          onClick={() => setSetPickerOpen(false)}
+          className="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-end sm:items-center justify-center p-0 sm:p-4"
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            className="w-full sm:max-w-md max-h-[82dvh] game-panel rounded-t-3xl sm:rounded-none sm:clip-chamfer border-t-2 sm:border border-amber-400/70 flex flex-col overflow-hidden safe-pb"
+          >
+            <div className="px-4 py-3 border-b border-slate-800 bg-gradient-to-r from-amber-950/65 to-slate-950 flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Sparkles className="w-4 h-4 text-amber-300" />
+                <h3 className="font-display font-extrabold text-sm text-white uppercase tracking-wider">
+                  Filter by Card Expansion Set
+                </h3>
+              </div>
+              <button
+                type="button"
+                onClick={() => setSetPickerOpen(false)}
+                className="p-1.5 rounded-lg bg-slate-900 border border-slate-700 text-slate-300 hover:text-white cursor-pointer"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+            <div className="p-3 overflow-y-auto space-y-1.5">
+              {DECK_SET_OPTIONS.map((opt) => {
+                const isSelected = setFilter === opt.id;
+                return (
+                  <button
+                    key={opt.id}
+                    type="button"
+                    onClick={() => {
+                      soundEngine.uiClick();
+                      haptics.tap();
+                      setSetFilter(opt.id);
+                      setSetPickerOpen(false);
+                    }}
+                    className={`w-full text-left rounded-xl border px-3 py-2.5 flex items-center justify-between gap-2 text-xs font-bold transition-all cursor-pointer ${
+                      isSelected
+                        ? 'bg-amber-950/65 border-amber-300 text-amber-100'
+                        : 'bg-slate-950/85 border-slate-800 text-slate-300 hover:border-amber-400/50 hover:text-white'
+                    }`}
+                  >
+                    <span>{opt.label}</span>
+                    {isSelected && <Check className="w-4 h-4 text-amber-300 shrink-0" />}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Main Split Workspace */}
       <div className="flex-1 grid grid-cols-1 lg:grid-cols-12 min-h-0">
         {/* LEFT: COLLECTION BROWSER (8 cols) */}
@@ -622,23 +775,22 @@ export const DeckBuilder: React.FC<DeckBuilderProps> = ({ onBack }) => {
                 />
               </div>
 
-              <select
-                value={setFilter}
-                onChange={(e) => setSetFilter(e.target.value as CardSetId | 'all')}
-                className="rounded-xl bg-slate-900 border border-amber-400/55 px-2.5 py-1.5 text-xs font-bold text-amber-200 cursor-pointer"
+              <button
+                type="button"
+                onClick={() => {
+                  soundEngine.uiClick();
+                  haptics.tap();
+                  setSetPickerOpen(true);
+                }}
+                className="rounded-xl bg-slate-900 hover:bg-amber-950/50 border border-amber-400/55 px-3 py-1.5 text-xs font-bold text-amber-200 flex items-center gap-1.5 cursor-pointer transition-colors"
+                title="Filter by Expansion Set"
               >
-                <option value="all">All Sets ({CARDS.length})</option>
-                <option value="genesis">Set 1: Genesis</option>
-                <option value="overdrive">Set 2A: Dragonic Overdrive</option>
-                <option value="phantom">Set 2B: Cyber Phantom</option>
-                <option value="arcana_vault">Set 3: Arcana &amp; Ambush Vault</option>
-                <option value="maximum">Set 4: Maximum Overlord</option>
-                <option value="egyptian_gods">Set 5: Pantheon of the Nile (Egyptian Gods)</option>
-                <option value="yggdrasil_overlord">Set 6: Yggdrasil Sky Overlord</option>
-                <option value="legendary_dragons">Set 7: Legendary Dragons</option>
-                <option value="sevens_magicians">Set 8: Sevens Arcane Magicians</option>
-                <option value="supreme_mecha">Set 9: Supreme Mecha Armada</option>
-              </select>
+                <Sparkles className="w-3.5 h-3.5 text-amber-300 shrink-0" />
+                <span>
+                  {DECK_SET_OPTIONS.find((o) => o.id === setFilter)?.short ?? `All Sets (${CARDS.length})`}
+                </span>
+                <ChevronDown className="w-3.5 h-3.5 text-amber-300/80 shrink-0" />
+              </button>
 
               {/* Deck Target Tab Toggle */}
               <div className="flex rounded-xl bg-slate-900 border border-slate-700 p-0.5 text-xs font-bold">
@@ -700,32 +852,62 @@ export const DeckBuilder: React.FC<DeckBuilderProps> = ({ onBack }) => {
               <span className="mx-1 text-slate-700">|</span>
 
               {deckTab === 'main' && (
-                <select
-                  value={typeFilter}
-                  onChange={(e) => setTypeFilter(e.target.value as CardType | 'all')}
-                  className="rounded-lg bg-slate-900 border border-slate-700 px-2 py-1 text-[11px] text-slate-200"
-                >
-                  <option value="all">All Types</option>
-                  <option value="vanguard">Vanguard</option>
-                  <option value="arcana">Arcana Spell</option>
-                  <option value="ambush">Ambush Trap</option>
-                  <option value="relic">Relic Equip</option>
-                </select>
+                <div className="inline-flex flex-wrap items-center gap-1">
+                  {(
+                    [
+                      { id: 'all', label: 'All Types' },
+                      { id: 'vanguard', label: 'Monster' },
+                      { id: 'arcana', label: 'Spell' },
+                      { id: 'ambush', label: 'Trap' },
+                      { id: 'relic', label: 'Equip' },
+                    ] as const
+                  ).map((t) => (
+                    <button
+                      key={t.id}
+                      type="button"
+                      onClick={() => {
+                        haptics.tap();
+                        setTypeFilter(t.id as CardType | 'all');
+                      }}
+                      className={`px-2 py-1 rounded-lg border font-bold cursor-pointer transition-colors ${
+                        typeFilter === t.id
+                          ? 'bg-cyan-950/85 border-cyan-400 text-cyan-100'
+                          : 'bg-slate-900 border-slate-700 text-slate-400 hover:text-slate-200'
+                      }`}
+                    >
+                      {t.label}
+                    </button>
+                  ))}
+                </div>
               )}
 
-              <select
-                value={levelFilter}
-                onChange={(e) =>
-                  setLevelFilter(e.target.value as 'all' | 'spell' | 'low' | 'mid' | 'high')
-                }
-                className="rounded-lg bg-slate-900 border border-slate-700 px-2 py-1 text-[11px] text-slate-200"
-              >
-                <option value="all">Any Level</option>
-                <option value="low">★1–4 (0 Tribute)</option>
-                <option value="mid">★5–6 (1 Tribute)</option>
-                <option value="high">★7+ (2 Tributes / Apex)</option>
-                <option value="spell">Spells / Traps / Equips</option>
-              </select>
+              <div className="inline-flex flex-wrap items-center gap-1">
+                {(
+                  [
+                    { id: 'all', label: 'Any ★' },
+                    { id: 'low', label: '★1–4' },
+                    { id: 'mid', label: '★5–6' },
+                    { id: 'high', label: '★7+' },
+                    { id: 'spell', label: 'Backrow' },
+                  ] as const
+                ).map((lv) => (
+                  <button
+                    key={lv.id}
+                    type="button"
+                    onClick={() => {
+                      haptics.tap();
+                      setLevelFilter(lv.id);
+                    }}
+                    className={`px-2 py-1 rounded-lg border font-bold cursor-pointer transition-colors ${
+                      levelFilter === lv.id
+                        ? 'bg-amber-950/80 border-amber-400 text-amber-100'
+                        : 'bg-slate-900 border-slate-700 text-slate-400 hover:text-slate-200'
+                    }`}
+                  >
+                    {lv.label}
+                  </button>
+                ))}
+              </div>
 
               <button
                 type="button"

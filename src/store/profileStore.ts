@@ -6,6 +6,7 @@ import type {
   MatchHistoryEntry,
   PackOpenResult,
   PlayerProfile,
+  PlaymatId,
   SpireBlessingId,
 } from '../engine/types';
 import { CARDS, CARD_MAP, RARITY_CRAFT_COST, RARITY_DISMANTLE_DUST } from '../data/cards';
@@ -61,6 +62,7 @@ interface ProfileStore extends PlayerProfile {
   deleteDeck: (deckId: string) => void;
   setActiveDeck: (deckId: string) => void;
   setSelectedSkill: (skillId: DuelistSkillId) => void;
+  setSelectedPlaymat: (playmatId: PlaymatId) => void;
   completeTutorial: () => void;
   resetTutorial: () => void;
   startSpireRun: (deckId: string) => void;
@@ -114,6 +116,7 @@ function createInitialProfile(): PlayerProfile {
     trapPromptMode: 'manual',
     duelSpeed: 1,
     selectedSkillId: 'volcanic_ignition',
+    selectedPlaymatId: 'rift_coliseum',
     lastFreePackDate: null,
     loginStreak: 0,
     lastLoginClaimDate: null,
@@ -260,6 +263,7 @@ export const useProfileStore = create<ProfileStore>()(
       },
 
       setSelectedSkill: (skillId) => set({ selectedSkillId: skillId }),
+      setSelectedPlaymat: (playmatId) => set({ selectedPlaymatId: playmatId }),
       completeTutorial: () => set({ tutorialCompleted: true }),
       resetTutorial: () => set({ tutorialCompleted: false }),
 
@@ -449,6 +453,7 @@ export const useProfileStore = create<ProfileStore>()(
           trapPromptMode: s.trapPromptMode ?? 'manual',
           duelSpeed: s.duelSpeed ?? 1,
           selectedSkillId: s.selectedSkillId ?? 'volcanic_ignition',
+          selectedPlaymatId: s.selectedPlaymatId ?? 'rift_coliseum',
           lastFreePackDate: s.lastFreePackDate ?? null,
           loginStreak: s.loginStreak ?? 0,
           lastLoginClaimDate: s.lastLoginClaimDate ?? null,
@@ -680,6 +685,7 @@ export const useProfileStore = create<ProfileStore>()(
           collection: mergedCol,
           decks: updatedDecks,
           selectedSkillId: state.selectedSkillId ?? 'volcanic_ignition',
+          selectedPlaymatId: state.selectedPlaymatId ?? 'rift_coliseum',
           royalFoils: state.royalFoils ?? {},
           lastFreePackDate: state.lastFreePackDate ?? null,
           loginStreak: state.loginStreak ?? 0,

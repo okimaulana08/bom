@@ -14,6 +14,7 @@ import {
   Layers,
   LogOut,
   Music,
+  Palette,
   PanelRightClose,
   PanelRightOpen,
   RotateCcw,
@@ -33,6 +34,7 @@ import { CARD_MAP } from '../data/cards';
 import { getCardArtPresentation } from '../data/cardArtStyle';
 import { KEYWORDS } from '../data/keywords';
 import { getChapter } from '../data/campaign';
+import { ARENA_PLAYMATS, getPlaymatDef } from '../data/playmats';
 import { getSkillDef } from '../data/skills';
 import { SPIRE_BLESSING_MAP } from '../data/spire';
 import {
@@ -48,6 +50,7 @@ import {
   getRequiredTributes,
 } from '../engine/utils';
 import { soundEngine } from '../audio/soundEngine';
+import { haptics } from '../utils/haptics';
 import { Card } from './Card';
 import { HandTray } from './HandTray';
 import { RiftDeckModal } from './RiftDeckModal';
@@ -131,6 +134,8 @@ export const DuelBoard: React.FC<DuelBoardProps> = ({ onExit, onRematch }) => {
   const toggleDuelSpeed = useProfileStore((s) => s.toggleDuelSpeed);
   const tutorialCompleted = useProfileStore((s) => s.tutorialCompleted ?? false);
   const completeTutorial = useProfileStore((s) => s.completeTutorial);
+  const selectedPlaymatId = useProfileStore((s) => s.selectedPlaymatId ?? 'rift_coliseum');
+  const setSelectedPlaymat = useProfileStore((s) => s.setSelectedPlaymat);
 
   const [mulliganSwaps, setMulliganSwaps] = useState<string[]>([]);
   const [tutorialStep, setTutorialStep] = useState(0);
@@ -139,6 +144,18 @@ export const DuelBoard: React.FC<DuelBoardProps> = ({ onExit, onRematch }) => {
   const [mobileSheetOpen, setMobileSheetOpen] = useState(false);
   const [mobileBarDismissedKey, setMobileBarDismissedKey] = useState<string | null>(null);
   const [voidModalOwner, setVoidModalOwner] = useState<'player' | 'opponent' | null>(null);
+  const [zoomCard, setZoomCard] = useState<{ cardId: string; isEvolved: boolean } | null>(null);
+
+  const activePlaymat = getPlaymatDef(selectedPlaymatId);
+
+  const handleCyclePlaymat = () => {
+    const idx = ARENA_PLAYMATS.findIndex((p) => p.id === activePlaymat.id);
+    const next = ARENA_PLAYMATS[(idx + 1) % ARENA_PLAYMATS.length];
+    soundEngine.uiClick();
+    haptics.tap();
+    setSelectedPlaymat(next.id);
+    notifyToast(`Arena Playmat: ${next.name}`);
+  };
 
   const chapter = duel?.chapterId ? getChapter(duel.chapterId) : undefined;
 
@@ -617,18 +634,17 @@ export const DuelBoard: React.FC<DuelBoardProps> = ({ onExit, onRematch }) => {
 
   return (
     <div className="min-h-screen w-full flex bg-[#04050c] text-slate-100 overflow-x-hidden relative select-none">
-      {/* DEDICATED SPEED DUEL TEMPLE PLAYMAT BACKDROP */}
+      {/* DEDICATED SWITCHABLE ARENA PLAYMAT BACKDROP */}
       <div className="pointer-events-none fixed inset-0 z-0 overflow-hidden">
         <img
-          src="/assets/arenas/duel_playmat.jpg"
+          src={activePlaymat.image}
           alt=""
-          className="w-full h-full object-cover opacity-70 scale-[1.01]"
+          className="w-full h-full object-cover opacity-70 scale-[1.01] transition-all duration-500"
         />
         <div
-          className="absolute inset-0"
+          className="absolute inset-0 transition-all duration-500"
           style={{
-            background:
-              'radial-gradient(ellipse 72% 68% at 50% 50%, rgba(5,7,18,0.18) 0%, rgba(4,6,15,0.68) 72%, rgba(3,4,10,0.92) 100%)',
+            background: activePlaymat.vignetteCss,
           }}
         />
       </div>
@@ -726,13 +742,27 @@ export const DuelBoard: React.FC<DuelBoardProps> = ({ onExit, onRematch }) => {
                   : 'bg-gradient-to-b from-rose-950/90 to-slate-950 border-rose-500/60 cursor-default'
               }`}
             >
-              <Heart className="w-4 h-4 sm:w-5 sm:h-5 text-rose-300 fill-rose-500/50" />
-              <div className="text-left leading-none">
-                <div className="font-mono-num font-extrabold text-base sm:text-xl text-white">
-                  <RollingLpCounter value={opponent.lp} />
+              <Heart className="w-4 h-4 sm:w-5 sm:h-5 text-rose-300 fill-rose-500/50 shrink-0" />
+              <div className="text-left leading-none min-w-[66px] sm:min-w-[82px]">
+                <div className="flex items-baseline justify-between gap-1">
+                  <div className="font-mono-num font-extrabold text-base sm:text-xl text-white">
+                    <RollingLpCounter value={opponent.lp} />
+                  </div>
+                  <span className="text-[7.5px] font-bold text-rose-200/75 uppercase tracking-wider">
+                    LP
+                  </span>
                 </div>
-                <div className="text-[8px] font-bold text-rose-200/75 uppercase tracking-wider">
-                  LP
+                <div className="mt-1 h-1.5 w-full rounded-full bg-slate-950/90 border border-rose-500/40 overflow-hidden">
+                  <div
+                    className={`h-full transition-all duration-500 ${
+                      opponent.lp <= 2500
+                        ? 'bg-gradient-to-r from-red-500 via-orange-400 to-rose-400 animate-pulse'
+                        : 'bg-gradient-to-r from-rose-600 via-rose-400 to-pink-300'
+                    }`}
+                    style={{
+                      width: `${Math.max(0, Math.min(100, (opponent.lp / Math.max(1, opponent.maxLp)) * 100))}%`,
+                    }}
+                  />
                 </div>
               </div>
               <FloatingBadgeList
@@ -794,6 +824,14 @@ export const DuelBoard: React.FC<DuelBoardProps> = ({ onExit, onRematch }) => {
               {duelSpeed}x
             </button>
 
+            <button
+              type="button"
+              onClick={handleCyclePlaymat}
+              className="game-panel clip-chamfer-sm p-2 text-amber-300 border-amber-400/40 hover:border-amber-300 cursor-pointer transition-colors"
+              title={`Switch Arena Playmat (Current: ${activePlaymat.name})`}
+            >
+              <Palette className="w-4 h-4" />
+            </button>
             <button
               type="button"
               onClick={handleToggleBgm}
@@ -858,23 +896,28 @@ export const DuelBoard: React.FC<DuelBoardProps> = ({ onExit, onRematch }) => {
           </div>
         </div>
 
-        {/* CENTER PLAYMAT */}
-        <div className="flex-1 relative flex items-center justify-center my-1.5">
+        {/* CENTER 3D PERSPECTIVE PLAYMAT */}
+        <div className="flex-1 relative flex items-center justify-center my-1.5 arena-3d-stage">
           <div className="pointer-events-none absolute inset-0 flex items-center justify-center overflow-hidden">
-            <div className="w-full h-[2px] bg-gradient-to-r from-transparent via-cyan-400/50 via-50% to-transparent" />
+            <div
+              className="w-full h-[2px]"
+              style={{
+                background: `linear-gradient(90deg, transparent, ${activePlaymat.accentHex}88 50%, transparent)`,
+              }}
+            />
             <svg
               viewBox="0 0 400 400"
-              className="absolute w-[300px] h-[300px] sm:w-[430px] sm:h-[430px] opacity-[0.16] animate-spin-slow"
+              className="absolute w-[300px] h-[300px] sm:w-[430px] sm:h-[430px] opacity-[0.18] animate-spin-slow"
               fill="none"
             >
-              <circle cx="200" cy="200" r="185" stroke="#38bdf8" strokeWidth="1.5" strokeDasharray="12 8" />
-              <circle cx="200" cy="200" r="145" stroke="#c084fc" strokeWidth="1.2" />
+              <circle cx="200" cy="200" r="185" stroke={activePlaymat.accentHex} strokeWidth="1.5" strokeDasharray="12 8" />
+              <circle cx="200" cy="200" r="145" stroke={activePlaymat.secondaryHex} strokeWidth="1.2" />
               <polygon points="200,25 350,285 50,285" stroke="#fbbf24" strokeWidth="1" />
-              <polygon points="200,375 350,115 50,115" stroke="#38bdf8" strokeWidth="1" />
+              <polygon points="200,375 350,115 50,115" stroke={activePlaymat.accentHex} strokeWidth="1" />
             </svg>
           </div>
 
-          <div className="relative z-10 w-full flex flex-col items-center justify-center gap-2 sm:pr-24">
+          <div className="arena-3d-plane relative z-10 w-full flex flex-col items-center justify-center gap-2 sm:pr-24">
             {/* LIVE ACTIVE FIELD DOMAIN / RIFT SPIRE STATUS PILLS */}
             {(activeDomain || duel.spireFloor !== null) && (
               <div className="flex flex-wrap items-center justify-center gap-1.5">
@@ -1007,7 +1050,15 @@ export const DuelBoard: React.FC<DuelBoardProps> = ({ onExit, onRematch }) => {
             </div>
 
             {/* OPPONENT MONSTER ZONES (3) */}
-            <div className="flex items-center justify-center gap-2 sm:gap-5">
+            <div className="relative flex items-center justify-center gap-2 sm:gap-5">
+              {opponent.vanguard.some((u) => Boolean(u?.isMaximumMode)) && (
+                <div className="pointer-events-none absolute inset-x-4 top-1/2 -translate-y-1/2 z-0 flex items-center justify-center">
+                  <div className="w-full h-3 rounded-full bg-gradient-to-r from-amber-400 via-fuchsia-500 to-cyan-400 maximum-link-beam" />
+                  <span className="absolute -top-6 px-2.5 py-0.5 rounded-full bg-slate-950/95 border border-amber-300 text-[8.5px] font-display font-black tracking-widest text-amber-200 uppercase shadow-lg">
+                    ⚡ MAXIMUM CONDUIT LINKED ⚡
+                  </span>
+                </div>
+              )}
               {[0, 1, 2].map((slot) => {
                 const unit = opponent.vanguard[slot];
                 const def = unit ? CARD_MAP[unit.cardId] : null;
@@ -1102,6 +1153,7 @@ export const DuelBoard: React.FC<DuelBoardProps> = ({ onExit, onRematch }) => {
                             targetableGlow={needsEnemyTarget ? 'enemy' : null}
                             onClick={() => handleEnemyUnitClick(unit.instanceId)}
                             onHover={(c, ev) => setInspectCard(c.id, ev)}
+                            onLongPress={(c, ev) => setZoomCard({ cardId: c.id, isEvolved: ev })}
                           />
                         </FlipRevealWrapper>
 
@@ -1228,7 +1280,15 @@ export const DuelBoard: React.FC<DuelBoardProps> = ({ onExit, onRematch }) => {
             </div>
 
             {/* PLAYER MONSTER ZONES (3) */}
-            <div className="flex items-start justify-center gap-2 sm:gap-5">
+            <div className="relative flex items-start justify-center gap-2 sm:gap-5">
+              {player.vanguard.some((u) => Boolean(u?.isMaximumMode)) && (
+                <div className="pointer-events-none absolute inset-x-4 top-[78px] sm:top-[95px] -translate-y-1/2 z-0 flex items-center justify-center">
+                  <div className="w-full h-3.5 rounded-full bg-gradient-to-r from-amber-400 via-fuchsia-500 to-cyan-400 maximum-link-beam" />
+                  <span className="absolute -top-6 px-2.5 py-0.5 rounded-full bg-slate-950/95 border border-amber-300 text-[8.5px] font-display font-black tracking-widest text-amber-200 uppercase shadow-lg">
+                    ⚡ MAXIMUM MODE LINKED ⚡
+                  </span>
+                </div>
+              )}
               {[0, 1, 2].map((slot) => {
                 const unit = player.vanguard[slot];
                 const def = unit ? CARD_MAP[unit.cardId] : null;
@@ -1320,6 +1380,7 @@ export const DuelBoard: React.FC<DuelBoardProps> = ({ onExit, onRematch }) => {
                               }
                               onClick={() => handleFriendlyUnitClick(unit.instanceId)}
                               onHover={(c, ev) => setInspectCard(c.id, ev)}
+                              onLongPress={(c, ev) => setZoomCard({ cardId: c.id, isEvolved: ev })}
                             />
                           </FlipRevealWrapper>
 
@@ -1531,35 +1592,75 @@ export const DuelBoard: React.FC<DuelBoardProps> = ({ onExit, onRematch }) => {
           </div>
         </div>
 
-        {/* MOBILE PHASE BAR */}
-        <div className="flex sm:hidden items-center justify-between gap-2 px-1 py-1">
-          <span className="font-mono-num text-[11px] font-extrabold text-cyan-300">
-            T{Math.max(1, duel.turnNumber)} •{' '}
-            {isBattle ? 'BATTLE' : isMain ? 'MAIN' : 'RIVAL TURN'}
-          </span>
-          <div className="flex items-center gap-1.5">
-            {isMain && (
+        {/* MOBILE ERGONOMIC CIRCULAR PHASE DIAL BAR */}
+        <div className="flex sm:hidden items-center justify-between gap-2 px-1.5 py-1">
+          <div className="flex flex-col">
+            <span className="font-mono-num text-[11px] font-extrabold text-cyan-300 leading-tight">
+              TURN {Math.max(1, duel.turnNumber)} •{' '}
+              {isBattle ? 'BATTLE PHASE' : isMain ? 'MAIN PHASE' : 'RIVAL TURN'}
+            </span>
+            <span className="text-[9px] text-slate-400">
+              Hold any card 0.3s for 3D Zoom
+            </span>
+          </div>
+
+          <div className="flex items-center gap-2">
+            {/* Secondary compact END button when primary dial is BATTLE */}
+            {isMain && !isTurnOneNoBattle && readyAttackers.length > 0 && (
               <button
                 type="button"
-                onClick={handleBattleButtonClick}
-                className={`clip-skew-btn px-3 py-1.5 font-display font-extrabold text-[11px] flex items-center gap-1 cursor-pointer ${
-                  !isTurnOneNoBattle && readyAttackers.length > 0
-                    ? 'bg-gradient-to-r from-amber-500 to-rose-600 text-white shadow-[0_0_16px_rgba(245,158,11,0.7)]'
-                    : 'bg-slate-800 text-slate-400'
-                }`}
+                onClick={() => {
+                  haptics.tap();
+                  finishPlayerTurn();
+                }}
+                className="clip-chamfer-sm px-3 py-2 bg-slate-900/90 border border-indigo-400/60 text-cyan-200 font-display font-extrabold text-[10px] tracking-wider cursor-pointer active:scale-95"
               >
-                <Swords className="w-3 h-3" />
-                {isTurnOneNoBattle ? 'T1 LOCK' : `BATTLE (${readyAttackers.length})`}
+                END
               </button>
             )}
-            <button
-              type="button"
-              disabled={!isPlayerTurn}
-              onClick={finishPlayerTurn}
-              className="clip-skew-btn px-4 py-1.5 bg-gradient-to-r from-cyan-600 to-indigo-600 text-white font-display font-extrabold text-[11px] disabled:opacity-45 cursor-pointer"
-            >
-              END TURN
-            </button>
+
+            {/* Iconic Master Duel / Duel Links Circular Phase Dial */}
+            {isMain && !isTurnOneNoBattle && readyAttackers.length > 0 ? (
+              <button
+                type="button"
+                onClick={() => {
+                  haptics.impact();
+                  handleBattleButtonClick();
+                }}
+                className="relative w-14 h-14 rounded-full border-2 border-amber-200 bg-gradient-to-b from-amber-500 via-orange-600 to-rose-700 shadow-[0_0_24px_rgba(245,158,11,0.85)] flex flex-col items-center justify-center text-white active:scale-90 transition-transform cursor-pointer overflow-hidden"
+              >
+                <span className="pointer-events-none absolute inset-1 rounded-full border border-dashed border-amber-200/70 animate-spin-slow" />
+                <Swords className="w-4 h-4 relative z-10" />
+                <span className="font-display font-black text-[9px] tracking-wider leading-none mt-0.5 relative z-10">
+                  BATTLE
+                </span>
+                <span className="font-mono-num text-[7.5px] font-bold text-amber-100 leading-none relative z-10">
+                  {readyAttackers.length} RDY
+                </span>
+              </button>
+            ) : (
+              <button
+                type="button"
+                disabled={!isPlayerTurn}
+                onClick={() => {
+                  haptics.tap();
+                  finishPlayerTurn();
+                }}
+                className={`relative w-14 h-14 rounded-full border-2 flex flex-col items-center justify-center active:scale-90 transition-transform overflow-hidden ${
+                  isPlayerTurn
+                    ? 'border-cyan-200 bg-gradient-to-b from-cyan-500 via-indigo-600 to-purple-800 shadow-[0_0_24px_rgba(56,189,248,0.8)] text-white cursor-pointer'
+                    : 'border-rose-500/60 bg-gradient-to-b from-rose-950 to-slate-950 text-rose-200 opacity-75 cursor-not-allowed'
+                }`}
+              >
+                <span className="pointer-events-none absolute inset-1 rounded-full border border-dashed border-white/40 animate-spin-slow" />
+                <span className="font-display font-black text-[9px] tracking-wider leading-tight text-center relative z-10 px-1">
+                  {isPlayerTurn ? 'END\nTURN' : 'RIVAL'}
+                </span>
+                <span className="text-[7px] uppercase tracking-widest text-cyan-200/90 leading-none mt-0.5 relative z-10">
+                  {!isPlayerTurn ? 'WAIT' : isBattle ? 'BATTLE' : isTurnOneNoBattle ? 'T1' : 'MAIN'}
+                </span>
+              </button>
+            )}
           </div>
         </div>
 
@@ -1670,18 +1771,46 @@ export const DuelBoard: React.FC<DuelBoardProps> = ({ onExit, onRematch }) => {
         {/* PLAYER RESOURCE BAR (8000 LP • RUSH SUMMONS • EVO ORBS • SOUL BURN) */}
         <div className="flex flex-wrap items-center justify-between gap-1.5 px-1 sm:px-2">
           <div className="relative flex items-center gap-1.5 sm:gap-2">
-            {/* Player LP */}
+            {/* Player LP + Neon Progress Bar */}
             <div
               data-vfx-anchor="lp-player"
-              className="relative clip-chamfer-sm px-3 py-1 bg-gradient-to-b from-emerald-950/90 to-slate-950 border-2 border-emerald-400/70 flex items-center gap-1.5"
+              className={`relative clip-chamfer-sm px-3 py-1 bg-gradient-to-b border-2 flex items-center gap-1.5 ${
+                player.lp <= 2500
+                  ? 'from-rose-950/90 to-slate-950 border-rose-400/90 shadow-[0_0_18px_rgba(244,63,94,0.55)]'
+                  : 'from-emerald-950/90 to-slate-950 border-emerald-400/70'
+              }`}
             >
-              <Heart className="w-4 h-4 text-emerald-300 fill-emerald-400/40" />
-              <div className="leading-none">
-                <div className="font-mono-num font-extrabold text-base sm:text-lg text-white">
-                  <RollingLpCounter value={player.lp} />
+              <Heart
+                className={`w-4 h-4 shrink-0 ${
+                  player.lp <= 2500
+                    ? 'text-rose-300 fill-rose-500/50 animate-pulse'
+                    : 'text-emerald-300 fill-emerald-400/40'
+                }`}
+              />
+              <div className="leading-none min-w-[66px] sm:min-w-[82px]">
+                <div className="flex items-baseline justify-between gap-1">
+                  <div className="font-mono-num font-extrabold text-base sm:text-lg text-white">
+                    <RollingLpCounter value={player.lp} />
+                  </div>
+                  <span
+                    className={`text-[7.5px] font-bold uppercase tracking-wider ${
+                      player.lp <= 2500 ? 'text-rose-200' : 'text-emerald-200/80'
+                    }`}
+                  >
+                    LP
+                  </span>
                 </div>
-                <div className="text-[7.5px] font-bold text-emerald-200/80 uppercase tracking-wider">
-                  LP
+                <div className="mt-1 h-1.5 w-full rounded-full bg-slate-950/90 border border-emerald-500/35 overflow-hidden">
+                  <div
+                    className={`h-full transition-all duration-500 ${
+                      player.lp <= 2500
+                        ? 'bg-gradient-to-r from-rose-500 via-orange-400 to-amber-300 animate-pulse'
+                        : 'bg-gradient-to-r from-emerald-500 via-teal-400 to-cyan-300'
+                    }`}
+                    style={{
+                      width: `${Math.max(0, Math.min(100, (player.lp / Math.max(1, player.maxLp)) * 100))}%`,
+                    }}
+                  />
                 </div>
               </div>
               <ImpactSlashOverlay
@@ -1792,6 +1921,7 @@ export const DuelBoard: React.FC<DuelBoardProps> = ({ onExit, onRematch }) => {
             setVoidModalOwner('player');
           }}
           onHoverCard={(c, ev) => setInspectCard(c.id, ev)}
+          onLongPressCard={(c, ev) => setZoomCard({ cardId: c.id, isEvolved: ev })}
           onInspectCard={(cardId) => {
             soundEngine.uiClick();
             setInspectCard(cardId, false);
@@ -1838,6 +1968,102 @@ export const DuelBoard: React.FC<DuelBoardProps> = ({ onExit, onRematch }) => {
             </motion.div>
           </div>
         )}
+      </AnimatePresence>
+
+      {/* LONG-PRESS FULLSCREEN 3D INTERACTIVE CARD ZOOM MODAL */}
+      <AnimatePresence>
+        {zoomCard && CARD_MAP[zoomCard.cardId] && (() => {
+          const zCard = CARD_MAP[zoomCard.cardId];
+          const zEvo = zoomCard.isEvolved && zCard.evolvedData ? zCard.evolvedData : null;
+          const zKeywords = zEvo
+            ? Array.from(new Set([...zCard.keywords, ...zEvo.keywords, 'Rush' as const]))
+            : zCard.keywords;
+          return (
+            <motion.div
+              key="longpress-zoom-modal"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setZoomCard(null)}
+              className="fixed inset-0 z-[70] bg-black/88 backdrop-blur-md flex items-center justify-center p-4"
+            >
+              <motion.div
+                initial={{ scale: 0.82, opacity: 0, y: 18 }}
+                animate={{ scale: 1, opacity: 1, y: 0 }}
+                exit={{ scale: 0.88, opacity: 0 }}
+                transition={{ type: 'spring', stiffness: 280, damping: 24 }}
+                onClick={(e) => e.stopPropagation()}
+                className="w-full max-w-2xl flex flex-col md:flex-row items-center gap-5 p-4 sm:p-6 game-panel clip-chamfer border-amber-400/70 shadow-[0_0_80px_rgba(251,191,36,0.28)] relative"
+              >
+                <button
+                  type="button"
+                  onClick={() => setZoomCard(null)}
+                  className="absolute top-3 right-3 p-1.5 rounded-lg bg-slate-900 border border-slate-700 text-slate-300 hover:text-white cursor-pointer z-20"
+                  title="Close Zoom"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+
+                <div className="shrink-0 flex flex-col items-center gap-3 pb-3 md:pb-0">
+                  <Card
+                    card={zCard}
+                    size="lg"
+                    forceEvolved={zoomCard.isEvolved}
+                    showEvolvedToggle={Boolean(zCard.evolvedData)}
+                    interactiveTilt
+                  />
+                  <span className="text-[10px] text-slate-400 uppercase tracking-widest mt-2">
+                    Touch / Drag Card to Tilt 3D Foil
+                  </span>
+                </div>
+
+                <div className="flex-1 min-w-0 space-y-3 text-left w-full">
+                  <div>
+                    <div className="text-[10px] font-display font-extrabold uppercase tracking-[0.22em] text-amber-300">
+                      {zCard.rarity.toUpperCase()} • {zCard.type.replace('_', ' ').toUpperCase()}
+                      {zCard.level > 0 ? ` • ★${zCard.level}` : ''}
+                    </div>
+                    <h3 className="font-display text-lg sm:text-xl font-extrabold text-white mt-0.5">
+                      {zEvo ? zEvo.name : zCard.name}
+                    </h3>
+                    {(zCard.atk !== undefined || zCard.def !== undefined) && (
+                      <div className="mt-1 flex items-center gap-3 font-mono-num text-xs font-extrabold">
+                        <span className="text-amber-300">ATK {zEvo ? zEvo.atk : zCard.atk}</span>
+                        <span className="text-cyan-300">DEF {zEvo ? zEvo.def : zCard.def}</span>
+                      </div>
+                    )}
+                  </div>
+
+                  <p className="text-xs sm:text-sm text-slate-100 leading-relaxed bg-slate-950/80 border border-slate-800 rounded-xl p-3">
+                    {zEvo ? zEvo.effectText : zCard.effectText}
+                  </p>
+
+                  {zKeywords.length > 0 && (
+                    <div className="space-y-1.5">
+                      {zKeywords.map((kw) => (
+                        <div
+                          key={kw}
+                          className="text-[11px] bg-indigo-950/50 border border-indigo-500/35 rounded-lg px-2.5 py-1.5"
+                        >
+                          <strong className="text-cyan-300">{kw}:</strong>{' '}
+                          <span className="text-slate-300">{KEYWORDS[kw].shortDesc}</span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  <button
+                    type="button"
+                    onClick={() => setZoomCard(null)}
+                    className="w-full py-2 rounded-xl bg-slate-900 border border-cyan-400/50 text-cyan-200 font-display font-bold text-xs tracking-wider cursor-pointer hover:bg-cyan-950/60"
+                  >
+                    TAP TO CLOSE
+                  </button>
+                </div>
+              </motion.div>
+            </motion.div>
+          );
+        })()}
       </AnimatePresence>
 
       {/* TOAST */}

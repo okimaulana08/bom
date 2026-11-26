@@ -15,6 +15,7 @@ interface HandTrayProps {
   onOpenRiftDeck: () => void;
   onOpenVoid: () => void;
   onHoverCard: (card: CardDef, isEvolved: boolean) => void;
+  onLongPressCard?: (card: CardDef, isEvolved: boolean) => void;
   onInspectCard?: (cardId: string) => void;
 }
 
@@ -27,6 +28,7 @@ export const HandTray: React.FC<HandTrayProps> = ({
   onOpenRiftDeck,
   onOpenVoid,
   onHoverCard,
+  onLongPressCard,
   onInspectCard,
 }) => {
   const player = duel.players.player;
@@ -296,6 +298,7 @@ export const HandTray: React.FC<HandTrayProps> = ({
                       playableGlow={canPlayNow}
                       onClick={() => onSelectCard(hc.instanceId)}
                       onHover={onHoverCard}
+                      onLongPress={onLongPressCard}
                     />
                   </div>
                 </div>

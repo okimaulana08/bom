@@ -364,20 +364,36 @@ export const CampaignMap: React.FC<CampaignMapProps> = ({ onBack, onStartChapter
 
                 <div className="space-y-2.5">
                   <div>
-                    <label className="text-[10px] uppercase tracking-wider text-slate-400 font-bold block mb-1">
+                    <label className="text-[10px] uppercase tracking-wider text-slate-400 font-bold block mb-1.5">
                       Select Your Duel Deck
                     </label>
-                    <select
-                      value={chosenDeckId}
-                      onChange={(e) => setActiveDeck(e.target.value)}
-                      className="w-full clip-chamfer-sm bg-slate-900 border border-slate-700 px-3 py-2 text-xs text-white focus:border-cyan-400 outline-none"
-                    >
-                      {validDecks.map((d) => (
-                        <option key={d.id} value={d.id}>
-                          {d.name} ({d.mainDeck.length} Main / {d.riftDeck.length} Rift)
-                        </option>
-                      ))}
-                    </select>
+                    <div className="flex flex-wrap gap-1.5 max-h-28 overflow-y-auto pr-0.5">
+                      {validDecks.map((d) => {
+                        const isChosen = d.id === chosenDeckId;
+                        return (
+                          <button
+                            key={d.id}
+                            type="button"
+                            onClick={() => {
+                              soundEngine.uiClick();
+                              setActiveDeck(d.id);
+                            }}
+                            className={`flex-1 min-w-[140px] text-left clip-chamfer-sm px-2.5 py-1.5 border transition-all cursor-pointer ${
+                              isChosen
+                                ? 'bg-cyan-950/75 border-cyan-300 text-white shadow-[0_0_14px_rgba(34,211,238,0.35)]'
+                                : 'bg-slate-900/90 border-slate-700 text-slate-300 hover:border-cyan-400/60'
+                            }`}
+                          >
+                            <div className="font-display font-bold text-[11px] truncate">
+                              {d.name}
+                            </div>
+                            <div className="text-[9.5px] font-mono-num text-cyan-300/90">
+                              {d.mainDeck.length} Main • {d.riftDeck.length} Rift
+                            </div>
+                          </button>
+                        );
+                      })}
+                    </div>
                   </div>
 
                   <button
