@@ -3,14 +3,16 @@ import { persist } from 'zustand/middleware';
 import type {
   DeckList,
   DuelistSkillId,
+  MatchHistoryEntry,
   PackOpenResult,
   PlayerProfile,
   SpireBlessingId,
 } from '../engine/types';
-import { CARD_MAP, RARITY_CRAFT_COST, RARITY_DISMANTLE_DUST } from '../data/cards';
+import { CARDS, CARD_MAP, RARITY_CRAFT_COST, RARITY_DISMANTLE_DUST } from '../data/cards';
 import { buildStarterCollection, STARTER_DECK } from '../data/decks';
 import { BOOSTER_PACKS, rollBoosterPack } from '../data/packs';
 import { getChapter } from '../data/campaign';
+import { DAILY_STREAK_REWARDS, getYesterdayDateKey } from '../data/dailyRewards';
 import { MISSIONS } from '../data/missions';
 import {
   getSpireFloorEnemy,
@@ -42,6 +44,16 @@ interface ProfileStore extends PlayerProfile {
     useFreeDaily?: boolean
   ) => { ok: boolean; error?: string; result?: PackOpenResult };
   canClaimDailyFreePack: () => boolean;
+  canClaimDailyLogin: () => boolean;
+  getNextLoginDay: () => number;
+  claimDailyLogin: () => {
+    ok: boolean;
+    error?: string;
+    day?: number;
+    coinsGained?: number;
+    dustGained?: number;
+    bonusCardId?: string;
+  };
   craftCard: (cardId: string) => { ok: boolean; error?: string };
   craftRoyalFoil: (cardId: string) => { ok: boolean; error?: string };
   dismantleCard: (cardId: string) => { ok: boolean; error?: string; dustGained?: number };
@@ -78,6 +90,10 @@ interface ProfileStore extends PlayerProfile {
     maximumsPerformed?: number;
     trapsTriggered?: number;
     maxSingleHitDamage?: number;
+    deckId?: string;
+    deckName?: string;
+    opponentName?: string;
+    turns?: number;
   }) => MatchRewardSummary;
   resetProfile: () => void;
 }
@@ -99,6 +115,10 @@ function createInitialProfile(): PlayerProfile {
     duelSpeed: 1,
     selectedSkillId: 'volcanic_ignition',
     lastFreePackDate: null,
+    loginStreak: 0,
+    lastLoginClaimDate: null,
+    deckRecords: {},
+    matchHistory: [],
     royalFoils: {},
     tutorialCompleted: false,
     spireRun: null,
@@ -124,6 +144,70 @@ export const useProfileStore = create<ProfileStore>()(
       canClaimDailyFreePack: () => {
         const last = get().lastFreePackDate;
         return last !== getTodayDateKey();
+      },
+
+      canClaimDailyLogin: () => {
+        return (get().lastLoginClaimDate ?? null) !== getTodayDateKey();
+      },
+
+      getNextLoginDay: () => {
+        const s = get();
+        const today = getTodayDateKey();
+        const last = s.lastLoginClaimDate ?? null;
+        const streak = s.loginStreak ?? 0;
+        if (last === today) return Math.max(1, streak);
+        if (last === getYesterdayDateKey()) {
+          return (streak % 7) + 1;
+        }
+        return 1;
+      },
+
+      claimDailyLogin: () => {
+        const s = get();
+        const today = getTodayDateKey();
+        if ((s.lastLoginClaimDate ?? null) === today) {
+          return { ok: false, error: 'Daily login bonus already claimed today!' };
+        }
+        const day = s.getNextLoginDay();
+        const reward = DAILY_STREAK_REWARDS[day - 1] ?? DAILY_STREAK_REWARDS[0];
+        const coinsGained = reward.coins ?? 0;
+        let dustGained = reward.dust ?? 0;
+        let bonusCardId: string | undefined;
+        const nextCollection = { ...s.collection };
+
+        if (reward.randomMythic) {
+          const mythicPool = CARDS.filter(
+            (c) => c.rarity === 'mythic' && !c.isToken && !c.isExclusive
+          );
+          const unowned = mythicPool.filter((c) => (nextCollection[c.id] ?? 0) === 0);
+          const pickFrom = unowned.length > 0 ? unowned : mythicPool;
+          if (pickFrom.length > 0) {
+            const picked = pickFrom[Math.floor(Math.random() * pickFrom.length)];
+            bonusCardId = picked.id;
+            const owned = nextCollection[picked.id] ?? 0;
+            if (owned >= 3) {
+              dustGained += RARITY_DISMANTLE_DUST.mythic;
+            } else {
+              nextCollection[picked.id] = owned + 1;
+            }
+          }
+        }
+
+        set({
+          coins: s.coins + coinsGained,
+          dust: s.dust + dustGained,
+          collection: nextCollection,
+          loginStreak: day,
+          lastLoginClaimDate: today,
+        });
+
+        return {
+          ok: true,
+          day,
+          coinsGained,
+          dustGained,
+          bonusCardId,
+        };
       },
 
       openPack: (packId, useFreeDaily = false) => {
@@ -364,6 +448,13 @@ export const useProfileStore = create<ProfileStore>()(
           bgmEnabled: s.bgmEnabled ?? true,
           trapPromptMode: s.trapPromptMode ?? 'manual',
           duelSpeed: s.duelSpeed ?? 1,
+          selectedSkillId: s.selectedSkillId ?? 'volcanic_ignition',
+          lastFreePackDate: s.lastFreePackDate ?? null,
+          loginStreak: s.loginStreak ?? 0,
+          lastLoginClaimDate: s.lastLoginClaimDate ?? null,
+          deckRecords: s.deckRecords ?? {},
+          matchHistory: s.matchHistory ?? [],
+          royalFoils: s.royalFoils ?? {},
           stats: s.stats,
         };
         return JSON.stringify({ version: 1, game: 'aetherbound-rift-duel', profile: payload }, null, 2);
@@ -415,6 +506,10 @@ export const useProfileStore = create<ProfileStore>()(
         maximumsPerformed = 0,
         trapsTriggered = 0,
         maxSingleHitDamage = 0,
+        deckId,
+        deckName,
+        opponentName,
+        turns,
       }) => {
         const state = get();
         let coinsEarned = won ? 100 + Math.floor(Math.random() * 51) : 35;
@@ -489,6 +584,38 @@ export const useProfileStore = create<ProfileStore>()(
           }
         }
 
+        const resolvedDeckId = deckId ?? state.activeDeckId;
+        const resolvedDeckName =
+          deckName ??
+          state.decks.find((d) => d.id === resolvedDeckId)?.name ??
+          'Rift Deck';
+        const prevRec = state.deckRecords?.[resolvedDeckId] ?? { wins: 0, losses: 0 };
+        const nowIso = new Date().toISOString();
+        const nextDeckRecords = {
+          ...(state.deckRecords ?? {}),
+          [resolvedDeckId]: {
+            wins: prevRec.wins + (won ? 1 : 0),
+            losses: prevRec.losses + (won ? 0 : 1),
+            lastPlayedAt: nowIso,
+          },
+        };
+        const historyEntry: MatchHistoryEntry = {
+          id: `mh_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`,
+          date: nowIso,
+          mode: spireFloor !== null ? 'spire' : chapterId !== null ? 'campaign' : 'quick_duel',
+          deckId: resolvedDeckId,
+          deckName: resolvedDeckName,
+          opponentName:
+            opponentName ??
+            (chapterId !== null ? getChapter(chapterId)?.bossName ?? 'Campaign Boss' : 'Rift Rival'),
+          won,
+          turns: turns ?? 1,
+          remainingLp: Math.max(0, remainingPlayerLp ?? 0),
+          fusions: fusionsPerformed,
+          maximums: maximumsPerformed,
+        };
+        const nextHistory = [historyEntry, ...(state.matchHistory ?? [])].slice(0, 30);
+
         set({
           coins: state.coins + coinsEarned,
           dust: nextDust,
@@ -497,6 +624,8 @@ export const useProfileStore = create<ProfileStore>()(
           claimedChapterRewards: nextClaimed,
           hasChampionBadge: nextChampion,
           spireRun: nextSpireRun,
+          deckRecords: nextDeckRecords,
+          matchHistory: nextHistory,
           stats: {
             ...state.stats,
             duelsWon: state.stats.duelsWon + (won ? 1 : 0),
@@ -527,7 +656,7 @@ export const useProfileStore = create<ProfileStore>()(
     }),
     {
       name: 'aetherbound-rift-duel-profile-v1',
-      version: 3,
+      version: 4,
       migrate: (persisted: unknown, version: number) => {
         const state = persisted as PlayerProfile | undefined;
         if (!state) return createInitialProfile();
@@ -553,6 +682,10 @@ export const useProfileStore = create<ProfileStore>()(
           selectedSkillId: state.selectedSkillId ?? 'volcanic_ignition',
           royalFoils: state.royalFoils ?? {},
           lastFreePackDate: state.lastFreePackDate ?? null,
+          loginStreak: state.loginStreak ?? 0,
+          lastLoginClaimDate: state.lastLoginClaimDate ?? null,
+          deckRecords: state.deckRecords ?? {},
+          matchHistory: Array.isArray(state.matchHistory) ? state.matchHistory : [],
           tutorialCompleted: state.tutorialCompleted ?? false,
           spireRun: state.spireRun ?? null,
         };

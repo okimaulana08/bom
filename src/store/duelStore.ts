@@ -131,6 +131,8 @@ export interface PendingTribute {
 interface DuelStore {
   duel: DuelState | null;
   opponentPortrait: string;
+  playerDeckId: string | null;
+  playerDeckName: string | null;
   bossDialogue: string | null;
   bossLowLpTriggered: boolean;
   selectedHandId: string | null;
@@ -806,6 +808,10 @@ export const useDuelStore = create<DuelStore>((set, get) => {
         maximumsPerformed: nextState.maximumsPerformed,
         trapsTriggered,
         maxSingleHitDamage,
+        deckId: get().playerDeckId ?? undefined,
+        deckName: get().playerDeckName ?? undefined,
+        opponentName: nextState.players.opponent.name,
+        turns: nextState.turnNumber,
       });
 
       if (hadLethalBlow) {
@@ -970,6 +976,8 @@ export const useDuelStore = create<DuelStore>((set, get) => {
   return {
     duel: null,
     opponentPortrait: '/assets/portraits/boss_kael.jpg',
+    playerDeckId: null,
+    playerDeckName: null,
     bossDialogue: null,
     bossLowLpTriggered: false,
     selectedHandId: null,
@@ -1003,6 +1011,8 @@ export const useDuelStore = create<DuelStore>((set, get) => {
       set({
         duel: initial,
         opponentPortrait,
+        playerDeckId: config.playerDeckId ?? null,
+        playerDeckName: config.playerDeckName ?? null,
         bossDialogue: null,
         bossLowLpTriggered: false,
         selectedHandId: null,

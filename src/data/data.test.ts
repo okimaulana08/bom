@@ -89,8 +89,9 @@ describe('Card Database, Decks, Campaign & Booster Packs Integrity', () => {
     }
   });
 
-  it('validates all 5 campaign chapters and boss modifiers initialize cleanly', () => {
-    expect(CAMPAIGN_CHAPTERS.length).toBe(5);
+  it('validates all 10 campaign chapters (Season 1 + Season 2) and boss modifiers initialize cleanly', () => {
+    expect(CAMPAIGN_CHAPTERS.length).toBe(10);
+    expect(AI_ARCHETYPES.length).toBe(12);
     for (const ch of CAMPAIGN_CHAPTERS) {
       expect(CARD_MAP[ch.rewardCardId]).toBeDefined();
       const duel = createDuel(
@@ -104,6 +105,7 @@ describe('Card Database, Decks, Campaign & Booster Packs Integrity', () => {
           opponentStartLp: ch.bossLp,
           opponentStartEvoOrbs: ch.bossEvoOrbs,
           bossModifier: ch.bossModifier,
+          opponentSkillId: ch.bossSkillId ?? null,
           chapterId: ch.id,
           seed: ch.id * 101,
         },

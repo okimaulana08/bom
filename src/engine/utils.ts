@@ -98,10 +98,11 @@ export function getEffectiveAtk(
   registry: Record<string, CardDef>
 ): number {
   const domain = getDomainBonuses(state, unit.owner, registry);
-  const blessingBonus = state.players[unit.owner].blessings.includes('blessing_vanguard_might')
-    ? 300
-    : 0;
-  return Math.max(0, unit.currentAtk + domain.friendlyAtk + blessingBonus);
+  const ownerState = state.players[unit.owner];
+  const bossAtkBonus =
+    ownerState.bossModifier === 'dragon_rush_fury' && ownerState.turnsTaken >= 2 ? 200 : 0;
+  const blessingBonus = ownerState.blessings.includes('blessing_vanguard_might') ? 300 : 0;
+  return Math.max(0, unit.currentAtk + domain.friendlyAtk + bossAtkBonus + blessingBonus);
 }
 
 export function getEffectiveDef(

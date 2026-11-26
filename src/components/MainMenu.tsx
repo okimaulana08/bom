@@ -7,6 +7,8 @@ import {
   Coins,
   Crown,
   Download,
+  Flame,
+  Gift,
   Hammer,
   HardDrive,
   HelpCircle,
@@ -25,6 +27,7 @@ import {
 } from 'lucide-react';
 import { CARDS, CARD_MAP } from '../data/cards';
 import { CAMPAIGN_CHAPTERS } from '../data/campaign';
+import { DAILY_STREAK_REWARDS } from '../data/dailyRewards';
 import { FACTIONS } from '../data/factions';
 import { countClaimableMissions, getDuelistRank } from '../data/missions';
 import { DUELIST_SKILLS, getSkillDef } from '../data/skills';
@@ -122,16 +125,30 @@ export const MainMenu: React.FC<MainMenuProps> = ({ onNavigate }) => {
     setSelectedSkill,
     spireRun,
     canClaimDailyFreePack,
+    canClaimDailyLogin,
+    getNextLoginDay,
+    claimDailyLogin,
+    loginStreak,
     toggleSound,
   } = profile;
 
   const freeDailyReady = canClaimDailyFreePack();
+  const dailyLoginReady = canClaimDailyLogin();
+  const nextLoginDay = getNextLoginDay();
+  const currentStreak = loginStreak ?? 0;
   const activeSkill = getSkillDef(selectedSkillId);
 
   const [leaderIdx, setLeaderIdx] = useState(0);
   const [missionsOpen, setMissionsOpen] = useState(false);
   const [backupOpen, setBackupOpen] = useState(false);
   const [installHelpOpen, setInstallHelpOpen] = useState(false);
+  const [streakOpen, setStreakOpen] = useState(false);
+  const [streakClaimResult, setStreakClaimResult] = useState<{
+    day: number;
+    coinsGained: number;
+    dustGained: number;
+    bonusCardId?: string;
+  } | null>(null);
   const pwa = usePwaInstall();
 
   const handleInstallClick = async () => {
@@ -367,6 +384,32 @@ export const MainMenu: React.FC<MainMenuProps> = ({ onNavigate }) => {
           >
             <Wand2 className="w-4 h-4 text-fuchsia-300" />
             <span className="font-mono-num font-extrabold text-sm text-fuchsia-100">{dust}</span>
+          </button>
+
+          {/* 7-Day Daily Login Streak Button */}
+          <button
+            type="button"
+            onClick={() => {
+              soundEngine.uiClick();
+              setStreakClaimResult(null);
+              setStreakOpen(true);
+            }}
+            className={`relative game-panel clip-chamfer-sm px-2.5 sm:px-3 py-1.5 flex items-center gap-1.5 transition-all cursor-pointer ${
+              dailyLoginReady
+                ? 'border-orange-400 text-amber-200 shadow-[0_0_18px_rgba(251,146,60,0.5)]'
+                : 'border-slate-700 text-slate-200 hover:border-amber-400/70'
+            }`}
+            title="7-Day Daily Login Streak Rewards"
+          >
+            <Flame className={`w-4 h-4 ${dailyLoginReady ? 'text-orange-400 animate-pulse' : 'text-amber-300'}`} />
+            <span className="hidden sm:inline font-display font-extrabold text-xs tracking-wider uppercase">
+              {dailyLoginReady ? `Day ${nextLoginDay}!` : `Streak ${currentStreak}/7`}
+            </span>
+            {dailyLoginReady && (
+              <span className="px-1.5 py-0.5 rounded-full bg-gradient-to-r from-orange-500 to-amber-400 text-[9px] font-extrabold text-slate-950 animate-pulse">
+                🎁
+              </span>
+            )}
           </button>
 
           {/* Missions & Rank Button */}
@@ -710,7 +753,7 @@ export const MainMenu: React.FC<MainMenuProps> = ({ onNavigate }) => {
                 {CAMPAIGN_CHAPTERS.map((ch) => (
                   <span
                     key={ch.id}
-                    className={`w-3.5 h-1.5 rounded-sm ${
+                    className={`w-2 h-1.5 rounded-sm ${
                       completedChapters.includes(ch.id)
                         ? 'bg-emerald-400 shadow-[0_0_6px_#34d399]'
                         : ch.id === nextChapter.id
@@ -720,7 +763,7 @@ export const MainMenu: React.FC<MainMenuProps> = ({ onNavigate }) => {
                   />
                 ))}
                 <span className="text-[10px] text-slate-400 font-mono-num ml-1">
-                  {completedChapters.length}/5
+                  {completedChapters.length}/{CAMPAIGN_CHAPTERS.length}
                 </span>
               </div>
             </div>
@@ -750,6 +793,139 @@ export const MainMenu: React.FC<MainMenuProps> = ({ onNavigate }) => {
 
       <MissionsModal open={missionsOpen} onClose={() => setMissionsOpen(false)} />
       <SaveBackupModal open={backupOpen} onClose={() => setBackupOpen(false)} />
+
+      {/* 7-DAY LOGIN STREAK MODAL */}
+      {streakOpen && (
+        <div
+          onClick={() => setStreakOpen(false)}
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 backdrop-blur-md p-3 sm:p-5"
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            className="w-full max-w-xl game-panel clip-chamfer border-amber-400/70 shadow-[0_0_65px_rgba(251,146,60,0.3)] overflow-hidden"
+          >
+            <div className="px-4 sm:px-5 py-3.5 border-b border-slate-800 bg-gradient-to-r from-orange-950/75 via-slate-950 to-amber-950/65 flex items-center justify-between">
+              <div className="flex items-center gap-2.5">
+                <Gift className="w-5 h-5 text-amber-300" />
+                <div>
+                  <h3 className="font-display font-extrabold text-sm sm:text-base text-white uppercase tracking-wider">
+                    7-Day Login Streak Bonus
+                  </h3>
+                  <p className="text-[11px] text-amber-200/85">
+                    Login berturut-turut untuk Coins, Dust &amp; Kartu Mythic Gratis di Hari ke-7!
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setStreakOpen(false)}
+                className="p-1.5 rounded-lg bg-slate-900 border border-slate-700 text-slate-300 hover:text-white cursor-pointer"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <div className="p-4 sm:p-5 space-y-4">
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                {DAILY_STREAK_REWARDS.map((r) => {
+                  const isClaimedToday = !dailyLoginReady && r.day === currentStreak;
+                  const isPast = dailyLoginReady
+                    ? r.day < nextLoginDay
+                    : r.day <= currentStreak;
+                  const isTodayTarget = dailyLoginReady && r.day === nextLoginDay;
+
+                  return (
+                    <div
+                      key={r.day}
+                      className={`rounded-xl border p-2.5 text-center transition-all ${
+                        r.highlight ? 'col-span-2 sm:col-span-2' : ''
+                      } ${
+                        isTodayTarget
+                          ? 'bg-gradient-to-br from-amber-950/90 to-orange-950/90 border-amber-300 shadow-[0_0_18px_rgba(251,191,36,0.4)]'
+                          : isPast
+                          ? 'bg-emerald-950/40 border-emerald-500/50 opacity-85'
+                          : 'bg-slate-950/85 border-slate-800'
+                      }`}
+                    >
+                      <div className="text-[10px] font-extrabold uppercase tracking-widest text-slate-400">
+                        DAY {r.day}
+                      </div>
+                      <div
+                        className={`mt-1 font-display font-extrabold text-xs sm:text-sm ${
+                          r.highlight
+                            ? 'text-amber-200'
+                            : r.dust
+                            ? 'text-fuchsia-300'
+                            : 'text-amber-300'
+                        }`}
+                      >
+                        {r.label}
+                      </div>
+                      <div className="mt-1 text-[9.5px] font-bold">
+                        {isClaimedToday ? (
+                          <span className="text-emerald-300">✓ Claimed Today</span>
+                        ) : isPast ? (
+                          <span className="text-emerald-400">✓ Claimed</span>
+                        ) : isTodayTarget ? (
+                          <span className="text-amber-300 animate-pulse">★ READY NOW!</span>
+                        ) : (
+                          <span className="text-slate-500">Locked</span>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+
+              {streakClaimResult && (
+                <div className="rounded-xl bg-emerald-950/60 border border-emerald-400/70 p-3 flex items-center justify-between gap-3">
+                  <div className="text-xs text-emerald-100">
+                    <strong className="text-emerald-300">Day {streakClaimResult.day} Claimed!</strong>{' '}
+                    {streakClaimResult.coinsGained > 0 && `+${streakClaimResult.coinsGained} Coins `}
+                    {streakClaimResult.dustGained > 0 && `+${streakClaimResult.dustGained} Dust `}
+                    {streakClaimResult.bonusCardId && CARD_MAP[streakClaimResult.bonusCardId] && (
+                      <span className="text-amber-300 font-bold">
+                        ★ Mythic: {CARD_MAP[streakClaimResult.bonusCardId].name}!
+                      </span>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              <div className="flex justify-end gap-2">
+                {dailyLoginReady ? (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const res = claimDailyLogin();
+                      if (res.ok) {
+                        soundEngine.evolve();
+                        setStreakClaimResult({
+                          day: res.day ?? nextLoginDay,
+                          coinsGained: res.coinsGained ?? 0,
+                          dustGained: res.dustGained ?? 0,
+                          bonusCardId: res.bonusCardId,
+                        });
+                      }
+                    }}
+                    className="w-full clip-skew-btn py-3 bg-gradient-to-r from-amber-500 via-orange-500 to-rose-500 text-white font-display font-extrabold text-xs sm:text-sm tracking-wider shadow-[0_0_24px_rgba(251,146,60,0.55)] hover:brightness-110 cursor-pointer"
+                  >
+                    🎁 CLAIM DAY {nextLoginDay} REWARD
+                  </button>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => setStreakOpen(false)}
+                    className="w-full py-2.5 rounded-xl bg-slate-900 border border-slate-700 text-slate-200 font-display font-bold text-xs tracking-wider cursor-pointer"
+                  >
+                    SUDAH DIKLAIM HARI INI — KEMBALI BESOK!
+                  </button>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* PWA INSTALL GUIDE MODAL (iOS Safari / Manual Browser Fallback) */}
       {installHelpOpen && (

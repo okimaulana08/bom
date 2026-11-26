@@ -17,7 +17,8 @@ interface QuickDuelSetupProps {
 }
 
 export const QuickDuelSetup: React.FC<QuickDuelSetupProps> = ({ onBack, onLaunch }) => {
-  const { decks, activeDeckId, setActiveDeck, selectedSkillId, setSelectedSkill } = useProfileStore();
+  const { decks, activeDeckId, setActiveDeck, selectedSkillId, setSelectedSkill, deckRecords } =
+    useProfileStore();
   const activeSkill = getSkillDef(selectedSkillId);
   const validDecks = decks.filter((d) => d.mainDeck.length === 30);
 
@@ -62,27 +63,39 @@ export const QuickDuelSetup: React.FC<QuickDuelSetupProps> = ({ onBack, onLaunch
               1. Choose Your Deck
             </div>
             <div className="space-y-2 max-h-48 overflow-y-auto">
-              {validDecks.map((d) => (
-                <button
-                  key={d.id}
-                  type="button"
-                  onClick={() => {
-                    soundEngine.uiClick();
-                    setSelectedDeckId(d.id);
-                    setActiveDeck(d.id);
-                  }}
-                  className={`w-full text-left p-3 rounded-xl border transition-all cursor-pointer ${
-                    selectedDeckId === d.id
-                      ? 'bg-cyan-950/50 border-cyan-400 text-white'
-                      : 'bg-slate-900/70 border-slate-800 text-slate-300 hover:border-slate-600'
-                  }`}
-                >
-                  <div className="font-display font-bold text-sm">{d.name}</div>
-                  <div className="text-[11px] text-slate-400 mt-0.5">
-                    {d.mainDeck.length} Main Cards • {d.riftDeck.length} Rift Fusion Apex
-                  </div>
-                </button>
-              ))}
+              {validDecks.map((d) => {
+                const rec = deckRecords?.[d.id];
+                const tot = rec ? rec.wins + rec.losses : 0;
+                const wr = tot > 0 && rec ? Math.round((rec.wins / tot) * 100) : null;
+                return (
+                  <button
+                    key={d.id}
+                    type="button"
+                    onClick={() => {
+                      soundEngine.uiClick();
+                      setSelectedDeckId(d.id);
+                      setActiveDeck(d.id);
+                    }}
+                    className={`w-full text-left p-3 rounded-xl border transition-all cursor-pointer ${
+                      selectedDeckId === d.id
+                        ? 'bg-cyan-950/50 border-cyan-400 text-white'
+                        : 'bg-slate-900/70 border-slate-800 text-slate-300 hover:border-slate-600'
+                    }`}
+                  >
+                    <div className="flex items-center justify-between gap-2">
+                      <div className="font-display font-bold text-sm truncate">{d.name}</div>
+                      {tot > 0 && rec && (
+                        <span className="px-1.5 py-0.5 rounded bg-slate-950 border border-slate-700 font-mono-num text-[10px] font-bold text-emerald-300 shrink-0">
+                          {rec.wins}W-{rec.losses}L • {wr}%
+                        </span>
+                      )}
+                    </div>
+                    <div className="text-[11px] text-slate-400 mt-0.5">
+                      {d.mainDeck.length} Main Cards • {d.riftDeck.length} Rift Fusion Apex
+                    </div>
+                  </button>
+                );
+              })}
             </div>
           </div>
 
@@ -212,6 +225,11 @@ export const QuickDuelSetup: React.FC<QuickDuelSetupProps> = ({ onBack, onLaunch
                     <div className="font-display font-bold text-sm text-white leading-tight mt-0.5 truncate">
                       {arch.name}
                     </div>
+                    {difficulty === 'grandmaster' && arch.skillId && (
+                      <div className="text-[9.5px] font-bold text-amber-300 mt-0.5 truncate">
+                        ★ Skill: {getSkillDef(arch.skillId).skillName}
+                      </div>
+                    )}
                     <p className="text-[11px] text-slate-400 mt-1 line-clamp-2 lg:line-clamp-3 leading-snug">
                       {arch.description}
                     </p>

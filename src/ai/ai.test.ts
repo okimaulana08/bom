@@ -11,7 +11,7 @@ import {
 } from './aiAgent';
 
 describe('Heuristic AI Opponent & Full-Match Stress Simulation', () => {
-  it('executes complete AI turns without stalling across all 5 campaign bosses', () => {
+  it('executes complete AI turns without stalling across all 10 campaign bosses (incl. Season 2 Skills & Maximum)', () => {
     for (const ch of CAMPAIGN_CHAPTERS) {
       let state = createDuel(
         {
@@ -24,6 +24,7 @@ describe('Heuristic AI Opponent & Full-Match Stress Simulation', () => {
           opponentStartLp: ch.bossLp,
           opponentStartEvoOrbs: ch.bossEvoOrbs,
           bossModifier: ch.bossModifier,
+          opponentSkillId: ch.bossSkillId ?? null,
           chapterId: ch.id,
           aiDifficulty: ch.aiDifficulty,
           seed: ch.id * 777,
@@ -130,5 +131,41 @@ describe('Heuristic AI Opponent & Full-Match Stress Simulation', () => {
     expect(afterActAtk.players.player.arcane[0]).toBeNull();
     expect(afterActAtk.players.opponent.vanguard[0]).toBeNull();
     expect(afterActAtk.players.player.lp).toBe(8000);
+  });
+
+  it('triggers AI 3-Piece Maximum Summon and Boss Duelist Skill on Grandmaster difficulty', () => {
+    let state = createDuel(
+      {
+        playerName: 'Tester',
+        opponentName: 'Commander Nail-Omega',
+        playerDeck: STARTER_DECK.mainDeck,
+        playerRiftDeck: STARTER_DECK.riftDeck,
+        opponentDeck: STARTER_DECK.mainDeck,
+        opponentRiftDeck: STARTER_DECK.riftDeck,
+        opponentSkillId: 'canopy_awakening',
+        aiDifficulty: 'grandmaster',
+        seed: 99,
+      },
+      CARD_MAP
+    );
+    state = submitMulligan(state, [], CARD_MAP).state;
+    state = endTurn(state, 'player', CARD_MAP).state;
+    state.players.opponent.turnsTaken = 2;
+    state.players.opponent.hand = [
+      { instanceId: 'm_l', cardId: 'mech_magnum_overlord_l' },
+      { instanceId: 'm_c', cardId: 'mech_magnum_overlord_c' },
+      { instanceId: 'm_r', cardId: 'mech_magnum_overlord_r' },
+    ];
+
+    const maxAct = decideNextAiAction(state, CARD_MAP);
+    expect(maxAct.kind).toBe('maximum_summon');
+    state = applyAiAction(state, maxAct, CARD_MAP);
+    expect(state.players.opponent.vanguard[1]?.isMaximumMode).toBe(true);
+    expect(state.players.opponent.vanguard[1]?.currentAtk).toBe(4400);
+
+    const skillAct = decideNextAiAction(state, CARD_MAP);
+    expect(skillAct.kind).toBe('activate_skill');
+    state = applyAiAction(state, skillAct, CARD_MAP);
+    expect(state.players.opponent.skillUsed).toBe(true);
   });
 });

@@ -1,4 +1,4 @@
-import type { DeckList, Faction } from '../engine/types';
+import type { DeckList, DuelistSkillId, Faction } from '../engine/types';
 
 function expand(entries: Array<[string, number]>): string[] {
   const out: string[] = [];
@@ -53,6 +53,7 @@ export interface AiArchetype {
   faction: Faction;
   description: string;
   portrait: string;
+  skillId?: DuelistSkillId;
   mainDeck: string[];
   riftDeck: string[];
 }
@@ -239,6 +240,151 @@ export const AI_ARCHETYPES: AiArchetype[] = [
       'fusion_nightshade_queen',
       'fusion_zerokelvin_shinobi',
     ],
+  },
+  {
+    id: 'ai_egyptian_gods',
+    name: 'Pharaoh Atem-Ra',
+    title: 'Egyptian Gods (Set 5)',
+    faction: 'chrono',
+    description:
+      'Commands Osiris, Obelisk & Ra backed by Millennium Ankh revivals, Pyramid Domain & Creator Fusion Horakhty!',
+    portrait: '/assets/cards/egypt_ra_sun_phoenix.jpg',
+    skillId: 'destiny_draw',
+    mainDeck: expand([
+      ['egypt_ra_disciple', 3],
+      ['egypt_anubis_jackal', 3],
+      ['egypt_horus_falcon', 2],
+      ['egypt_sphinx_guardian', 2],
+      ['egypt_osiris_sky_dragon', 1],
+      ['egypt_obelisk_tormentor', 1],
+      ['egypt_ra_sun_phoenix', 1],
+      ['chrono_star_initiate', 3],
+      ['chrono_clock_angel', 2],
+      ['chrono_polymerization', 2],
+      ['egypt_millennium_ankh', 2],
+      ['egypt_pyramid_domain', 2],
+      ['egypt_millennium_rod', 2],
+      ['egypt_pharaoh_judgment', 2],
+      ['chrono_aether_vessel', 2],
+    ]),
+    riftDeck: ['egypt_fusion_horakhty', 'egypt_fusion_horakhty', 'fusion_aether_sovereign'],
+  },
+  {
+    id: 'ai_yggdrasil_maximum',
+    name: 'Empress Titania',
+    title: 'Yggdrasil Maximum (Set 6)',
+    faction: 'sylvan',
+    description:
+      'Assembles the 4300 ATK 3-Piece Yggdrasil Maximum Titan with rapid draw, Canopy Healing & Sylvan Sovereign Fusion!',
+    portrait: '/assets/cards/ygg_verdant_empress.jpg',
+    skillId: 'canopy_awakening',
+    mainDeck: expand([
+      ['ygg_sky_emperor_l', 2],
+      ['ygg_sky_emperor_c', 2],
+      ['ygg_sky_emperor_r', 2],
+      ['ygg_seedling_sprite', 3],
+      ['ygg_petal_valkyrie', 3],
+      ['ygg_ancient_treant', 2],
+      ['ygg_verdant_empress', 1],
+      ['sylvan_spirit_fox', 3],
+      ['sylvan_tempest_griffin', 2],
+      ['ygg_world_bloom', 2],
+      ['ygg_canopy_crown', 2],
+      ['ygg_worldtree_domain', 2],
+      ['ygg_root_snare', 2],
+      ['chrono_polymerization', 2],
+    ]),
+    riftDeck: ['ygg_fusion_worldtree', 'ygg_fusion_worldtree', 'fusion_celestial_canopy'],
+  },
+  {
+    id: 'ai_legendary_dragons',
+    name: 'Dragonmaster Luke',
+    title: 'Legendary Dragons (Set 7)',
+    faction: 'pyroclast',
+    description:
+      'Double-striking Multistrike Dragias, Azure-Eyes Frost Dragon, Crimson Meteor & Draconic Mirror Fusion!',
+    portrait: '/assets/cards/drag_multistrike_dragias.jpg',
+    skillId: 'volcanic_ignition',
+    mainDeck: expand([
+      ['drag_multistrike_dragias', 2],
+      ['drag_azure_eyes', 2],
+      ['drag_crimson_eyes', 1],
+      ['drag_spark_whelp', 3],
+      ['drag_frost_wyvern', 3],
+      ['drag_eclipse_drake', 2],
+      ['pyro_solar_whelp', 3],
+      ['pyro_sky_dragoon', 2],
+      ['cryo_rail_sniper', 2],
+      ['drag_mirror_fusion', 2],
+      ['chrono_convergence', 2],
+      ['drag_burst_stream', 2],
+      ['drag_fang_relic', 2],
+      ['drag_roar_ambush', 2],
+    ]),
+    riftDeck: [
+      'drag_fusion_crimson_meteor',
+      'drag_fusion_azure_ultimate',
+      'fusion_frostfire_chimera',
+      'fusion_supernova_starwyrm',
+    ],
+  },
+  {
+    id: 'ai_sevens_magicians',
+    name: 'Archmage Yuga-Vex',
+    title: 'Sevens Magicians (Set 8)',
+    faction: 'umbra',
+    description:
+      'Sevens Road Astral Mage & Obsidian Dark Magus backed by Sevens Dark Paladin, Thousand Blades & Spell Cylinder!',
+    portrait: '/assets/cards/mag_sevens_archmage.jpg',
+    skillId: 'void_resurrection',
+    mainDeck: expand([
+      ['mag_sevens_archmage', 2],
+      ['mag_dark_sorcerer', 2],
+      ['mag_starlight_apprentice', 2],
+      ['mag_chrono_acolyte', 3],
+      ['mag_shadow_witch', 3],
+      ['mag_time_sage', 2],
+      ['umbra_shade_blade', 3],
+      ['chrono_rift_weaver', 2],
+      ['chrono_convergence', 2],
+      ['chrono_polymerization', 1],
+      ['mag_thousand_knives', 2],
+      ['mag_arcane_circle', 2],
+      ['mag_grimoire_relic', 2],
+      ['mag_magic_cylinder', 2],
+    ]),
+    riftDeck: [
+      'mag_fusion_dark_paladin',
+      'mag_fusion_dark_paladin',
+      'mag_fusion_astral_witch',
+      'fusion_eclipse_sovereign',
+    ],
+  },
+  {
+    id: 'ai_supreme_mecha',
+    name: 'Commander Nail-Omega',
+    title: 'Supreme Mecha (Set 9)',
+    faction: 'cryo_mecha',
+    description:
+      'Deploys the 4400 ATK Magnum Overlord Omega Maximum Titan, Cyber Infinity End Dragon & Limiter Overdrive!',
+    portrait: '/assets/cards/mech_magnum_overlord_c.jpg',
+    skillId: 'absolute_aegis',
+    mainDeck: expand([
+      ['mech_magnum_overlord_l', 2],
+      ['mech_magnum_overlord_c', 2],
+      ['mech_magnum_overlord_r', 2],
+      ['mech_cyber_proto', 3],
+      ['mech_cyber_viper', 3],
+      ['mech_rail_titan', 3],
+      ['mech_fortress_carrier', 2],
+      ['cryo_frost_drone', 3],
+      ['mech_limiter_overdrive', 2],
+      ['mech_repair_factory', 2],
+      ['mech_plasma_thruster', 2],
+      ['mech_emp_barrier', 2],
+      ['chrono_polymerization', 2],
+    ]),
+    riftDeck: ['mech_fusion_cyber_end', 'mech_fusion_cyber_end', 'fusion_frostfire_chimera'],
   },
 ];
 

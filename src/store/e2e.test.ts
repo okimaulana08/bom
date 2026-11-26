@@ -284,4 +284,54 @@ describe('End-to-End Progression, Economy, Crafting, Campaign & Duel Flow', () =
     expect(floor2Run.blessings.length).toBe(1);
     expect(floor2Run.currentLp).toBeGreaterThanOrEqual(7000); // 5500 + 1500 rest heal!
   });
+
+  it('tracks 7-Day Login Streak rewards and Per-Deck Winrate & Match History', () => {
+    const store = useProfileStore.getState();
+    store.resetProfile();
+
+    // 1. Claim Day 1 Login Streak (+150 Coins) and block duplicate same-day claim
+    expect(store.canClaimDailyLogin()).toBe(true);
+    expect(store.getNextLoginDay()).toBe(1);
+    const coinsBefore = store.coins;
+    const day1 = store.claimDailyLogin();
+    expect(day1.ok).toBe(true);
+    expect(day1.day).toBe(1);
+    expect(day1.coinsGained).toBe(150);
+    expect(useProfileStore.getState().coins).toBe(coinsBefore + 150);
+    expect(useProfileStore.getState().canClaimDailyLogin()).toBe(false);
+    expect(useProfileStore.getState().claimDailyLogin().ok).toBe(false);
+
+    // 2. Record 2 wins & 1 loss for Starter Deck -> verify Deck Winrate & Match History
+    useProfileStore.getState().recordDuelResult({
+      won: true,
+      chapterId: 6,
+      remainingPlayerLp: 6200,
+      fusionsPerformed: 1,
+      evolutionsPerformed: 1,
+      maximumsPerformed: 0,
+      deckId: STARTER_DECK.id,
+      deckName: STARTER_DECK.name,
+      opponentName: 'Pharaoh Atem-Ra',
+      turns: 5,
+    });
+    useProfileStore.getState().recordDuelResult({
+      won: false,
+      chapterId: null,
+      remainingPlayerLp: 0,
+      fusionsPerformed: 0,
+      evolutionsPerformed: 0,
+      deckId: STARTER_DECK.id,
+      deckName: STARTER_DECK.name,
+      opponentName: 'Commander Nail-Omega',
+      turns: 7,
+    });
+
+    const after = useProfileStore.getState();
+    expect(after.deckRecords?.[STARTER_DECK.id]?.wins).toBe(1);
+    expect(after.deckRecords?.[STARTER_DECK.id]?.losses).toBe(1);
+    expect(after.matchHistory?.length).toBe(2);
+    expect(after.matchHistory?.[0].opponentName).toBe('Commander Nail-Omega');
+    expect(after.matchHistory?.[1].opponentName).toBe('Pharaoh Atem-Ra');
+    expect(after.completedChapters).toContain(6);
+  });
 });

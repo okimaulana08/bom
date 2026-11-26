@@ -15,6 +15,7 @@ import type { CampaignChapter } from '../engine/types';
 import { CAMPAIGN_CHAPTERS } from '../data/campaign';
 import { FACTIONS } from '../data/factions';
 import { CARD_MAP } from '../data/cards';
+import { getSkillDef } from '../data/skills';
 import { useProfileStore } from '../store/profileStore';
 import { soundEngine } from '../audio/soundEngine';
 import { Card } from './Card';
@@ -32,14 +33,20 @@ export const CampaignMap: React.FC<CampaignMapProps> = ({ onBack, onStartChapter
 
   const [selectedChapter, setSelectedChapter] = useState<CampaignChapter | null>(null);
   const [dialogueStep, setDialogueStep] = useState(0);
+  const [activeSeason, setActiveSeason] = useState<1 | 2>(() =>
+    completedChapters.includes(5) ? 2 : 1
+  );
+
+  const seasonChapters = CAMPAIGN_CHAPTERS.filter((ch) => (ch.season ?? 1) === activeSeason);
 
   const validDecks = decks.filter((d) => d.mainDeck.length === 30);
   const chosenDeckId = validDecks.some((d) => d.id === activeDeckId)
     ? activeDeckId
     : validDecks[0]?.id ?? decks[0]?.id;
 
+  // Ch.1 (Season 1 start) and Ch.6 (Season 2 entry gate) are unlocked immediately so players can challenge either saga!
   const isUnlocked = (chapterId: number) =>
-    chapterId === 1 || completedChapters.includes(chapterId - 1);
+    chapterId === 1 || chapterId === 6 || completedChapters.includes(chapterId - 1);
 
   const openChapter = (ch: CampaignChapter) => {
     if (!isUnlocked(ch.id)) return;
@@ -84,12 +91,44 @@ export const CampaignMap: React.FC<CampaignMapProps> = ({ onBack, onStartChapter
               RIFT CHRONICLE
             </h1>
             <p className="text-[11px] text-slate-300/80 uppercase tracking-[0.2em]">
-              5 Dimensional Wardens • Boss Rules • Mythic Bounties
+              10 Dimensional Bosses (Season 1 &amp; Season 2) • Boss Skills • Mythic Bounties
             </p>
           </div>
         </div>
 
-        <div className="flex items-center gap-2.5">
+        <div className="flex flex-wrap items-center gap-2.5">
+          {/* Season 1 / Season 2 Switcher */}
+          <div className="flex rounded-xl bg-slate-950/90 border border-indigo-400/50 p-0.5 text-xs font-display font-extrabold">
+            <button
+              type="button"
+              onClick={() => {
+                soundEngine.uiClick();
+                setActiveSeason(1);
+              }}
+              className={`px-3 py-1 rounded-lg transition-all cursor-pointer ${
+                activeSeason === 1
+                  ? 'bg-gradient-to-r from-cyan-600 to-indigo-600 text-white shadow'
+                  : 'text-slate-400 hover:text-white'
+              }`}
+            >
+              S1: Genesis (1–5)
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                soundEngine.uiClick();
+                setActiveSeason(2);
+              }}
+              className={`px-3 py-1 rounded-lg transition-all cursor-pointer flex items-center gap-1 ${
+                activeSeason === 2
+                  ? 'bg-gradient-to-r from-amber-500 via-orange-500 to-fuchsia-600 text-white shadow'
+                  : 'text-amber-300 hover:text-amber-200'
+              }`}
+            >
+              ★ S2: Legends (6–10)
+            </button>
+          </div>
+
           <div className="game-panel clip-chamfer-sm px-3.5 py-1.5 text-xs font-mono-num font-bold text-cyan-200">
             REALMS CLEARED: {completedChapters.length} / {CAMPAIGN_CHAPTERS.length}
           </div>
@@ -131,18 +170,19 @@ export const CampaignMap: React.FC<CampaignMapProps> = ({ onBack, onStartChapter
           </svg>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 relative z-10 items-start">
-            {CAMPAIGN_CHAPTERS.map((ch, idx) => {
+            {seasonChapters.map((ch, idx) => {
               const unlocked = isUnlocked(ch.id);
               const cleared = completedChapters.includes(ch.id);
               const faction = FACTIONS[ch.faction];
               const rewardCard = CARD_MAP[ch.rewardCardId];
+              const chCode = ch.id < 10 ? `CH.0${ch.id}` : `CH.${ch.id}`;
 
               return (
                 <motion.div
                   key={ch.id}
                   whileHover={unlocked ? { y: -8, scale: 1.03 } : {}}
                   onClick={() => openChapter(ch)}
-                  className={`flex flex-col items-center text-center transition-all ${NODE_OFFSETS[idx]} ${
+                  className={`flex flex-col items-center text-center transition-all ${NODE_OFFSETS[idx % NODE_OFFSETS.length]} ${
                     unlocked ? 'cursor-pointer' : 'opacity-55 cursor-not-allowed'
                   }`}
                 >
@@ -188,7 +228,7 @@ export const CampaignMap: React.FC<CampaignMapProps> = ({ onBack, onStartChapter
                           : 'bg-slate-800 text-slate-400'
                       }`}
                     >
-                      {cleared ? '★ CLEARED' : unlocked ? `CH.0${ch.id} • DUEL` : `CH.0${ch.id} LOCKED`}
+                      {cleared ? '★ CLEARED' : unlocked ? `${chCode} • DUEL` : `${chCode} LOCKED`}
                     </span>
                   </div>
 
@@ -200,6 +240,11 @@ export const CampaignMap: React.FC<CampaignMapProps> = ({ onBack, onStartChapter
                     <div className={`text-[10px] font-bold uppercase mt-0.5 ${faction.textColor}`}>
                       {faction.name} • {ch.bossLp} LP
                     </div>
+                    {ch.bossSkillId && (
+                      <div className="mt-1 inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-amber-950/75 border border-amber-400/50 text-[9px] font-bold text-amber-200">
+                        <Sparkles className="w-2.5 h-2.5" /> Skill: {getSkillDef(ch.bossSkillId).skillName}
+                      </div>
+                    )}
 
                     <div className="mt-2 p-2 rounded bg-rose-950/40 border border-rose-500/35 text-[10px] text-slate-300 leading-snug text-left">
                       <span className="text-rose-300 font-extrabold uppercase block text-[9px]">

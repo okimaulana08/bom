@@ -234,7 +234,10 @@ export type BossModifierId =
   | 'cryo_guard_armor'
   | 'umbra_ambush_start'
   | 'sylvan_turn2_ramp'
-  | 'chrono_archon_boss';
+  | 'chrono_archon_boss'
+  | 'pharaoh_pyramid_start'
+  | 'dragon_rush_fury'
+  | 'orbital_overlord_boss';
 
 export interface PlayerDuelState {
   id: PlayerId;
@@ -306,6 +309,8 @@ export interface DuelConfig {
   opponentName: string;
   playerDeck: string[];
   playerRiftDeck: string[];
+  playerDeckId?: string;
+  playerDeckName?: string;
   opponentDeck: string[];
   opponentRiftDeck: string[];
   playerStartLp?: number;
@@ -313,6 +318,7 @@ export interface DuelConfig {
   opponentStartEvoOrbs?: number;
   bossModifier?: BossModifierId;
   playerSkillId?: DuelistSkillId | null;
+  opponentSkillId?: DuelistSkillId | null;
   playerBlessings?: SpireBlessingId[];
   spireFloor?: number;
   chapterId?: number;
@@ -388,6 +394,7 @@ export interface CampaignDialogue {
 
 export interface CampaignChapter {
   id: number;
+  season?: 1 | 2;
   title: string;
   subtitle: string;
   bossName: string;
@@ -397,6 +404,7 @@ export interface CampaignChapter {
   bossLp: number;
   bossEvoOrbs: number;
   bossModifier: BossModifierId;
+  bossSkillId?: DuelistSkillId;
   modifierTitle: string;
   modifierDescription: string;
   aiDifficulty: 'initiate' | 'grandmaster';
@@ -466,6 +474,26 @@ export interface PlayerStats {
   maximumsSummoned?: number;
 }
 
+export interface DeckRecord {
+  wins: number;
+  losses: number;
+  lastPlayedAt?: string;
+}
+
+export interface MatchHistoryEntry {
+  id: string;
+  date: string;
+  mode: 'quick_duel' | 'campaign' | 'spire';
+  deckId: string;
+  deckName: string;
+  opponentName: string;
+  won: boolean;
+  turns: number;
+  remainingLp: number;
+  fusions: number;
+  maximums: number;
+}
+
 export interface PlayerProfile {
   coins: number;
   dust: number;
@@ -482,6 +510,10 @@ export interface PlayerProfile {
   duelSpeed?: 1 | 2;
   selectedSkillId?: DuelistSkillId;
   lastFreePackDate?: string | null;
+  loginStreak?: number;
+  lastLoginClaimDate?: string | null;
+  deckRecords?: Record<string, DeckRecord>;
+  matchHistory?: MatchHistoryEntry[];
   royalFoils?: Record<string, boolean>;
   tutorialCompleted?: boolean;
   spireRun?: SpireRunState | null;

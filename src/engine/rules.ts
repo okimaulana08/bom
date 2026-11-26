@@ -129,7 +129,7 @@ export function createDuel(
         oppLp,
         oppOrbs,
         bossMod,
-        null,
+        config.opponentSkillId ?? null,
         []
       ),
     },
@@ -230,6 +230,49 @@ export function createDuel(
       `Boss Rule — Verdant Surge: ${config.opponentName} gains +1 Evo Orb and draws +1 bonus card on Turn 2.`,
       { actor: 'opponent' }
     );
+  } else if (bossMod === 'pharaoh_pyramid_start') {
+    if (registry['egypt_pyramid_domain']) {
+      state.players.opponent.arcane[0] = {
+        instanceId: nextId(state, 'arc'),
+        cardId: 'egypt_pyramid_domain',
+        owner: 'opponent',
+        slot: 0,
+        kind: 'domain',
+        faceDown: false,
+        setTurn: 0,
+      };
+      pushEvent(
+        state,
+        'boss_modifier',
+        `Boss Rule — Sacred Mound: ${config.opponentName} opens with Mound of the Bound Creator (+350 ATK/DEF & +300 LP/turn)!`,
+        { actor: 'opponent', cardId: 'egypt_pyramid_domain' }
+      );
+    }
+  } else if (bossMod === 'dragon_rush_fury') {
+    pushEvent(
+      state,
+      'boss_modifier',
+      `Boss Rule — Dragon Rush Fury: All of ${config.opponentName}'s monsters gain +200 ATK from Turn 2+!`,
+      { actor: 'opponent' }
+    );
+  } else if (bossMod === 'orbital_overlord_boss') {
+    if (registry['mech_repair_factory']) {
+      state.players.opponent.arcane[0] = {
+        instanceId: nextId(state, 'arc'),
+        cardId: 'mech_repair_factory',
+        owner: 'opponent',
+        slot: 0,
+        kind: 'domain',
+        faceDown: false,
+        setTurn: 0,
+      };
+      pushEvent(
+        state,
+        'boss_modifier',
+        `Boss Rule — Armada Overlord: ${config.opponentName} opens with Orbital Mecha Hangar (+300 ATK/+400 DEF)!`,
+        { actor: 'opponent', cardId: 'mech_repair_factory' }
+      );
+    }
   } else if (bossMod === 'chrono_archon_boss') {
     pushEvent(
       state,

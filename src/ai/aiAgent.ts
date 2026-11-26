@@ -8,6 +8,8 @@ import type {
   PlayerId,
 } from '../engine/types';
 import {
+  activateDuelistSkill,
+  canActivateSkill,
   canContactFuse,
   canEvolveUnit,
   canUnitAttack,
@@ -16,6 +18,8 @@ import {
   enterBattlePhase,
   evolveUnit,
   executeContactFusion,
+  executeMaximumSummon,
+  findAvailableMaximumSets,
   playCard,
   soulBurn,
   toggleStance,
@@ -34,6 +38,8 @@ import {
 } from '../engine/utils';
 
 export type AiAction =
+  | { kind: 'maximum_summon'; maximumSetId: string }
+  | { kind: 'activate_skill' }
   | { kind: 'contact_fusion'; fusionCardId: string; materials: MaterialChoice[] }
   | { kind: 'play_card'; handInstanceId: string; options: PlayCardOptions }
   | { kind: 'evolve'; unitInstanceId: string }
@@ -159,6 +165,46 @@ export function decideNextAiAction(
             handInstanceId: hc.instanceId,
             options: { targetPlayer: 'player' },
           };
+        }
+      }
+    }
+
+    // 1.5. 3-Piece MAXIMUM SUMMON (Grandmaster or Turn 3+!)
+    if ((isGrandmaster || opp.turnsTaken >= 3) && !myUnits.some((u) => u.isMaximumMode)) {
+      const availableMax = findAvailableMaximumSets(state, 'opponent', registry);
+      if (availableMax.length > 0) {
+        return { kind: 'maximum_summon', maximumSetId: availableMax[0].maximumSetId };
+      }
+    }
+
+    // 1.8. Boss Duelist Skill Activation (1/Duel, smart tactical trigger)
+    if (opp.skillId && !opp.skillUsed && (isGrandmaster || opp.turnsTaken >= 3)) {
+      const skillCheck = canActivateSkill(state, 'opponent', registry);
+      if (skillCheck.eligible) {
+        const shouldFire = (() => {
+          switch (opp.skillId) {
+            case 'volcanic_ignition':
+              return myFaceUp.length >= 2 || (myFaceUp.length >= 1 && player.lp <= 2500);
+            case 'absolute_aegis':
+              return (
+                enemyUnits.some((u) => !u.faceDown && getEffectiveAtk(state, u, registry) >= 1800) ||
+                myFaceUp.length >= 2
+              );
+            case 'void_resurrection':
+              return (
+                myUnits.length < 3 &&
+                opp.voidPile.some((cid) => (registry[cid]?.atk ?? 0) >= 1700)
+              );
+            case 'canopy_awakening':
+              return opp.turnsTaken >= 2;
+            case 'destiny_draw':
+              return opp.hand.length <= 7;
+            default:
+              return false;
+          }
+        })();
+        if (shouldFire) {
+          return { kind: 'activate_skill' };
         }
       }
     }
@@ -672,6 +718,10 @@ export function applyAiAction(
   skipAmbushFor?: PlayerId
 ): DuelState {
   switch (action.kind) {
+    case 'maximum_summon':
+      return executeMaximumSummon(state, 'opponent', action.maximumSetId, registry).state;
+    case 'activate_skill':
+      return activateDuelistSkill(state, 'opponent', registry).state;
     case 'contact_fusion':
       return executeContactFusion(
         state,
